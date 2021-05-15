@@ -13,12 +13,10 @@
                     class = "btn btn-success form-control"
                     :fetch   = "fetchData"
                     :fields = "json_fields"                   
-                    name    = "informe-alimentos.xls"
+                    name    = "alimentacion.xls"
                     type    = "xls">
                       <i class="fa fa-fw fa-download"></i> Generar Excel 
-                  </downloadexcel>      
-                  <!-- Button trigger modal -->
-                  <!-- <button type="button" class="btn btn-success" @click="abrirCrear()">Añadir registro</button> -->
+                  </downloadexcel>    
                 </div>
               </div>
               <div class="col-md-12">
@@ -47,44 +45,47 @@
                     <label for="search">Hasta: </label>
                     <input class="form-control" type="date" placeholder="Search" aria-label="fecha_ra2" v-model="fecha_ra2">                                        
                   </div>
+                  <div class="form-group col-md-2">
+                    <input type="checkbox" class="form-check-input" value="1" v-model="see_all" id="see_all">
+                    <label for="see_all" class="form-check-label">
+                      <span></span>
+                      Ver todos los registros
+                    </label>
+                  </div>
                   <div class="form-group col-md-2">                                      
-                    <button  class="btn btn-primary rounded-circle mt-4" type="submit" @click="buscarResultados()"><i class="fas fa-search"></i></button>
+                    <button  class="btn btn-primary rounded-circle mt-4" type="button" @click="buscarResultados()"><i class="fas fa-search"></i></button>
                   </div>
                 </form>
-              </div>
-              
+              </div> 
             </div>
          
             <div>
-              <table class="table table-sm table-hover table-responsive">
-                <thead>
+              <table class="table table-sticky table-bordered table-striped table-sm table-sm-responsive">
+                <thead class="thead-primary">
                   <tr>
                     <th>#</th>
-                    <th>Tipo de <br> Actividad</th>
-                    <th>Siembras</th>
+                    <th>Tipo de Actividad</th>
+                    <th class="fixed-column">Siembra</th>
                     <th>Fecha</th>
                     <th>Minutos hombre</th>
-                    <!-- <th>Total minutos hombre</th> -->
-                    <th><br>Alimento</th>
-                    <th>Cantidad<br>Mañana</th>
-                    <th>Cantidad<br>Tarde</th>
-                    <th>Total<br>día</th>
+                    <th> Alimento</th>
+                    <th>Cantidad Mañana</th>
+                    <th>Cantidad Tarde</th>
+                    <th>Total día</th>
                     <th>Costo Kg</th>
                     <th>Costo total</th>
                     <th>Conversión alimenticia teórica</th>
                     <th>Incremento biomasa acumulada por conversión</th>
-                    <th width=15%>Detalles</th>
-                    <!-- <th>Eliminar</th> -->
+                    <th>Detalles</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr v-for="(item, index) in listado" :key="index">
                     <td v-text="index+1"></td>
                     <td v-text="item.actividad"></td>
-                    <td v-text="item.nombre_siembra"></td>
+                    <td v-text="item.nombre_siembra" class="fixed-column"></td>
                     <td v-text="item.fecha_ra"></td>                    
                     <td v-text="item.minutos_hombre"></td>
-                    <!-- <td v-text="item.total_minutos_hombre"></td> -->
                     <td v-text="item.alimento"></td>
                     <td v-text="item.cant_manana == null ? '-' : item.cant_manana +' kg' "></td>
                     <td v-text="item.cant_tarde == null ? '-' : item.cant_tarde +' kg' "></td>                   
@@ -94,14 +95,10 @@
                     <td v-text="item.conv_alimenticia"></td>
                     <td v-text="item.incr_bio_acum_conver"></td>
                     <td v-text="item.detalles"></td>
-                    <!-- <td>
-                      <button class="btn btn-danger" @click="eliminarRegistro(item.id)">
-                        <i class="fas fa-trash"></i>
-                      </button>
-                    </td> -->
-      
                   </tr>
-                  <tr>
+                </tbody>
+                <tfoot>
+                   <tr>
                     <th colspan="4" class="text-right">TOTAL:</th>
                     <th v-text="promedios.tmh"></th>
                     <th></th>
@@ -113,9 +110,23 @@
                     <th></th>
                     <th v-text="promedios.icb"></th>
                   </tr>
-                </tbody>
+   
+                </tfoot>
               </table>
             </div>
+            <nav v-show="showPagination" class="mt-5 navigation ">
+              <ul class="pagination justify-content-center">
+                <li class="page-item" v-if="pagination.current_page > 1">
+                  <a class="page-link" href="#" @click.prevent="cambiarPagina(pagination.current_page - 1)">Ant</a>
+                </li>
+                <li class="page-item" v-for="page in pagesNumber" :key="page" :class="[page == isActived ? 'active' : '']">
+                  <a class="page-link" href="#" @click.prevent="cambiarPagina(page)" v-text="page"></a>
+                </li>
+                <li class="page-item" v-if="pagination.current_page < pagination.last_page">
+                  <a class="page-link" href="#" @click.prevent="cambiarPagina(pagination.current_page + 1)">Sig</a>
+                </li>
+              </ul>
+            </nav>
           </div>
         </div>
       </div>
@@ -187,7 +198,7 @@
             </form>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
             <button type="button" class="btn btn-primary" @click="guardarRecursos()">Guardar</button>
           </div>
         </div>
@@ -206,13 +217,15 @@ import downloadexcel from "vue-json-excel"
           'Tipo actividad' : 'actividad',
           'Siembra' : 'nombre_siembra',
           'Fecha' : 'fecha_ra',
-          'Costo minutos hombre': 'total_minutos_hombre',
+          'Minutos hombre' : 'minutos_hombre',
           'Alimento' : 'alimento',
-          'Kg Mañana' : 'cant_manana', 
-          'Kg tarde' : 'cant_tarde',
-          'Kg día' : 'alimento_dia',
-          'Costo' : 'costo_kg',
+          'Cantidad KG Mañana' : 'cant_manana', 
+          'Cantidad KG tarde' : 'cant_tarde',
+          'Cantidad total día' : 'alimento_dia',
+          'Costo KG' : 'costo_kg',
           'Costo total' : 'costo_total_alimento',
+          'Conversion alimenticia teorica' :'conv_alimenticia',
+          'incremento biomasa acumulada por conversion' : 'incr_bio_acum_conver',
           'Detalles' : 'detalles'
         },
         form : new Form({
@@ -225,11 +238,21 @@ import downloadexcel from "vue-json-excel"
           cant_manana : '',
           cant_tarde : '',
           detalles : ''
-        }),    
+        }),
+        pagination : {
+          'total' : 0,
+          'current_page' : 0,
+          'per_page' : 0,
+          'last_page' : 0,
+          'from' : 0,
+          'to' : 0,
+        },
+        offset : 10,
         t_actividad:'',
         fecha_ra1 :'',
         fecha_ra2 :'',
         f_siembra : '',
+        see_all : 0,
         alimento_s :'',
         recurso_s : '',
         busqueda:'',
@@ -242,26 +265,56 @@ import downloadexcel from "vue-json-excel"
         listadoAlimentos:[],
         listadoRecursos:[],
         nombresRecursos:[],
-        nombresAlimentos:[]
+        nombresAlimentos:[],
+        showPagination : 1
       }
     },
     components: {
       downloadexcel,
     },
+    computed:{
+      isActived: function(){
+          return this.pagination.current_page;
+      },
+      //Calcula los elementos de la paginación
+      pagesNumber: function() {
+        if(!this.pagination.to) {
+          return [];
+        }
+        
+        var from = this.pagination.current_page - this.offset; 
+        if(from < 1) {
+          from = 1;
+        }
+
+        var to = from + (this.offset * 2); 
+        if(to >= this.pagination.last_page){
+          to = this.pagination.last_page;
+        }  
+
+        var pagesArray = [];
+        while(from <= to) {
+          pagesArray.push(from);
+          from++;
+        }
+        return pagesArray;
+      }
+    },
     methods:{
-     async fetchData(){
-      let me = this;
-      const response = await this.listado
-      return this.listado;
-      //  imprimirSiembras
+      async fetchData(){
+        let me = this;
+        const response = await this.listado
+        return this.listado;
       },
       abrirCrear(){
         let me = this;
         $('#modalRecursos').modal('show');
       },
+
       buscarResultados(){
         let me = this;
         if(this.f_siembra == ''){this.f_s = '-1'}else{this.f_s = this.f_siembra}
+        if(this.see_all == ''){this.check = 0}else{this.check = this.see_all}
         if(this.t_actividad == ''){ this.actividad = '1'}else{this.actividad  = this.t_actividad} 
         if(this.alimento_s == ''){this.ali = '-1'}else{this.ali = this.alimento_s}
         if(this.fecha_ra1 == ''){ this.fecha1 = '-3'}else{this.fecha1 = this.fecha_ra1}
@@ -270,6 +323,7 @@ import downloadexcel from "vue-json-excel"
      
         const data ={
           'f_siembra' : this.f_s,
+          'see_all' : this.check,
           'tipo_actividad' : '1',
           'alimento_s' : this.ali,
           'recurso_s' : this.rec,
@@ -278,20 +332,30 @@ import downloadexcel from "vue-json-excel"
         }
         axios.post("api/searchResults", data)
         .then(response=>{
-          me.listado = response.data.recursosNecesarios;
+
           me.promedios = response.data.promedioRecursos;
-          console.log(response)
+
+          if(response.data.pagination) {
+            this.showPagination = 1;
+            me.listado = response.data.recursosNecesarios.data;
+            me.pagination = response.data.pagination;
+          }
+          else{
+            this.showPagination = 0;
+            me.listado = response.data.recursosNecesarios;
+            me.pagination = []
+          }
+           
         })
-        console.log('buscar')
       },
-      listar(){
+
+      listar(page){
         let me = this;
-        axios.get("api/lista-alimentacion")
+        axios.get("api/lista-alimentacion?page=" + page)
         .then(function (response){
-          me.listado = response.data.recursosNecesarios;         
-          me.listadoRS = response.data.recursosSiembra;
-          me.listadorxs = response.data.registrosxSiembra;
+          me.listado = response.data.recursosNecesarios.data;         
           me.promedios = response.data.promedioRecursos;
+          me.pagination = response.data.pagination;
         })
       },
       listarSiembras(){
@@ -330,7 +394,6 @@ import downloadexcel from "vue-json-excel"
         let me = this;        
         this.form.post("api/recursos-necesarios")
         .then(({data})=>{
-          console.log('guardado');
           me.listar();
          $('#modalRecursos').modal('hide');
         })
@@ -348,20 +411,25 @@ import downloadexcel from "vue-json-excel"
           if (willDelete) {
             axios.delete('api/recursos-necesarios/'+objeto)
             .then(({data})=>{
-              console.log('eliminar'+objeto);
               me.listar();
               
             })
           }
         });        
-      }
+      },
+      cambiarPagina(page){
+        let me = this;
+        //Actualiza la página actual
+        me.pagination.current_page = page;
+        me.listar(page);
+      },
     },
+    
     mounted() {
-      this.listar();
+      this.listar(1);
       this.listarSiembras();
       this.listarAlimentos();
       this.listarRecursos();
-      console.log('Component mounted.')
     }
   }
 </script>

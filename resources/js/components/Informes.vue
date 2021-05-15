@@ -3,7 +3,7 @@
         <div class="row justify-content-center">
             <div class="col-md-12">
                 <div class="card">
-                    <div class="card-header">Informes Aquamazonia</div>
+                    <div class="card-header">Informes recursos y actividades Aquamazonia</div>
                       <!-- <a href="informe-excel"><button type="submit" class="btn btn-success" name="infoSiembras"><i class="fa fa-fw fa-download"></i> Generar Excel </button></a> -->                    
                     <div class="card-body">
                       <div class="row mb-1">
@@ -29,7 +29,7 @@
                               <label for="actividad">Tipo actividad: </label>
                               <select class="form-control" id="actividad" v-model="actividad_s" name="tipo_actividad">
                                 <option selected> Seleccionar</option>   
-                                <option v-for="(actividad, index) in listadoActividades" :key="index" v-bind:value="actividad.id">{{actividad.actividad}}</option>
+                                <option v-for="(actividad, index) in listadoActividades" :key="index" v-bind:value="actividad.id" @click="tipoActividad = actividad.actividad">{{actividad.actividad}}</option>
                               </select>
                             </div>
                             <div class="form-group col-md-2">
@@ -61,21 +61,20 @@
                             <div class="form-group col-md-2">                                      
                               
                               <downloadexcel
-                              class = "btn btn-success"
+                              class = "btn btn-success form-control"
                               :fetch   = "fetchData"
                               :fields = "json_fields"                             
                               name    = "informe-recursos.xls"
                               type    = "xls">
                                 <i class="fa fa-fw fa-download"></i> Generar Excel 
                               </downloadexcel>
-                              
                             </div>
                           </form>
                         </div>
                       </div>
                       <div>
-                        <table class="table table-sm table-responsive">
-                          <thead>
+                        <table class="table table-bordered table-striped table-sticky table-sm">
+                          <thead class="thead-primary">
                             <tr>
                               <th>#</th>
                               <th>Siembra</th>
@@ -85,13 +84,16 @@
                               <th>Minutos <br>hombre</th>
                               <th>Costo minutos </th>
                               <th>Costo Acumulado Minutos</th>
-                              <th>Recursos</th>
-                              <th>Cantidad</th>
-                              <th>Costo <br>Acumulado</th>
-                              <th>Fecha</th>
-                              <th>Alimentos</th>
-                              <th>Costo</th>
-                              <th>Costo <br>Acumulado</th>
+                              <th v-if="tipoActividad != 'Alimentación'">Recursos</th>
+                              <th v-if="tipoActividad != 'Alimentación'">Cantidad</th>
+                              <th v-if="tipoActividad != 'Alimentación'">Costo Recurso</th>
+                              <th v-if="tipoActividad != 'Alimentación'">Costo acumulado Recurso</th>
+                              <th v-if="tipoActividad == 'Alimentación'">Alimentos</th>
+                              <th v-if="tipoActividad == 'Alimentación'">Cantidada Mañana (KG)</th>
+                              <th v-if="tipoActividad == 'Alimentación'">Cantidada Tarde (KG)</th>
+                              <th v-if="tipoActividad == 'Alimentación'">Costo Alimento</th>
+                              <th v-if="tipoActividad == 'Alimentación'">Costo <br>Acumulado</th>
+                              <th>Costo actividad</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -102,17 +104,32 @@
                               <td v-text="lrn.actividad"></td>
                               <td v-text="lrn.fecha_ra"></td>
                               <td v-text="lrn.minutos_hombre +'min'"></td>
-                              <td v-text="lrn.costo_minutosh"></td>
+                              <td v-text="lrn.costo_minutos"></td>
                               <th v-text="lrn.costo_h_acum"></th>
-                              <td v-text="lrn.recurso"></td>
-                              <td v-text="lrn.cantidad_recurso"></td>
-                              <th v-text="lrn.costo_r_acum"></th>        
-                              <td v-text="lrn.fecha_ra"></td>     
-                              <td v-text="lrn.alimento"></td>
-                              <td v-text="lrn.costo_total_alimento"></td>
-                              <th v-text="lrn.costo_a_acum"></th>
+                              <td v-text="lrn.recurso" v-if="tipoActividad != 'Alimentación'"></td>
+                              <td v-text="lrn.cantidad_recurso" v-if="tipoActividad != 'Alimentación'"></td>
+                              <td v-text="lrn.costo_total_recurso" v-if="tipoActividad != 'Alimentación'"></td>
+                              <th v-text="lrn.costo_r_acum" v-if="tipoActividad != 'Alimentación'"></th>
+                              <td v-text="lrn.alimento" v-if="tipoActividad == 'Alimentación'"></td>
+                              <td v-text="lrn.cant_manana" v-if="tipoActividad == 'Alimentación'"></td>
+                              <td v-text="lrn.cant_tarde" v-if="tipoActividad == 'Alimentación'"></td>
+                              <td v-text="lrn.costo_total_alimento" v-if="tipoActividad == 'Alimentación'"></td>
+                              <th v-text="lrn.costo_a_acum" v-if="tipoActividad == 'Alimentación'"></th>
+                              <th v-text="lrn.costo_total_actividad"></th>
                             </tr>
                           </tbody>
+                          <tfoot>
+                            <tr>
+                              <th colspan="5" class="text-right">PROMEDIOS</th>
+                              <td colspan="2" class="text-right">Costo minutos: </td>
+                              <th>{{listadoPromedios.total_minutos}}</th>
+                              <td colspan="3" v-if="tipoActividad != 'Alimentación'" class="text-right">Costo recursos: </td>
+                              <th v-if="tipoActividad != 'Alimentación'">{{listadoPromedios.total_recurso}}</th>
+                              <td colspan="2" v-if="tipoActividad == 'Alimentación'">Costo alimentos: </td>
+                              <th v-if="tipoActividad == 'Alimentación'">{{listadoPromedios.total_alimento}}</th>
+                              <th>Costo total actividades: {{listadoPromedios.total_actividad}}</th>
+                            </tr>
+                          </tfoot>
                         </table>
                       </div>
                     </div>
@@ -137,18 +154,18 @@
             'Costo minutos hombre' : 'costo_minutosh',
             'Costo acumulado minutos' : 'costo_h_acum',
             'Recurso' : 'recurso',
-            'Costo' : 'costo_r',
-            'Costo acumulado' : 'costo_r_acum',
+            'Cantidad Recurso' : 'cantidad_recurso',
+            'Costo Recurso' : 'costo_total_recurso',
+            'Costo acumulado Recurso' : 'costo_r_acum',
             'Alimento' : 'alimento',
             'Cantidad KG mañana' : 'cant_manana',
             'Cantidad KG tarde' : 'cant_tarde',
-            'Costo Alimento' : 'costo_a',
-            'Costo Total' : 'costo_total_alimento',
-            'Costo acumulado Alimento' : 'costo_a_acum', 
+            'Costo Alimento' : 'costo_total_alimento',
+            'Costo acumulado Alimento' : 'costo_a_acum',
+            'Costo Actividad' : 'costo_total_actividad'
             
         },       
         listados: [],
-        listadors:[],
         listadorn:[],
         listadoe:[],
         listadoActividades:[],
@@ -165,6 +182,8 @@
         fecha_ra1 : '',
         fecha_ra2: '', 
         costo_acum : 0, 
+        tipoActividad : '',
+        listadoPromedios : []
         
       }
     },
@@ -175,29 +194,22 @@
       async fetchData(){
         let me = this;
         // const response = await axios.get('api/informe-recursos');
-        const response = await this.imprimirRecursos
-        // console.log(response);
+        const response = await this.imprimirRecursos;
         return this.imprimirRecursos;
       },
       listar(){
         let me = this;        
         axios.get("api/informes")
         .then(function (response){
-          me.listadors = response.data.recursosSiembras;
           me.listadorn = response.data.recursosNecesarios;
+          me.listadoPromedios = response.data.promedioRecursos;
         })         
         axios.get("api/traer-recursos")
         .then(response=>{
-          console.log(response.data.recursosNecesarios);
           me.imprimirRecursos = response.data.recursosNecesarios;
         })
       },
-      incrementar(incremento){
-        this.costo_acum += parseFloat(incremento);
-        var aux_acum = parseFloat(this.costo_acum);
-        console.log('aux_acum=' + aux_acum);
-        return aux_acum;
-      },
+
       listarActividades(){
         let me = this;
         axios.get("api/actividades")
@@ -252,19 +264,14 @@
         axios.post("api/filtroInformes", data)
         .then(response=>{
           me.listadorn = response.data.recursosNecesarios;
-          me.listadors = response.data.recursosSiembras;
-          // console.log(response.data);
         });
         axios.post("api/informe-recursos", data)
         .then(response=>{
-          console.log(response.data.recursosNecesarios);
           me.imprimirRecursos = response.data.recursosNecesarios;
         })
-        console.log('buscar')
       },
     },
     mounted() {
-      console.log('Component mounted.');
       this.listar();
       this.listarSiembras();
       this.listarAlimentos();

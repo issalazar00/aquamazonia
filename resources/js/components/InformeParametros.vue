@@ -44,9 +44,9 @@
                 </div>
               </div>
             </div>
-            <div>   
-              <table class="table table-striped table-hover table-sm table-responsive-sm">                
-                <thead class="">
+            <div class="table-container" id="table-container2">
+              <table class="table-sticky table table-sm table-hover table-bordered">
+                <thead class="thead-primary">
                   <tr>                    
                     <th rowspan="2" data-field="id">#</th>                    
                     <th rowspan="2">ID registro</th>
@@ -87,7 +87,6 @@
                     <td v-text="lp.otros"></td>
                   </tr>
                   <tr class="bg-secondary text-white">
-                    
                     <th colspan="4">PROMEDIO:</th>
                     <td v-text="promedios.promedio_12_am"></td>
                     <td v-text="promedios.promedio_4_am"></td>
@@ -100,7 +99,6 @@
                     <td v-text="promedios.promedio_nitrito"></td>
                     <td v-text="promedios.promedio_nitrato"></td>
                     <td v-text="promedios.promedio_otros"></td>
-                    
                   </tr>                  
                 </tbody>
               </table>
@@ -123,13 +121,14 @@
         json_fields: {   
           '#' : 'id',
           'Fecha ' : 'fecha_parametro',
+          'Contenedor' : 'contenedor',
           '12:00 a.m' : '12_am',
           '4:00 a.m' : '4_am',
           '7:00 a.m' : '7_am',
           '4:00 p.m' : '4_pm',
-          '8:00 a.m' : '8_pm',
+          '8:00 p.m' : '8_pm',
           'Temperatura' : 'temperatura', 
-          'Ph' : 'ph',
+          'PH' : 'ph',
           'Amonio' : 'amonio',
           'Nitrito' : 'nitrito', 
           'Nitrato' : 'nitrato',
@@ -172,8 +171,7 @@
       async fetchData(){
         let me = this;
         // const response = await axios.get('api/informe-Parametros');
-        const response = await this.listadoParametros
-        // console.log(response);
+        const response = await this.listadoParametros;
         return this.listadoParametros;
       },
       filtrarParametros(){
@@ -189,7 +187,6 @@
         }
         axios.post("api/filtro-parametros", data)
         .then(response=>{
-          console.log(response.data);
           me.listadoParametros = response.data.calidad_agua;
           me.promedios = response.data.promedios
         })
@@ -235,7 +232,6 @@
         this.form.post("api/parametros-calidad")
         .then(({data})=>{
           editando: 0;
-          console.log('guardado');
           me.listar();
          $('#modalParametros').modal('hide');
         })
@@ -250,12 +246,10 @@
         let me = this;
             this.form.put('api/parametros-calidad/'+this.form.id)
             .then(({data})=>{
-              console.log(data);
               $('#modalParametros').modal('hide');
               me.listar();
               this.form.reset();
             })          
-            console.log('editando' + this.form.id)
         
       },
       eliminarParametros(objeto){
@@ -271,7 +265,6 @@
           if (willDelete) {
             axios.delete('api/parametros-calidad/'+objeto)
             .then(({data})=>{
-              console.log('eliminar'+objeto);
               me.listar();
               
             })

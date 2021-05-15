@@ -1,9 +1,9 @@
 <template>   
-    <div class="container-sm">
+    <div class="container">
         <div class="row justify-content-center">
             <div class="col-md-12">
                 <div class="card">
-                    <div class="card-header">Informes consolidado variables de producción</div>
+                    <div class="card-header">Informe consolidado variables de producción</div>
                       <!-- <a href="informe-excel"><button type="submit" class="btn btn-success" name="infoSiembras"><i class="fa fa-fw fa-download"></i> Generar Excel </button></a> -->                    
                     <div class="card-body">   
                       <div class="row text-left">
@@ -11,12 +11,11 @@
                       </div>
                       <div class="row">
                         <div class="form-group col-md-2">
-                          <label for="siembra">Siembras:
-                            <select class="custom-select" id="siembra" v-model="f_siembra">
-                              <option value="-1">Seleccionar</option>
-                              <option :value="ls.id" v-for="(ls, index) in listadoSiembras" :key="index">{{ls.nombre_siembra}}</option>                        
-                            </select>
-                          </label>
+                          <label for="siembra">Siembras:</label>
+                          <select class="custom-select" id="siembra" v-model="f_siembra">
+                            <option value="-1">Seleccionar</option>
+                            <option :value="ls.id" v-for="(ls, index) in listadoSiembras" :key="index">{{ls.nombre_siembra}}</option>                        
+                          </select>
                         </div>
                         <div class="form-group col-md-2">
                           <label for="f_estado">
@@ -39,24 +38,25 @@
                           class = "btn btn-success form-control"
                           :fetch   = "fetchData"
                           :fields = "json_fields"
-                          name    = "informe-ciclo-productivo.xls"
+                          name    = "informe-consolidado.xls"
                           type    = "xls">
                             <i class="fa fa-fw fa-download"></i> Generar Excel 
                           </downloadexcel>
                         </div>
                       </div>
-                      <div>
-                        <table class="table table-striped table-sm table-hover table-responsive">
-                          <thead>
+                      <div class="table-container" id="table-container2">
+                        <table class="table-sticky table table-sm table-hover table-bordered">
+                          <thead class="thead-primary">
                             <tr>
                               <th>#</th>
-                              <th>Siembra</th>  
+                              <th class="fixed-column">Siembra</th>  
                               <th>Area</th>                           
                               <th>Inicio siembra</th>
                               <th>Tiempo de cultivo</th>
                               <th>Cant Inicial</th>
                               <th>Biomasa Inicial</th>
                               <th>Peso Inicial</th>
+                              <th>Carga inicial</th>
                               <th>Animales final</th>
                               <th>Peso Actual</th>                                 
                               <th>Biomasa dispo</th>
@@ -64,6 +64,7 @@
                               <th>Mort. Kg</th>
                               <th>% Mortalidad</th>
                               <th>Salida animales</th>                              
+                              <th>Densidad Inicial (Animales/m<sup>2</sup>)</th>
                               <th>Densidad Final (Animales/m<sup>2</sup>)</th>
                               <th>Carga Final (Kg/m<sup>2</sup>)</th>
                               <th>Horas Hombre</th>             
@@ -75,18 +76,22 @@
                               <th>Costo produccion final</th>
                               <th>Conversion alimenticia parcial</th>
                               <th>Conversion final</th>
+                              <th>Ganancia peso día</th>
+                              <th><b>%</b> Supervivencia final </th>
                             </tr>
                           </thead>
                           <tbody>
                             <tr v-for="(le, index) in listadoExistencias" :key="index">                              
+                             <th>#</th>
                               <td v-text="index+1"></td>
-                              <td v-text="le.nombre_siembra"></td>   
+                              <td v-text="le.nombre_siembra" class="fixed-column"></td>   
                               <td v-text="le.capacidad"></td>
                               <td v-text="le.fecha_inicio"></td>
                               <td v-text="le.intervalo_tiempo"></td>
                               <td v-text="le.cantidad_inicial"></td>
                               <td v-text="le.biomasa_inicial"></td>
                               <td v-text="le.peso_inicial+' gr'"></td>
+                              <td v-text="le.carga_inicial"></td>
                               <td v-text="le.cant_actual"></td>
                               <td v-text="le.peso_actual+' gr'"></td>                                                               
                               <td v-text="le.biomasa_disponible+' kg'"></td> 
@@ -97,6 +102,7 @@
                               <td v-else>0</td>
                               <td v-if="le.salida_animales">{{le.salida_animales}}</td>
                               <td v-else>0</td>
+                              <td v-text="le.densidad_inicial"></td>
                               <td v-text="le.densidad_final"></td>
                               <td v-text="le.carga_final"></td>
                               <td v-text="le.horas_hombre"></td>
@@ -108,6 +114,8 @@
                               <td v-text="le.costo_produccion_final"></td>
                               <td v-text="le.conversion_alimenticia_parcial"></td>
                               <td v-text="le.conversion_final"></td>
+                              <td v-text="le.ganancia_peso_dia"></td>
+                              <td v-text="le.porc_supervivencia_final"></td>
                             </tr>
                           </tbody>
                         </table>
@@ -126,32 +134,40 @@
       return {
         json_fields: {      
           'Siembra' : 'nombre_siembra',
-          'Fecha inicio siembra' : 'fecha_inicio',
+          'Area' : 'capacidad',
+          'Inicio siembra' : 'fecha_inicio',
+          'Tiempo de cultivo' : 'intervalo_tiempo',
           'Cantidad Inicial' : 'cantidad_inicial',
+          'Biomasa inicial' : 'biomasa_inicial',
           'Peso inicial' : 'peso_inicial',
+          'Carga inicial' : 'carga_inicial',
           'Animales final' : 'cant_actual',
           'Peso actual' : 'peso_actual',
-          'Intervalo de tiempo' : 'intervalo_tiempo',
           'Biomasa disponible' : 'biomasa_disponible',
           'Salida de biomasa' : 'salida_biomasa',
-          'Biomasa acumulada' : 'biomasa_acumulada',
           'Mortalidad' : 'mortalidad',
           'Mortalidad kg' : 'mortalidad_kg',
           'Mortalidad %' : 'mortalidad_porcentaje',
           'Salida animales' : 'salida_animales',
+          'Densidad inicial (Animales/m2)' : 'densidad_inicial',
           'Densidad final (Animales/m2)' : 'densidad_final',
           'Carga final (Kg/m2)' : 'carga_final',
           'Horas hombre':'horas_hombre',
-          'Costo minutos Hombre':'costo_minutosh',
+          'Costo Horas':'costo_minutosh',
           'Costo total recursos':'costo_total_recurso',
+          'Costo horas':'costo_horas',
           'Costo total alimentos':'costo_total_alimento',
-          'Costo total':'costo_tot',
           'Total Kg Alimento' : 'cantidad_total_alimento',
-          'Conversión alimenticia parcial' : 'conversion_alimenticia_siembra'
+          'Costo total':'costo_tot',
+          'Costo producccion final' : 'costo_produccion_final',
+          'Conversión alimenticia parcial' : 'conversion_alimenticia_siembra',
+          'Conversion final' : 'conversion_final',
+          'Ganancia peso dia' : 'ganancia_peso_dia',
+          '% Supervivencia final' : 'porc_supervivencia_final'
         },       
         listadoExistencias : [],
         listadoEspecies : [],
-        listadoSiembras: [], 
+        listadoSiembras: [],
         imprimirRecursos:[],
         f_siembra : '',
         f_estado : '', 
@@ -175,7 +191,6 @@
         this.listarSiembras();
         axios.get("api/traer-existencias-detalle")
         .then(function (response){
-          console.log(response.data)
           me.listadoExistencias = response.data.existencias;
         })                 
       },
@@ -193,6 +208,7 @@
           me.listadoSiembras = response.data.siembra;
         })
       },
+      
       filtroSiembra(){
         let me = this;
         
@@ -210,7 +226,6 @@
         .then(response=>{
           me.listadoExistencias = response.data.existencias;
         });
-        console.log('buscar')
       },
     },
     mounted() {

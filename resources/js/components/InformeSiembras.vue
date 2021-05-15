@@ -60,13 +60,12 @@
                               </downloadexcel>                            
                           </div>
                         </div>
-                        
-                        <div class="row">
-                            <table class="table table-striped table-hover table-sm table-responsive-sm">
-                              <thead>
+                        <div class="table-container" id="table-container2">
+                          <table class="table-sticky table table-sm table-hover table-bordered">
+                            <thead class="thead-primary">
                                 <tr>
                                   <th scope="col">#</th>
-                                  <th>Nombre <br> siembra</th>
+                                  <th>Nombre<br>siembra</th>
                                   <th scope="col">Inicio siembra</th>                                  
                                   <th scope="col">Estado</th>   
                                   <th scope="col">Contenedor</th>
@@ -75,8 +74,7 @@
                                   <th>Cantidad actual</th>
                                   <th>Peso actual</th>
                                   <th>Mortalidad</th>
-                                  <th>Cantidad Pesca</th>
-                                                           
+                                  <th>Cantidad Pesca</th>                        
                                 </tr>
                               </thead>
                               <tbody>
@@ -282,7 +280,6 @@
         let me = this;
         this.ver_registros = 1;
         $("#modalIngreso").modal('show');
-        console.log(id);
         this.idSiembraRegistro = id;
         this.tipo_registro = 0;
       },      
@@ -326,7 +323,6 @@
             }         
             axios.post('api/actualizarEstado/'+this.id_finalizar, data)
             .then(({response})=>{
-              console.log(response);   
               this.id_finalizar = '';
               this.ini_descanso = '';
               this.fin_descanso = '';
@@ -341,7 +337,6 @@
          
             axios.post('api/actualizarEstado/'+this.id_finalizar, data)
             .then(({response})=>{
-              console.log(response);   
               this.id_finalizar = '';
               this.ini_descanso = '';              
               $('#modalFinalizar').modal('hide');
@@ -351,7 +346,6 @@
         }else{
          swal("Advertencia", "Por favor, diligencia los datos restantes", "warning");
         }
-        console.log('finalizar'+this.id_finalizar);
       
       },
     },

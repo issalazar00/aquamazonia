@@ -36,16 +36,16 @@
                           class = "btn btn-success form-control"
                           :fetch   = "fetchData"
                           :fields = "json_fields"        
-                          name    = "informe-ciclo-productivo.xls"
+                          name    = "informe-produccion.xls"
                           type    = "xls">
                             <i class="fa fa-fw fa-download"></i> Generar Excel 
                           </downloadexcel>
                         </div>
                       </div>
-                      <div>
-                        <table class="table table-striped table-sm table-hover table-responsive">
-                          <thead>
-                            <tr class="text-right">
+                      <div class="table-container" id="table-container2">
+                        <table class="table-sticky table table-sm table-hover table-bordered">
+                          <thead class="thead-primary">
+                            <tr>
                               <th>#</th>
                               <th>Siembra</th>
                               <th>Costo Horas</th>
@@ -53,7 +53,8 @@
                               <th>Costo Alimentos</th>
                               <th>Total alimento (Kg)</th>
                               <th>Costo total de siembra</th>
-                              <th>Costo de producción</th>
+                              <th>Costo de producción parcial</th>
+                              <th>Biomasa disponible por alimento</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -65,7 +66,8 @@
                               <td v-text="le.costo_total_alimento"></td>
                               <td v-text="le.cantidad_total_alimento"></td>
                               <td v-text="le.costo_tot"></td>
-                              <td v-text="le.costo_produccion"></td>
+                              <td v-text="le.costo_produccion_parcial"></td>
+                              <td v-text="le.bio_dispo_alimen"></td>
                             </tr>
                           </tbody>
                         </table>
@@ -84,14 +86,13 @@
       return {
         json_fields: {      
           'Siembra' : 'nombre_siembra',
-          'Salida de biomasa' : 'salida_biomasa',
-          'Salida animales' : 'salida_animales',
-          'Costo minutos Hombre':'costo_minutosh',
-          'Costo total recursos':'costo_total_recurso',
-          'Costo total alimentos':'costo_total_alimento',
-          'Costo total':'costo_tot',
-          'Total Kg Alimento' : 'cantidad_total_alimento',
-          'Costo de producción' : 'costo_produccion'
+          'Costo Horas':'costo_minutosh',
+          'Costo recursos':'costo_total_recurso',
+          'Costo alimentos':'costo_total_alimento',
+          'Total Alimento (KG)' : 'cantidad_total_alimento',
+          'Costo total siembra':'costo_tot',
+          'Costo total de producción parcial' : 'costo_produccion_parcial',
+          'Biomasa disponible por alimento' : 'bio_dispo_alimen'
         },       
         listadoExistencias : [],
         listadoEspecies : [],
@@ -112,7 +113,6 @@
         let me = this;
         // const response = await axios.get('api/informe-recursos');
         const response = await this.listadoExistencias
-        // console.log(response);
         return this.listadoExistencias;
       },            
       listar(){
@@ -121,7 +121,6 @@
         this.listarSiembras();
         axios.get("api/informes-biomasa-alimento")
         .then(function (response){
-          console.log(response.data)
           me.listadoExistencias = response.data.existencias;
         })                 
       },
@@ -154,9 +153,7 @@
         axios.post("api/filtro-biomasa-alimento", data)
         .then(response=>{
           me.listadoExistencias = response.data.existencias;
-          // console.log(response.data);
         });
-        console.log('buscar')
       },
     },
     mounted() {

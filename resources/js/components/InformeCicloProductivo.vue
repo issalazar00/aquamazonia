@@ -3,7 +3,7 @@
         <div class="row justify-content-center">
             <div class="col-md-12">
                 <div class="card">
-                    <div class="card-header">Informes especies existentes</div>
+                    <div class="card-header">Informes ciclo productivo</div>
                       <!-- <a href="informe-excel"><button type="submit" class="btn btn-success" name="infoSiembras"><i class="fa fa-fw fa-download"></i> Generar Excel </button></a> -->                    
                     <div class="card-body">   
                       <div class="row text-left">
@@ -15,6 +15,13 @@
                           <select class="form-control" id="siembra" v-model="f_siembra">
                             <option value="-1">Seleccionar</option>
                             <option :value="ls.id" v-for="(ls, index) in listadoSiembras" :key="index">{{ls.nombre_siembra}}</option>                        
+                          </select>
+                        </div>
+                        <div class="form-group col-md-2">
+                          <label for="lote">Lotes:</label>
+                          <select class="custom-select" id="lote" v-model="f_lote">
+                            <option value="-1">Seleccionar</option>
+                            <option :value="lote.lote" v-for="(lote, index) in listadoLotes" :key="index">{{lote.lote}}</option>                        
                           </select>
                         </div>
                         <div class="form-group col-md-2">
@@ -59,38 +66,39 @@
                         </div>
                       </div>
                       <div>
-                        <table class="table table-striped table-sm table-hover table-responsive">
-                          <thead>
+                        <table class="table table-bordered table-striped table-sm table-sticky">
+                          <thead class="thead-primary">
                             <tr>                           
                               <th>#</th>
-                              <th>Siembra</th>
+                              <th class="fixed-column">Siembra</th>
+                              <th>Lote</th>
+                              <th>Area</th>
                               <th>Especie</th>
                               <th>Inicio siembra</th>                             
-                              <th>Cant Ini</th>
-                              <th>Peso Ini</th>
+                              <th>Cant Inicial</th>
+                              <th>Peso Inicial</th>
                               <th>Cant Actual</th>
                               <th>Peso Actual</th>   
                                <th>Fecha último registro</th>
                               <th>Tiempo de cultivo</th>
                               <th>Biomasa dispo</th>
-                              <th>Salida de biomasa</th>                 
-                              <!-- <th>Biomasa acumulada</th> -->
+                              <th>Salida de biomasa</th>
                               <th>Mortalidad</th>                              
                               <th>Mort. Kg</th>
                               <th>% Mortalidad</th>
                               <th>Salida animales</th>
-                              <!-- <th>Peso ganado</th> -->
                               <th>Incremento de biomasa</th>
                               <th>Ganancia de peso por día</th>
                               <th>Densidad Final (Animales/m<sup>2</sup>)</th>
                               <th>Carga Final (Kg/m<sup>2</sup>)</th>
-                              
                             </tr>
                           </thead>
                           <tbody>
                             <tr v-for="(le, index) in listadoExistencias" :key="index">                              
                               <td v-text="index+1"></td>
-                              <td v-text="le.nombre_siembra"></td>
+                              <td v-text="le.nombre_siembra" class="fixed-column"></td>
+                              <td v-text="le.lote"></td>
+                              <td v-text="le.capacidad"></td>
                               <td v-text="le.especie"></td>
                               <td v-text="le.fecha_inicio"></td>                              
                               <td v-text="le.cantidad_inicial"></td>
@@ -133,30 +141,34 @@
       return {
         json_fields: {      
           'Siembra' : 'nombre_siembra',
+          'Lote' : 'lote',
+          'Area' : 'capacidad',
           'Especie' : 'especie',
-          'Fecha inicio siembra' : 'fecha_inicio',
-          'Fecha registro' : 'fecha_registro',
+          'Inicio siembra' : 'fecha_inicio',
           'Cantidad Inicial' : 'cantidad_inicial',
           'Peso inicial' : 'peso_inicial',
           'Cantidad actual' : 'cant_actual',
           'Peso actual' : 'peso_actual',
+          'Fecha último registro' : 'fecha_registro',
           'Tiempo de cultivo' : 'intervalo_tiempo',
           'Biomasa disponible' : 'biomasa_disponible',
           'Salida de biomasa' : 'salida_biomasa',
           'Mortalidad' : 'mortalidad',
           'Mortalidad kg' : 'mortalidad_kg',
-          'Mortalidad %' : 'mortalidad_porcentaje',
+          '% Mortalidad' : 'mortalidad_porcentaje',
           'Salida animales' : 'salida_animales',
           'Incremento de biomasa': 'incremento_biomasa',
-          'Gananacia de peso por día': 'ganancia_peso_día',
+          'Gananacia de peso por día': 'ganancia_peso_dia',
           'Densidad final (Animales/m2)' : 'densidad_final',
-          'Carga final (Kg/m2)' : 'carga_final',
+          'Carga final (Kg/m2)' : 'carga_final'
         },       
         listadoExistencias : [],
         listadoEspecies : [],
         listadoSiembras: [], 
         imprimirRecursos:[],
+        listadoLotes : [],
         f_siembra : '',
+        f_lote : '',
         f_especie: '', 
         f_inicio_d : '',
         f_inicio_h : '',
@@ -172,16 +184,15 @@
         let me = this;
         // const response = await axios.get('api/informe-recursos');
         const response = await this.listadoExistencias
-        // console.log(response);
         return this.listadoExistencias;
       },
       listar(){
         let me = this;      
         this.listarEspecies();
         this.listarSiembras();
+        this.listarLotes();
         axios.get("api/traer-existencias")
         .then(function (response){
-          console.log(response.data)
           me.listadoExistencias = response.data.existencias;
         })                 
       },
@@ -199,10 +210,18 @@
           me.listadoSiembras = response.data.siembra;
         })
       },
+      listarLotes(){
+        let me = this;
+        axios.get("api/listadoLotes")
+        .then(function (response){
+          me.listadoLotes = response.data;
+        })
+      },
       filtroCiclo(){
         let me = this;
         
         if(this.f_siembra == ''){this.smb = '-1'}else{this.smb = this.f_siembra}
+        if(this.f_lote == ''){this.lot = '-1'}else{this.lot = this.f_lote}
         if(this.f_especie == ''){this.esp = '-1'}else{this.esp = this.f_especie}
         if(this.f_inicio_d == ''){this.fecd = '-1'}else{this.fecd = this.f_inicio_d}
         if(this.f_inicio_h == ''){this.fech = '-1'}else{this.fech = this.f_inicio_h}
@@ -211,6 +230,7 @@
         
         const data ={
           'f_siembra' : this.smb,
+          'f_lote' : this.lot,
           'f_especie' : this.esp,
           'f_inicio_d' : this.fecd,
           'f_inicio_h' : this.fech,
@@ -220,9 +240,7 @@
         axios.post("api/filtro-ciclos", data)
         .then(response=>{
           me.listadoExistencias = response.data.existencias;
-          // console.log(response.data);
         });
-        console.log('buscar')
       },
     },
     mounted() {

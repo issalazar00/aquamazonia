@@ -86,6 +86,765 @@
 /************************************************************************/
 /******/ ({
 
+/***/ "./node_modules/@babel/runtime/node_modules/regenerator-runtime/runtime.js":
+/*!*********************************************************************************!*\
+  !*** ./node_modules/@babel/runtime/node_modules/regenerator-runtime/runtime.js ***!
+  \*********************************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+/**
+ * Copyright (c) 2014-present, Facebook, Inc.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+var runtime = (function (exports) {
+  "use strict";
+
+  var Op = Object.prototype;
+  var hasOwn = Op.hasOwnProperty;
+  var undefined; // More compressible than void 0.
+  var $Symbol = typeof Symbol === "function" ? Symbol : {};
+  var iteratorSymbol = $Symbol.iterator || "@@iterator";
+  var asyncIteratorSymbol = $Symbol.asyncIterator || "@@asyncIterator";
+  var toStringTagSymbol = $Symbol.toStringTag || "@@toStringTag";
+
+  function define(obj, key, value) {
+    Object.defineProperty(obj, key, {
+      value: value,
+      enumerable: true,
+      configurable: true,
+      writable: true
+    });
+    return obj[key];
+  }
+  try {
+    // IE 8 has a broken Object.defineProperty that only works on DOM objects.
+    define({}, "");
+  } catch (err) {
+    define = function(obj, key, value) {
+      return obj[key] = value;
+    };
+  }
+
+  function wrap(innerFn, outerFn, self, tryLocsList) {
+    // If outerFn provided and outerFn.prototype is a Generator, then outerFn.prototype instanceof Generator.
+    var protoGenerator = outerFn && outerFn.prototype instanceof Generator ? outerFn : Generator;
+    var generator = Object.create(protoGenerator.prototype);
+    var context = new Context(tryLocsList || []);
+
+    // The ._invoke method unifies the implementations of the .next,
+    // .throw, and .return methods.
+    generator._invoke = makeInvokeMethod(innerFn, self, context);
+
+    return generator;
+  }
+  exports.wrap = wrap;
+
+  // Try/catch helper to minimize deoptimizations. Returns a completion
+  // record like context.tryEntries[i].completion. This interface could
+  // have been (and was previously) designed to take a closure to be
+  // invoked without arguments, but in all the cases we care about we
+  // already have an existing method we want to call, so there's no need
+  // to create a new function object. We can even get away with assuming
+  // the method takes exactly one argument, since that happens to be true
+  // in every case, so we don't have to touch the arguments object. The
+  // only additional allocation required is the completion record, which
+  // has a stable shape and so hopefully should be cheap to allocate.
+  function tryCatch(fn, obj, arg) {
+    try {
+      return { type: "normal", arg: fn.call(obj, arg) };
+    } catch (err) {
+      return { type: "throw", arg: err };
+    }
+  }
+
+  var GenStateSuspendedStart = "suspendedStart";
+  var GenStateSuspendedYield = "suspendedYield";
+  var GenStateExecuting = "executing";
+  var GenStateCompleted = "completed";
+
+  // Returning this object from the innerFn has the same effect as
+  // breaking out of the dispatch switch statement.
+  var ContinueSentinel = {};
+
+  // Dummy constructor functions that we use as the .constructor and
+  // .constructor.prototype properties for functions that return Generator
+  // objects. For full spec compliance, you may wish to configure your
+  // minifier not to mangle the names of these two functions.
+  function Generator() {}
+  function GeneratorFunction() {}
+  function GeneratorFunctionPrototype() {}
+
+  // This is a polyfill for %IteratorPrototype% for environments that
+  // don't natively support it.
+  var IteratorPrototype = {};
+  IteratorPrototype[iteratorSymbol] = function () {
+    return this;
+  };
+
+  var getProto = Object.getPrototypeOf;
+  var NativeIteratorPrototype = getProto && getProto(getProto(values([])));
+  if (NativeIteratorPrototype &&
+      NativeIteratorPrototype !== Op &&
+      hasOwn.call(NativeIteratorPrototype, iteratorSymbol)) {
+    // This environment has a native %IteratorPrototype%; use it instead
+    // of the polyfill.
+    IteratorPrototype = NativeIteratorPrototype;
+  }
+
+  var Gp = GeneratorFunctionPrototype.prototype =
+    Generator.prototype = Object.create(IteratorPrototype);
+  GeneratorFunction.prototype = Gp.constructor = GeneratorFunctionPrototype;
+  GeneratorFunctionPrototype.constructor = GeneratorFunction;
+  GeneratorFunction.displayName = define(
+    GeneratorFunctionPrototype,
+    toStringTagSymbol,
+    "GeneratorFunction"
+  );
+
+  // Helper for defining the .next, .throw, and .return methods of the
+  // Iterator interface in terms of a single ._invoke method.
+  function defineIteratorMethods(prototype) {
+    ["next", "throw", "return"].forEach(function(method) {
+      define(prototype, method, function(arg) {
+        return this._invoke(method, arg);
+      });
+    });
+  }
+
+  exports.isGeneratorFunction = function(genFun) {
+    var ctor = typeof genFun === "function" && genFun.constructor;
+    return ctor
+      ? ctor === GeneratorFunction ||
+        // For the native GeneratorFunction constructor, the best we can
+        // do is to check its .name property.
+        (ctor.displayName || ctor.name) === "GeneratorFunction"
+      : false;
+  };
+
+  exports.mark = function(genFun) {
+    if (Object.setPrototypeOf) {
+      Object.setPrototypeOf(genFun, GeneratorFunctionPrototype);
+    } else {
+      genFun.__proto__ = GeneratorFunctionPrototype;
+      define(genFun, toStringTagSymbol, "GeneratorFunction");
+    }
+    genFun.prototype = Object.create(Gp);
+    return genFun;
+  };
+
+  // Within the body of any async function, `await x` is transformed to
+  // `yield regeneratorRuntime.awrap(x)`, so that the runtime can test
+  // `hasOwn.call(value, "__await")` to determine if the yielded value is
+  // meant to be awaited.
+  exports.awrap = function(arg) {
+    return { __await: arg };
+  };
+
+  function AsyncIterator(generator, PromiseImpl) {
+    function invoke(method, arg, resolve, reject) {
+      var record = tryCatch(generator[method], generator, arg);
+      if (record.type === "throw") {
+        reject(record.arg);
+      } else {
+        var result = record.arg;
+        var value = result.value;
+        if (value &&
+            typeof value === "object" &&
+            hasOwn.call(value, "__await")) {
+          return PromiseImpl.resolve(value.__await).then(function(value) {
+            invoke("next", value, resolve, reject);
+          }, function(err) {
+            invoke("throw", err, resolve, reject);
+          });
+        }
+
+        return PromiseImpl.resolve(value).then(function(unwrapped) {
+          // When a yielded Promise is resolved, its final value becomes
+          // the .value of the Promise<{value,done}> result for the
+          // current iteration.
+          result.value = unwrapped;
+          resolve(result);
+        }, function(error) {
+          // If a rejected Promise was yielded, throw the rejection back
+          // into the async generator function so it can be handled there.
+          return invoke("throw", error, resolve, reject);
+        });
+      }
+    }
+
+    var previousPromise;
+
+    function enqueue(method, arg) {
+      function callInvokeWithMethodAndArg() {
+        return new PromiseImpl(function(resolve, reject) {
+          invoke(method, arg, resolve, reject);
+        });
+      }
+
+      return previousPromise =
+        // If enqueue has been called before, then we want to wait until
+        // all previous Promises have been resolved before calling invoke,
+        // so that results are always delivered in the correct order. If
+        // enqueue has not been called before, then it is important to
+        // call invoke immediately, without waiting on a callback to fire,
+        // so that the async generator function has the opportunity to do
+        // any necessary setup in a predictable way. This predictability
+        // is why the Promise constructor synchronously invokes its
+        // executor callback, and why async functions synchronously
+        // execute code before the first await. Since we implement simple
+        // async functions in terms of async generators, it is especially
+        // important to get this right, even though it requires care.
+        previousPromise ? previousPromise.then(
+          callInvokeWithMethodAndArg,
+          // Avoid propagating failures to Promises returned by later
+          // invocations of the iterator.
+          callInvokeWithMethodAndArg
+        ) : callInvokeWithMethodAndArg();
+    }
+
+    // Define the unified helper method that is used to implement .next,
+    // .throw, and .return (see defineIteratorMethods).
+    this._invoke = enqueue;
+  }
+
+  defineIteratorMethods(AsyncIterator.prototype);
+  AsyncIterator.prototype[asyncIteratorSymbol] = function () {
+    return this;
+  };
+  exports.AsyncIterator = AsyncIterator;
+
+  // Note that simple async functions are implemented on top of
+  // AsyncIterator objects; they just return a Promise for the value of
+  // the final result produced by the iterator.
+  exports.async = function(innerFn, outerFn, self, tryLocsList, PromiseImpl) {
+    if (PromiseImpl === void 0) PromiseImpl = Promise;
+
+    var iter = new AsyncIterator(
+      wrap(innerFn, outerFn, self, tryLocsList),
+      PromiseImpl
+    );
+
+    return exports.isGeneratorFunction(outerFn)
+      ? iter // If outerFn is a generator, return the full iterator.
+      : iter.next().then(function(result) {
+          return result.done ? result.value : iter.next();
+        });
+  };
+
+  function makeInvokeMethod(innerFn, self, context) {
+    var state = GenStateSuspendedStart;
+
+    return function invoke(method, arg) {
+      if (state === GenStateExecuting) {
+        throw new Error("Generator is already running");
+      }
+
+      if (state === GenStateCompleted) {
+        if (method === "throw") {
+          throw arg;
+        }
+
+        // Be forgiving, per 25.3.3.3.3 of the spec:
+        // https://people.mozilla.org/~jorendorff/es6-draft.html#sec-generatorresume
+        return doneResult();
+      }
+
+      context.method = method;
+      context.arg = arg;
+
+      while (true) {
+        var delegate = context.delegate;
+        if (delegate) {
+          var delegateResult = maybeInvokeDelegate(delegate, context);
+          if (delegateResult) {
+            if (delegateResult === ContinueSentinel) continue;
+            return delegateResult;
+          }
+        }
+
+        if (context.method === "next") {
+          // Setting context._sent for legacy support of Babel's
+          // function.sent implementation.
+          context.sent = context._sent = context.arg;
+
+        } else if (context.method === "throw") {
+          if (state === GenStateSuspendedStart) {
+            state = GenStateCompleted;
+            throw context.arg;
+          }
+
+          context.dispatchException(context.arg);
+
+        } else if (context.method === "return") {
+          context.abrupt("return", context.arg);
+        }
+
+        state = GenStateExecuting;
+
+        var record = tryCatch(innerFn, self, context);
+        if (record.type === "normal") {
+          // If an exception is thrown from innerFn, we leave state ===
+          // GenStateExecuting and loop back for another invocation.
+          state = context.done
+            ? GenStateCompleted
+            : GenStateSuspendedYield;
+
+          if (record.arg === ContinueSentinel) {
+            continue;
+          }
+
+          return {
+            value: record.arg,
+            done: context.done
+          };
+
+        } else if (record.type === "throw") {
+          state = GenStateCompleted;
+          // Dispatch the exception by looping back around to the
+          // context.dispatchException(context.arg) call above.
+          context.method = "throw";
+          context.arg = record.arg;
+        }
+      }
+    };
+  }
+
+  // Call delegate.iterator[context.method](context.arg) and handle the
+  // result, either by returning a { value, done } result from the
+  // delegate iterator, or by modifying context.method and context.arg,
+  // setting context.delegate to null, and returning the ContinueSentinel.
+  function maybeInvokeDelegate(delegate, context) {
+    var method = delegate.iterator[context.method];
+    if (method === undefined) {
+      // A .throw or .return when the delegate iterator has no .throw
+      // method always terminates the yield* loop.
+      context.delegate = null;
+
+      if (context.method === "throw") {
+        // Note: ["return"] must be used for ES3 parsing compatibility.
+        if (delegate.iterator["return"]) {
+          // If the delegate iterator has a return method, give it a
+          // chance to clean up.
+          context.method = "return";
+          context.arg = undefined;
+          maybeInvokeDelegate(delegate, context);
+
+          if (context.method === "throw") {
+            // If maybeInvokeDelegate(context) changed context.method from
+            // "return" to "throw", let that override the TypeError below.
+            return ContinueSentinel;
+          }
+        }
+
+        context.method = "throw";
+        context.arg = new TypeError(
+          "The iterator does not provide a 'throw' method");
+      }
+
+      return ContinueSentinel;
+    }
+
+    var record = tryCatch(method, delegate.iterator, context.arg);
+
+    if (record.type === "throw") {
+      context.method = "throw";
+      context.arg = record.arg;
+      context.delegate = null;
+      return ContinueSentinel;
+    }
+
+    var info = record.arg;
+
+    if (! info) {
+      context.method = "throw";
+      context.arg = new TypeError("iterator result is not an object");
+      context.delegate = null;
+      return ContinueSentinel;
+    }
+
+    if (info.done) {
+      // Assign the result of the finished delegate to the temporary
+      // variable specified by delegate.resultName (see delegateYield).
+      context[delegate.resultName] = info.value;
+
+      // Resume execution at the desired location (see delegateYield).
+      context.next = delegate.nextLoc;
+
+      // If context.method was "throw" but the delegate handled the
+      // exception, let the outer generator proceed normally. If
+      // context.method was "next", forget context.arg since it has been
+      // "consumed" by the delegate iterator. If context.method was
+      // "return", allow the original .return call to continue in the
+      // outer generator.
+      if (context.method !== "return") {
+        context.method = "next";
+        context.arg = undefined;
+      }
+
+    } else {
+      // Re-yield the result returned by the delegate method.
+      return info;
+    }
+
+    // The delegate iterator is finished, so forget it and continue with
+    // the outer generator.
+    context.delegate = null;
+    return ContinueSentinel;
+  }
+
+  // Define Generator.prototype.{next,throw,return} in terms of the
+  // unified ._invoke helper method.
+  defineIteratorMethods(Gp);
+
+  define(Gp, toStringTagSymbol, "Generator");
+
+  // A Generator should always return itself as the iterator object when the
+  // @@iterator function is called on it. Some browsers' implementations of the
+  // iterator prototype chain incorrectly implement this, causing the Generator
+  // object to not be returned from this call. This ensures that doesn't happen.
+  // See https://github.com/facebook/regenerator/issues/274 for more details.
+  Gp[iteratorSymbol] = function() {
+    return this;
+  };
+
+  Gp.toString = function() {
+    return "[object Generator]";
+  };
+
+  function pushTryEntry(locs) {
+    var entry = { tryLoc: locs[0] };
+
+    if (1 in locs) {
+      entry.catchLoc = locs[1];
+    }
+
+    if (2 in locs) {
+      entry.finallyLoc = locs[2];
+      entry.afterLoc = locs[3];
+    }
+
+    this.tryEntries.push(entry);
+  }
+
+  function resetTryEntry(entry) {
+    var record = entry.completion || {};
+    record.type = "normal";
+    delete record.arg;
+    entry.completion = record;
+  }
+
+  function Context(tryLocsList) {
+    // The root entry object (effectively a try statement without a catch
+    // or a finally block) gives us a place to store values thrown from
+    // locations where there is no enclosing try statement.
+    this.tryEntries = [{ tryLoc: "root" }];
+    tryLocsList.forEach(pushTryEntry, this);
+    this.reset(true);
+  }
+
+  exports.keys = function(object) {
+    var keys = [];
+    for (var key in object) {
+      keys.push(key);
+    }
+    keys.reverse();
+
+    // Rather than returning an object with a next method, we keep
+    // things simple and return the next function itself.
+    return function next() {
+      while (keys.length) {
+        var key = keys.pop();
+        if (key in object) {
+          next.value = key;
+          next.done = false;
+          return next;
+        }
+      }
+
+      // To avoid creating an additional object, we just hang the .value
+      // and .done properties off the next function object itself. This
+      // also ensures that the minifier will not anonymize the function.
+      next.done = true;
+      return next;
+    };
+  };
+
+  function values(iterable) {
+    if (iterable) {
+      var iteratorMethod = iterable[iteratorSymbol];
+      if (iteratorMethod) {
+        return iteratorMethod.call(iterable);
+      }
+
+      if (typeof iterable.next === "function") {
+        return iterable;
+      }
+
+      if (!isNaN(iterable.length)) {
+        var i = -1, next = function next() {
+          while (++i < iterable.length) {
+            if (hasOwn.call(iterable, i)) {
+              next.value = iterable[i];
+              next.done = false;
+              return next;
+            }
+          }
+
+          next.value = undefined;
+          next.done = true;
+
+          return next;
+        };
+
+        return next.next = next;
+      }
+    }
+
+    // Return an iterator with no values.
+    return { next: doneResult };
+  }
+  exports.values = values;
+
+  function doneResult() {
+    return { value: undefined, done: true };
+  }
+
+  Context.prototype = {
+    constructor: Context,
+
+    reset: function(skipTempReset) {
+      this.prev = 0;
+      this.next = 0;
+      // Resetting context._sent for legacy support of Babel's
+      // function.sent implementation.
+      this.sent = this._sent = undefined;
+      this.done = false;
+      this.delegate = null;
+
+      this.method = "next";
+      this.arg = undefined;
+
+      this.tryEntries.forEach(resetTryEntry);
+
+      if (!skipTempReset) {
+        for (var name in this) {
+          // Not sure about the optimal order of these conditions:
+          if (name.charAt(0) === "t" &&
+              hasOwn.call(this, name) &&
+              !isNaN(+name.slice(1))) {
+            this[name] = undefined;
+          }
+        }
+      }
+    },
+
+    stop: function() {
+      this.done = true;
+
+      var rootEntry = this.tryEntries[0];
+      var rootRecord = rootEntry.completion;
+      if (rootRecord.type === "throw") {
+        throw rootRecord.arg;
+      }
+
+      return this.rval;
+    },
+
+    dispatchException: function(exception) {
+      if (this.done) {
+        throw exception;
+      }
+
+      var context = this;
+      function handle(loc, caught) {
+        record.type = "throw";
+        record.arg = exception;
+        context.next = loc;
+
+        if (caught) {
+          // If the dispatched exception was caught by a catch block,
+          // then let that catch block handle the exception normally.
+          context.method = "next";
+          context.arg = undefined;
+        }
+
+        return !! caught;
+      }
+
+      for (var i = this.tryEntries.length - 1; i >= 0; --i) {
+        var entry = this.tryEntries[i];
+        var record = entry.completion;
+
+        if (entry.tryLoc === "root") {
+          // Exception thrown outside of any try block that could handle
+          // it, so set the completion value of the entire function to
+          // throw the exception.
+          return handle("end");
+        }
+
+        if (entry.tryLoc <= this.prev) {
+          var hasCatch = hasOwn.call(entry, "catchLoc");
+          var hasFinally = hasOwn.call(entry, "finallyLoc");
+
+          if (hasCatch && hasFinally) {
+            if (this.prev < entry.catchLoc) {
+              return handle(entry.catchLoc, true);
+            } else if (this.prev < entry.finallyLoc) {
+              return handle(entry.finallyLoc);
+            }
+
+          } else if (hasCatch) {
+            if (this.prev < entry.catchLoc) {
+              return handle(entry.catchLoc, true);
+            }
+
+          } else if (hasFinally) {
+            if (this.prev < entry.finallyLoc) {
+              return handle(entry.finallyLoc);
+            }
+
+          } else {
+            throw new Error("try statement without catch or finally");
+          }
+        }
+      }
+    },
+
+    abrupt: function(type, arg) {
+      for (var i = this.tryEntries.length - 1; i >= 0; --i) {
+        var entry = this.tryEntries[i];
+        if (entry.tryLoc <= this.prev &&
+            hasOwn.call(entry, "finallyLoc") &&
+            this.prev < entry.finallyLoc) {
+          var finallyEntry = entry;
+          break;
+        }
+      }
+
+      if (finallyEntry &&
+          (type === "break" ||
+           type === "continue") &&
+          finallyEntry.tryLoc <= arg &&
+          arg <= finallyEntry.finallyLoc) {
+        // Ignore the finally entry if control is not jumping to a
+        // location outside the try/catch block.
+        finallyEntry = null;
+      }
+
+      var record = finallyEntry ? finallyEntry.completion : {};
+      record.type = type;
+      record.arg = arg;
+
+      if (finallyEntry) {
+        this.method = "next";
+        this.next = finallyEntry.finallyLoc;
+        return ContinueSentinel;
+      }
+
+      return this.complete(record);
+    },
+
+    complete: function(record, afterLoc) {
+      if (record.type === "throw") {
+        throw record.arg;
+      }
+
+      if (record.type === "break" ||
+          record.type === "continue") {
+        this.next = record.arg;
+      } else if (record.type === "return") {
+        this.rval = this.arg = record.arg;
+        this.method = "return";
+        this.next = "end";
+      } else if (record.type === "normal" && afterLoc) {
+        this.next = afterLoc;
+      }
+
+      return ContinueSentinel;
+    },
+
+    finish: function(finallyLoc) {
+      for (var i = this.tryEntries.length - 1; i >= 0; --i) {
+        var entry = this.tryEntries[i];
+        if (entry.finallyLoc === finallyLoc) {
+          this.complete(entry.completion, entry.afterLoc);
+          resetTryEntry(entry);
+          return ContinueSentinel;
+        }
+      }
+    },
+
+    "catch": function(tryLoc) {
+      for (var i = this.tryEntries.length - 1; i >= 0; --i) {
+        var entry = this.tryEntries[i];
+        if (entry.tryLoc === tryLoc) {
+          var record = entry.completion;
+          if (record.type === "throw") {
+            var thrown = record.arg;
+            resetTryEntry(entry);
+          }
+          return thrown;
+        }
+      }
+
+      // The context.catch method must only be called with a location
+      // argument that corresponds to a known catch block.
+      throw new Error("illegal catch attempt");
+    },
+
+    delegateYield: function(iterable, resultName, nextLoc) {
+      this.delegate = {
+        iterator: values(iterable),
+        resultName: resultName,
+        nextLoc: nextLoc
+      };
+
+      if (this.method === "next") {
+        // Deliberately forget the last sent value so that we don't
+        // accidentally pass it on to the delegate.
+        this.arg = undefined;
+      }
+
+      return ContinueSentinel;
+    }
+  };
+
+  // Regardless of whether this script is executing as a CommonJS module
+  // or not, return the runtime object so that we can declare the variable
+  // regeneratorRuntime in the outer scope, which allows this module to be
+  // injected easily by `bin/regenerator --include-runtime script.js`.
+  return exports;
+
+}(
+  // If this script is executing as a CommonJS module, use module.exports
+  // as the regeneratorRuntime namespace. Otherwise create a new empty
+  // object. Either way, the resulting object will be used to initialize
+  // the regeneratorRuntime variable at the top of this file.
+   true ? module.exports : undefined
+));
+
+try {
+  regeneratorRuntime = runtime;
+} catch (accidentalStrictMode) {
+  // This module should not be running in strict mode, so the above
+  // assignment should always work unless something is misconfigured. Just
+  // in case runtime.js accidentally runs in strict mode, we can escape
+  // strict mode using a global Function call. This could conceivably fail
+  // if a Content Security Policy forbids using Function, but in that case
+  // the proper solution is to fix the accidental strict mode problem. If
+  // you've misconfigured your bundler to force strict mode and applied a
+  // CSP to forbid Function, and you're not willing to fix either of those
+  // problems, please detail your unique predicament in a GitHub issue.
+  Function("r", "regeneratorRuntime = r")(runtime);
+}
+
+
+/***/ }),
+
 /***/ "./node_modules/@babel/runtime/regenerator/index.js":
 /*!**********************************************************!*\
   !*** ./node_modules/@babel/runtime/regenerator/index.js ***!
@@ -93,7 +852,7 @@
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-module.exports = __webpack_require__(/*! regenerator-runtime */ "./node_modules/regenerator-runtime/runtime.js");
+module.exports = __webpack_require__(/*! regenerator-runtime */ "./node_modules/@babel/runtime/node_modules/regenerator-runtime/runtime.js");
 
 
 /***/ }),
@@ -121,6 +880,7 @@ module.exports = __webpack_require__(/*! ./lib/axios */ "./node_modules/axios/li
 
 var utils = __webpack_require__(/*! ./../utils */ "./node_modules/axios/lib/utils.js");
 var settle = __webpack_require__(/*! ./../core/settle */ "./node_modules/axios/lib/core/settle.js");
+var cookies = __webpack_require__(/*! ./../helpers/cookies */ "./node_modules/axios/lib/helpers/cookies.js");
 var buildURL = __webpack_require__(/*! ./../helpers/buildURL */ "./node_modules/axios/lib/helpers/buildURL.js");
 var buildFullPath = __webpack_require__(/*! ../core/buildFullPath */ "./node_modules/axios/lib/core/buildFullPath.js");
 var parseHeaders = __webpack_require__(/*! ./../helpers/parseHeaders */ "./node_modules/axios/lib/helpers/parseHeaders.js");
@@ -141,7 +901,7 @@ module.exports = function xhrAdapter(config) {
     // HTTP basic authentication
     if (config.auth) {
       var username = config.auth.username || '';
-      var password = config.auth.password || '';
+      var password = config.auth.password ? unescape(encodeURIComponent(config.auth.password)) : '';
       requestHeaders.Authorization = 'Basic ' + btoa(username + ':' + password);
     }
 
@@ -222,8 +982,6 @@ module.exports = function xhrAdapter(config) {
     // This is only done if running in a standard browser environment.
     // Specifically not if we're in a web worker, or react-native.
     if (utils.isStandardBrowserEnv()) {
-      var cookies = __webpack_require__(/*! ./../helpers/cookies */ "./node_modules/axios/lib/helpers/cookies.js");
-
       // Add xsrf header
       var xsrfValue = (config.withCredentials || isURLSameOrigin(fullPath)) && config.xsrfCookieName ?
         cookies.read(config.xsrfCookieName) :
@@ -289,7 +1047,7 @@ module.exports = function xhrAdapter(config) {
       });
     }
 
-    if (requestData === undefined) {
+    if (!requestData) {
       requestData = null;
     }
 
@@ -357,6 +1115,9 @@ axios.all = function all(promises) {
   return Promise.all(promises);
 };
 axios.spread = __webpack_require__(/*! ./helpers/spread */ "./node_modules/axios/lib/helpers/spread.js");
+
+// Expose isAxiosError
+axios.isAxiosError = __webpack_require__(/*! ./helpers/isAxiosError */ "./node_modules/axios/lib/helpers/isAxiosError.js");
 
 module.exports = axios;
 
@@ -566,9 +1327,10 @@ Axios.prototype.getUri = function getUri(config) {
 utils.forEach(['delete', 'get', 'head', 'options'], function forEachMethodNoData(method) {
   /*eslint func-names:0*/
   Axios.prototype[method] = function(url, config) {
-    return this.request(utils.merge(config || {}, {
+    return this.request(mergeConfig(config || {}, {
       method: method,
-      url: url
+      url: url,
+      data: (config || {}).data
     }));
   };
 });
@@ -576,7 +1338,7 @@ utils.forEach(['delete', 'get', 'head', 'options'], function forEachMethodNoData
 utils.forEach(['post', 'put', 'patch'], function forEachMethodWithData(method) {
   /*eslint func-names:0*/
   Axios.prototype[method] = function(url, data, config) {
-    return this.request(utils.merge(config || {}, {
+    return this.request(mergeConfig(config || {}, {
       method: method,
       url: url,
       data: data
@@ -836,7 +1598,7 @@ module.exports = function enhanceError(error, config, code, request, response) {
   error.response = response;
   error.isAxiosError = true;
 
-  error.toJSON = function() {
+  error.toJSON = function toJSON() {
     return {
       // Standard
       message: this.message,
@@ -885,59 +1647,73 @@ module.exports = function mergeConfig(config1, config2) {
   config2 = config2 || {};
   var config = {};
 
-  var valueFromConfig2Keys = ['url', 'method', 'params', 'data'];
-  var mergeDeepPropertiesKeys = ['headers', 'auth', 'proxy'];
+  var valueFromConfig2Keys = ['url', 'method', 'data'];
+  var mergeDeepPropertiesKeys = ['headers', 'auth', 'proxy', 'params'];
   var defaultToConfig2Keys = [
-    'baseURL', 'url', 'transformRequest', 'transformResponse', 'paramsSerializer',
-    'timeout', 'withCredentials', 'adapter', 'responseType', 'xsrfCookieName',
-    'xsrfHeaderName', 'onUploadProgress', 'onDownloadProgress',
-    'maxContentLength', 'validateStatus', 'maxRedirects', 'httpAgent',
-    'httpsAgent', 'cancelToken', 'socketPath'
+    'baseURL', 'transformRequest', 'transformResponse', 'paramsSerializer',
+    'timeout', 'timeoutMessage', 'withCredentials', 'adapter', 'responseType', 'xsrfCookieName',
+    'xsrfHeaderName', 'onUploadProgress', 'onDownloadProgress', 'decompress',
+    'maxContentLength', 'maxBodyLength', 'maxRedirects', 'transport', 'httpAgent',
+    'httpsAgent', 'cancelToken', 'socketPath', 'responseEncoding'
   ];
+  var directMergeKeys = ['validateStatus'];
+
+  function getMergedValue(target, source) {
+    if (utils.isPlainObject(target) && utils.isPlainObject(source)) {
+      return utils.merge(target, source);
+    } else if (utils.isPlainObject(source)) {
+      return utils.merge({}, source);
+    } else if (utils.isArray(source)) {
+      return source.slice();
+    }
+    return source;
+  }
+
+  function mergeDeepProperties(prop) {
+    if (!utils.isUndefined(config2[prop])) {
+      config[prop] = getMergedValue(config1[prop], config2[prop]);
+    } else if (!utils.isUndefined(config1[prop])) {
+      config[prop] = getMergedValue(undefined, config1[prop]);
+    }
+  }
 
   utils.forEach(valueFromConfig2Keys, function valueFromConfig2(prop) {
-    if (typeof config2[prop] !== 'undefined') {
-      config[prop] = config2[prop];
+    if (!utils.isUndefined(config2[prop])) {
+      config[prop] = getMergedValue(undefined, config2[prop]);
     }
   });
 
-  utils.forEach(mergeDeepPropertiesKeys, function mergeDeepProperties(prop) {
-    if (utils.isObject(config2[prop])) {
-      config[prop] = utils.deepMerge(config1[prop], config2[prop]);
-    } else if (typeof config2[prop] !== 'undefined') {
-      config[prop] = config2[prop];
-    } else if (utils.isObject(config1[prop])) {
-      config[prop] = utils.deepMerge(config1[prop]);
-    } else if (typeof config1[prop] !== 'undefined') {
-      config[prop] = config1[prop];
-    }
-  });
+  utils.forEach(mergeDeepPropertiesKeys, mergeDeepProperties);
 
   utils.forEach(defaultToConfig2Keys, function defaultToConfig2(prop) {
-    if (typeof config2[prop] !== 'undefined') {
-      config[prop] = config2[prop];
-    } else if (typeof config1[prop] !== 'undefined') {
-      config[prop] = config1[prop];
+    if (!utils.isUndefined(config2[prop])) {
+      config[prop] = getMergedValue(undefined, config2[prop]);
+    } else if (!utils.isUndefined(config1[prop])) {
+      config[prop] = getMergedValue(undefined, config1[prop]);
+    }
+  });
+
+  utils.forEach(directMergeKeys, function merge(prop) {
+    if (prop in config2) {
+      config[prop] = getMergedValue(config1[prop], config2[prop]);
+    } else if (prop in config1) {
+      config[prop] = getMergedValue(undefined, config1[prop]);
     }
   });
 
   var axiosKeys = valueFromConfig2Keys
     .concat(mergeDeepPropertiesKeys)
-    .concat(defaultToConfig2Keys);
+    .concat(defaultToConfig2Keys)
+    .concat(directMergeKeys);
 
   var otherKeys = Object
-    .keys(config2)
+    .keys(config1)
+    .concat(Object.keys(config2))
     .filter(function filterAxiosKeys(key) {
       return axiosKeys.indexOf(key) === -1;
     });
 
-  utils.forEach(otherKeys, function otherKeysDefaultToConfig2(prop) {
-    if (typeof config2[prop] !== 'undefined') {
-      config[prop] = config2[prop];
-    } else if (typeof config1[prop] !== 'undefined') {
-      config[prop] = config1[prop];
-    }
-  });
+  utils.forEach(otherKeys, mergeDeepProperties);
 
   return config;
 };
@@ -966,7 +1742,7 @@ var createError = __webpack_require__(/*! ./createError */ "./node_modules/axios
  */
 module.exports = function settle(resolve, reject, response) {
   var validateStatus = response.config.validateStatus;
-  if (!validateStatus || validateStatus(response.status)) {
+  if (!response.status || !validateStatus || validateStatus(response.status)) {
     resolve(response);
   } else {
     reject(createError(
@@ -1098,6 +1874,7 @@ var defaults = {
   xsrfHeaderName: 'X-XSRF-TOKEN',
 
   maxContentLength: -1,
+  maxBodyLength: -1,
 
   validateStatus: function validateStatus(status) {
     return status >= 200 && status < 300;
@@ -1161,7 +1938,6 @@ var utils = __webpack_require__(/*! ./../utils */ "./node_modules/axios/lib/util
 
 function encode(val) {
   return encodeURIComponent(val).
-    replace(/%40/gi, '@').
     replace(/%3A/gi, ':').
     replace(/%24/g, '$').
     replace(/%2C/gi, ',').
@@ -1342,6 +2118,29 @@ module.exports = function isAbsoluteURL(url) {
   // RFC 3986 defines scheme name as a sequence of characters beginning with a letter and followed
   // by any combination of letters, digits, plus, period, or hyphen.
   return /^([a-z][a-z\d\+\-\.]*:)?\/\//i.test(url);
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/axios/lib/helpers/isAxiosError.js":
+/*!********************************************************!*\
+  !*** ./node_modules/axios/lib/helpers/isAxiosError.js ***!
+  \********************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+/**
+ * Determines whether the payload is an error thrown by Axios
+ *
+ * @param {*} payload The value to test
+ * @returns {boolean} True if the payload is an error thrown by Axios, otherwise false
+ */
+module.exports = function isAxiosError(payload) {
+  return (typeof payload === 'object') && (payload.isAxiosError === true);
 };
 
 
@@ -1671,6 +2470,21 @@ function isObject(val) {
 }
 
 /**
+ * Determine if a value is a plain Object
+ *
+ * @param {Object} val The value to test
+ * @return {boolean} True if value is a plain Object, otherwise false
+ */
+function isPlainObject(val) {
+  if (toString.call(val) !== '[object Object]') {
+    return false;
+  }
+
+  var prototype = Object.getPrototypeOf(val);
+  return prototype === null || prototype === Object.prototype;
+}
+
+/**
  * Determine if a value is a Date
  *
  * @param {Object} val The value to test
@@ -1826,34 +2640,12 @@ function forEach(obj, fn) {
 function merge(/* obj1, obj2, obj3, ... */) {
   var result = {};
   function assignValue(val, key) {
-    if (typeof result[key] === 'object' && typeof val === 'object') {
+    if (isPlainObject(result[key]) && isPlainObject(val)) {
       result[key] = merge(result[key], val);
-    } else {
-      result[key] = val;
-    }
-  }
-
-  for (var i = 0, l = arguments.length; i < l; i++) {
-    forEach(arguments[i], assignValue);
-  }
-  return result;
-}
-
-/**
- * Function equal to merge with the difference being that no reference
- * to original objects is kept.
- *
- * @see merge
- * @param {Object} obj1 Object to merge
- * @returns {Object} Result of all merge properties
- */
-function deepMerge(/* obj1, obj2, obj3, ... */) {
-  var result = {};
-  function assignValue(val, key) {
-    if (typeof result[key] === 'object' && typeof val === 'object') {
-      result[key] = deepMerge(result[key], val);
-    } else if (typeof val === 'object') {
-      result[key] = deepMerge({}, val);
+    } else if (isPlainObject(val)) {
+      result[key] = merge({}, val);
+    } else if (isArray(val)) {
+      result[key] = val.slice();
     } else {
       result[key] = val;
     }
@@ -1884,6 +2676,19 @@ function extend(a, b, thisArg) {
   return a;
 }
 
+/**
+ * Remove byte order marker. This catches EF BB BF (the UTF-8 BOM)
+ *
+ * @param {string} content with BOM
+ * @return {string} content value without BOM
+ */
+function stripBOM(content) {
+  if (content.charCodeAt(0) === 0xFEFF) {
+    content = content.slice(1);
+  }
+  return content;
+}
+
 module.exports = {
   isArray: isArray,
   isArrayBuffer: isArrayBuffer,
@@ -1893,6 +2698,7 @@ module.exports = {
   isString: isString,
   isNumber: isNumber,
   isObject: isObject,
+  isPlainObject: isPlainObject,
   isUndefined: isUndefined,
   isDate: isDate,
   isFile: isFile,
@@ -1903,9 +2709,9 @@ module.exports = {
   isStandardBrowserEnv: isStandardBrowserEnv,
   forEach: forEach,
   merge: merge,
-  deepMerge: deepMerge,
   extend: extend,
-  trim: trim
+  trim: trim,
+  stripBOM: stripBOM
 };
 
 
@@ -2129,6 +2935,17 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 
 
 /* harmony default export */ __webpack_exports__["default"] = ({
@@ -2138,13 +2955,15 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         'Tipo actividad': 'actividad',
         'Siembra': 'nombre_siembra',
         'Fecha': 'fecha_ra',
-        'Costo minutos hombre': 'total_minutos_hombre',
+        'Minutos hombre': 'minutos_hombre',
         'Alimento': 'alimento',
-        'Kg Mañana': 'cant_manana',
-        'Kg tarde': 'cant_tarde',
-        'Kg día': 'alimento_dia',
-        'Costo': 'costo_kg',
+        'Cantidad KG Mañana': 'cant_manana',
+        'Cantidad KG tarde': 'cant_tarde',
+        'Cantidad total día': 'alimento_dia',
+        'Costo KG': 'costo_kg',
         'Costo total': 'costo_total_alimento',
+        'Conversion alimenticia teorica': 'conv_alimenticia',
+        'incremento biomasa acumulada por conversion': 'incr_bio_acum_conver',
         'Detalles': 'detalles'
       },
       form: new vform__WEBPACK_IMPORTED_MODULE_1__["Form"]({
@@ -2158,10 +2977,20 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         cant_tarde: '',
         detalles: ''
       }),
+      pagination: {
+        'total': 0,
+        'current_page': 0,
+        'per_page': 0,
+        'last_page': 0,
+        'from': 0,
+        'to': 0
+      },
+      offset: 10,
       t_actividad: '',
       fecha_ra1: '',
       fecha_ra2: '',
       f_siembra: '',
+      see_all: 0,
       alimento_s: '',
       recurso_s: '',
       busqueda: '',
@@ -2174,11 +3003,44 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       listadoAlimentos: [],
       listadoRecursos: [],
       nombresRecursos: [],
-      nombresAlimentos: []
+      nombresAlimentos: [],
+      showPagination: 1
     };
   },
   components: {
     downloadexcel: vue_json_excel__WEBPACK_IMPORTED_MODULE_2__["default"]
+  },
+  computed: {
+    isActived: function isActived() {
+      return this.pagination.current_page;
+    },
+    //Calcula los elementos de la paginación
+    pagesNumber: function pagesNumber() {
+      if (!this.pagination.to) {
+        return [];
+      }
+
+      var from = this.pagination.current_page - this.offset;
+
+      if (from < 1) {
+        from = 1;
+      }
+
+      var to = from + this.offset * 2;
+
+      if (to >= this.pagination.last_page) {
+        to = this.pagination.last_page;
+      }
+
+      var pagesArray = [];
+
+      while (from <= to) {
+        pagesArray.push(from);
+        from++;
+      }
+
+      return pagesArray;
+    }
   },
   methods: {
     fetchData: function fetchData() {
@@ -2211,12 +3073,20 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       $('#modalRecursos').modal('show');
     },
     buscarResultados: function buscarResultados() {
+      var _this2 = this;
+
       var me = this;
 
       if (this.f_siembra == '') {
         this.f_s = '-1';
       } else {
         this.f_s = this.f_siembra;
+      }
+
+      if (this.see_all == '') {
+        this.check = 0;
+      } else {
+        this.check = this.see_all;
       }
 
       if (this.t_actividad == '') {
@@ -2251,6 +3121,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
       var data = {
         'f_siembra': this.f_s,
+        'see_all': this.check,
         'tipo_actividad': '1',
         'alimento_s': this.ali,
         'recurso_s': this.rec,
@@ -2258,19 +3129,25 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         'fecha_ra2': this.fecha2
       };
       axios.post("api/searchResults", data).then(function (response) {
-        me.listado = response.data.recursosNecesarios;
         me.promedios = response.data.promedioRecursos;
-        console.log(response);
+
+        if (response.data.pagination) {
+          _this2.showPagination = 1;
+          me.listado = response.data.recursosNecesarios.data;
+          me.pagination = response.data.pagination;
+        } else {
+          _this2.showPagination = 0;
+          me.listado = response.data.recursosNecesarios;
+          me.pagination = [];
+        }
       });
-      console.log('buscar');
     },
-    listar: function listar() {
+    listar: function listar(page) {
       var me = this;
-      axios.get("api/lista-alimentacion").then(function (response) {
-        me.listado = response.data.recursosNecesarios;
-        me.listadoRS = response.data.recursosSiembra;
-        me.listadorxs = response.data.registrosxSiembra;
+      axios.get("api/lista-alimentacion?page=" + page).then(function (response) {
+        me.listado = response.data.recursosNecesarios.data;
         me.promedios = response.data.promedioRecursos;
+        me.pagination = response.data.pagination;
       });
     },
     listarSiembras: function listarSiembras() {
@@ -2309,7 +3186,6 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       var me = this;
       this.form.post("api/recursos-necesarios").then(function (_ref) {
         var data = _ref.data;
-        console.log('guardado');
         me.listar();
         $('#modalRecursos').modal('hide');
       });
@@ -2326,19 +3202,23 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         if (willDelete) {
           axios["delete"]('api/recursos-necesarios/' + objeto).then(function (_ref2) {
             var data = _ref2.data;
-            console.log('eliminar' + objeto);
             me.listar();
           });
         }
       });
+    },
+    cambiarPagina: function cambiarPagina(page) {
+      var me = this; //Actualiza la página actual
+
+      me.pagination.current_page = page;
+      me.listar(page);
     }
   },
   mounted: function mounted() {
-    this.listar();
+    this.listar(1);
     this.listarSiembras();
     this.listarAlimentos();
     this.listarRecursos();
-    console.log('Component mounted.');
   }
 });
 
@@ -2470,9 +3350,8 @@ vue__WEBPACK_IMPORTED_MODULE_0___default.a.component(vform__WEBPACK_IMPORTED_MOD
       this.form.post('api/alimentos').then(function (_ref) {
         var data = _ref.data;
 
-        editando: 0, console.log(data);
+        editando: 0, me.listar();
 
-        me.listar();
         $('#modalAlimentos').modal('hide');
         me.form.alimento = '';
         me.form.costo_kg = '';
@@ -2494,17 +3373,14 @@ vue__WEBPACK_IMPORTED_MODULE_0___default.a.component(vform__WEBPACK_IMPORTED_MOD
       this.form.fill(objeto);
       this.editando = 1;
       $('#modalAlimentos').modal('show');
-      console.log('editandosssss');
     },
     editar: function editar() {
       var me = this;
       this.form.put('api/alimentos/' + this.form.id).then(function (_ref2) {
         var data = _ref2.data;
-        console.log(data);
         $('#modalAlimentos').modal('hide');
         me.listar();
       });
-      console.log('editando');
     },
     eliminar: function eliminar(index) {
       var me = this;
@@ -2519,14 +3395,13 @@ vue__WEBPACK_IMPORTED_MODULE_0___default.a.component(vform__WEBPACK_IMPORTED_MOD
           me.form["delete"]('api/alimentos/' + index).then(function (_ref3) {
             var data = _ref3.data;
             me.listar();
-            console.log('eliminar' + index);
           });
         }
       });
     }
   },
   mounted: function mounted() {
-    this.listar(); //console.log('Component mounted.')
+    this.listar();
   }
 });
 
@@ -2552,6 +3427,12 @@ function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
 
+//
+//
+//
+//
+//
+//
 //
 //
 //
@@ -2868,6 +3749,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       listadoEspecies: [],
       listadoSiembras: [],
       listadoParametros: [],
+      listadoParametrosExcel: [],
       listadoParametrosContenedores: [],
       listadoContenedores: [],
       promedios: [],
@@ -2891,11 +3773,11 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
                 me = _this; // const response = await axios.get('api/informe-Parametros');
 
                 _context.next = 3;
-                return _this.listadoParametros;
+                return _this.listadoParametrosExcel;
 
               case 3:
                 response = _context.sent;
-                return _context.abrupt("return", _this.listadoParametros);
+                return _context.abrupt("return", _this.listadoParametrosExcel);
 
               case 5:
               case "end":
@@ -2926,24 +3808,18 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         'f_inicio_h': this.f_h
       };
       axios.post("api/filtro-parametros", data).then(function (response) {
-        console.log(response.data);
         me.listadoParametros = response.data.calidad_agua;
         me.promedios = response.data.promedios;
+      });
+      axios.post("api/filtro-parametros-excel", data).then(function (response) {
+        me.listadoParametrosExcel = response.data.calidad_agua; // me.promedios = response.data.promedios
       });
     },
     listar: function listar() {
-      var me = this; // this.listarParametros();
-
+      var me = this;
       this.listarSiembras();
       this.listarParametrosContenedores();
       this.listarContenedores();
-    },
-    listarParametros: function listarParametros() {
-      var me = this;
-      axios.get("api/parametros-calidad").then(function (response) {
-        me.listadoParametros = response.data.calidad_agua;
-        me.promedios = response.data.promedios;
-      });
     },
     listarSiembras: function listarSiembras() {
       var me = this;
@@ -2959,7 +3835,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
     },
     listarContenedores: function listarContenedores() {
       var me = this;
-      axios.get("api/contenedores").then(function (response) {
+      axios.get("api/listadoContenedores").then(function (response) {
         me.listadoContenedores = response.data;
       });
     },
@@ -2975,6 +3851,10 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         _this2.mostrar = 1;
         _this2.listadoParametros = response.data.calidad_agua;
         _this2.promedios = response.data.promedios;
+      });
+      axios.post('api/parametro-x-contenedor-excel/' + objeto).then(function (response) {
+        _this2.mostrar = 1;
+        _this2.listadoParametrosExcel = response.data.calidad_agua; // this.promedios = response.data.promedios
       });
     },
     ocultarParametros: function ocultarParametros() {
@@ -2995,18 +3875,17 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         this.form.id_contenedor = this.idContenedor;
       }
 
-      console.log(this.form.id_contenedor);
       this.form.post("api/parametros-calidad").then(function (_ref) {
         var data = _ref.data;
 
         editando: 0;
 
-        console.log('guardado');
         me.filtrarParametros();
         $('#modalParametros').modal('hide');
       });
     },
     editarParametros: function editarParametros(objeto) {
+      console.log(objeto);
       var me = this; // this.form.id = idContenedor;
 
       this.form.fill(objeto);
@@ -3020,12 +3899,11 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       this.form.put('api/parametros-calidad/' + this.form.id).then(function (_ref2) {
         var data = _ref2.data;
         $('#modalParametros').modal('hide');
+        me.mostrarParametros(_this3.idContenedor);
         me.listar();
-        console.log(data);
 
         _this3.form.reset();
       });
-      console.log('editando' + this.form.id);
     },
     eliminarParametros: function eliminarParametros(objeto) {
       var me = this;
@@ -3039,7 +3917,6 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         if (willDelete) {
           axios["delete"]('api/parametros-calidad/' + objeto).then(function (_ref3) {
             var data = _ref3.data;
-            console.log('eliminar' + objeto);
             me.listar();
           });
         }
@@ -3194,9 +4071,8 @@ vue__WEBPACK_IMPORTED_MODULE_0___default.a.component(vform__WEBPACK_IMPORTED_MOD
       this.form.post('api/contenedores').then(function (_ref) {
         var data = _ref.data;
 
-        editando: 0, console.log(data);
+        editando: 0, me.listar();
 
-        me.listar();
         $('#modalContenedor').modal('hide');
         me.form.contenedor = '';
         me.form.capacidad = '';
@@ -3219,17 +4095,14 @@ vue__WEBPACK_IMPORTED_MODULE_0___default.a.component(vform__WEBPACK_IMPORTED_MOD
       this.form.fill(objeto);
       this.editando = 1;
       $('#modalContenedor').modal('show');
-      console.log('editandosssss');
     },
     editar: function editar() {
       var me = this;
       this.form.put('api/contenedores/' + this.form.id).then(function (_ref2) {
         var data = _ref2.data;
-        console.log(data);
         $('#modalContenedor').modal('hide');
         me.listar();
       });
-      console.log('editando');
     },
     eliminar: function eliminar(index) {
       var me = this;
@@ -3244,7 +4117,6 @@ vue__WEBPACK_IMPORTED_MODULE_0___default.a.component(vform__WEBPACK_IMPORTED_MOD
           me.form["delete"]('api/contenedores/' + index).then(function (_ref3) {
             var data = _ref3.data;
             me.listar();
-            console.log('eliminar' + index);
           });
         }
       });
@@ -3287,9 +4159,111 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 /* harmony default export */ __webpack_exports__["default"] = ({
-  mounted: function mounted() {//console.log('Component mounted.')
-  }
+  mounted: function mounted() {}
 });
 
 /***/ }),
@@ -3415,9 +4389,8 @@ vue__WEBPACK_IMPORTED_MODULE_0___default.a.component(vform__WEBPACK_IMPORTED_MOD
       this.form.post('api/especies').then(function (_ref) {
         var data = _ref.data;
 
-        editando: 0, console.log(data);
+        editando: 0, me.listar();
 
-        me.listar();
         $('#modalEspecies').modal('hide');
         me.form.especie = '';
         me.form.descripcion = '';
@@ -3444,11 +4417,9 @@ vue__WEBPACK_IMPORTED_MODULE_0___default.a.component(vform__WEBPACK_IMPORTED_MOD
       var me = this;
       this.form.put('api/especies/' + this.form.id).then(function (_ref2) {
         var data = _ref2.data;
-        console.log(data);
         $('#modalEspecies').modal('hide');
         me.listar();
       });
-      console.log('editando');
     },
     eliminar: function eliminar(index) {
       var me = this;
@@ -3463,14 +4434,13 @@ vue__WEBPACK_IMPORTED_MODULE_0___default.a.component(vform__WEBPACK_IMPORTED_MOD
           me.form["delete"]('api/especies/' + index).then(function (_ref3) {
             var data = _ref3.data;
             me.listar();
-            console.log('eliminar' + index);
           });
         }
       });
     }
   },
   mounted: function mounted() {
-    this.listar(); //console.log('Component mounted.')
+    this.listar();
   }
 });
 
@@ -3502,9 +4472,7 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 /* harmony default export */ __webpack_exports__["default"] = ({
-  mounted: function mounted() {
-    console.log('Component mounted.');
-  }
+  mounted: function mounted() {}
 });
 
 /***/ }),
@@ -3652,25 +4620,33 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 //
 //
 //
+//
+//
+//
+//
 
 /* harmony default export */ __webpack_exports__["default"] = ({
   data: function data() {
     return {
       json_fields: {
-        'siembra': 'nombre_siembra',
+        'Siembra': 'nombre_siembra',
+        'Lote': 'lote',
         'Fecha de registro': 'fecha_registro',
         'Especie': 'especie',
         'Tipo registro': 'nombre_registro',
-        ' Peso ganado': 'peso_ganado',
-        ' Mortalidad': 'mortalidad',
-        'Biomasa': 'bioamasa',
-        ' Cantidad': 'cantidad'
+        'Peso Actual': 'peso_ganado',
+        'Mortalidad': 'mortalidad',
+        'Salida biomasa muestreo': 'biomasa',
+        'Cantidad': 'cantidad',
+        'Biomasa disponible': 'biomasa_disponible'
       },
       listadoSiembras: [],
       listadoRegistros: [],
       listadoEspecies: [],
+      listadoLotes: [],
       // filtros
       f_siembra: '',
+      f_lote: '',
       f_estado: '',
       f_especie: '',
       f_actividad: '',
@@ -3714,6 +4690,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       me.listarSiembras();
       me.listarRegistros();
       me.listarEspecies();
+      me.listarLotes();
     },
     listarSiembras: function listarSiembras() {
       var me = this;
@@ -3733,6 +4710,12 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         me.listadoEspecies = response.data;
       });
     },
+    listarLotes: function listarLotes() {
+      var me = this;
+      axios.get("api/listadoLotes").then(function (response) {
+        me.listadoLotes = response.data;
+      });
+    },
     filtroResultados: function filtroResultados() {
       var me = this;
 
@@ -3740,6 +4723,18 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         this.smb = '-1';
       } else {
         this.smb = this.f_siembra;
+      }
+
+      if (this.f_estado == '') {
+        this.est = '-1';
+      } else {
+        this.est = this.f_estado;
+      }
+
+      if (this.f_lote == '') {
+        this.lot = '-1';
+      } else {
+        this.lot = this.f_lote;
       }
 
       if (this.f_especie == '') {
@@ -3780,6 +4775,8 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
       var data = {
         'f_siembra': this.smb,
+        'f_estado': this.est,
+        'f_lote': this.lot,
         'f_especie': this.f_e,
         'f_actividad': this.act,
         'f_peso_d': this.pesod,
@@ -3789,6 +4786,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       };
       axios.post("api/filtro-registros-siembras", data).then(function (response) {
         me.listadoRegistros = response.data;
+        console.log(response);
       });
     }
   },
@@ -3908,22 +4906,26 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 //
 //
 //
+//
+//
 
 /* harmony default export */ __webpack_exports__["default"] = ({
   data: function data() {
     return {
       json_fields: {
         'Siembra': 'nombre_siembra',
-        'Fecha inicio siembra': 'fecha_inicio',
+        'Area': 'capacidad',
+        'Cantidad inicial': 'cantidad_inicial',
         'Biomasa inicial': 'biomasa_inicial',
-        'Biomasa dispo': 'biomasa_disponible',
+        'Biomasa disponible muestreo (KG)': 'biomasa_disponible',
         'Salida de biomasa': 'salida_biomasa',
         'Mortalidad': 'mortalidad',
         'Mort. Kg': 'mortalidad_kg',
         'Salida animales': 'salida_animales',
         'Total alimento (Kg)': 'cantidad_total_alimento',
-        'Biomasa disponible por conversión teórica': 'incr_bio_acum_conver',
-        'Biomasa disponible por alimento': 'bio_dispo_alimen'
+        'Incremento de biomasa por alimento': 'incr_bio_acum_conver',
+        'Biomasa disponible por alimento': 'bio_dispo_alimen',
+        '% Supervievencia final': 'porc_supervivencia_final'
       },
       listadoExistencias: [],
       listadoEspecies: [],
@@ -3969,7 +4971,6 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       this.listarEspecies();
       this.listarSiembras();
       axios.get("api/informes-biomasa-alimento").then(function (response) {
-        console.log(response.data);
         me.listadoExistencias = response.data.existencias;
       });
     },
@@ -4013,9 +5014,8 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         'f_inicio_h': this.fech
       };
       axios.post("api/filtro-biomasa-alimento", data).then(function (response) {
-        me.listadoExistencias = response.data.existencias; // console.log(response.data);
+        me.listadoExistencias = response.data.existencias;
       });
-      console.log('buscar');
     }
   },
   mounted: function mounted() {
@@ -4171,28 +5171,38 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
 
 /* harmony default export */ __webpack_exports__["default"] = ({
   data: function data() {
     return {
       json_fields: {
         'Siembra': 'nombre_siembra',
+        'Lote': 'lote',
+        'Area': 'capacidad',
         'Especie': 'especie',
-        'Fecha inicio siembra': 'fecha_inicio',
-        'Fecha registro': 'fecha_registro',
+        'Inicio siembra': 'fecha_inicio',
         'Cantidad Inicial': 'cantidad_inicial',
         'Peso inicial': 'peso_inicial',
         'Cantidad actual': 'cant_actual',
         'Peso actual': 'peso_actual',
+        'Fecha último registro': 'fecha_registro',
         'Tiempo de cultivo': 'intervalo_tiempo',
         'Biomasa disponible': 'biomasa_disponible',
         'Salida de biomasa': 'salida_biomasa',
         'Mortalidad': 'mortalidad',
         'Mortalidad kg': 'mortalidad_kg',
-        'Mortalidad %': 'mortalidad_porcentaje',
+        '% Mortalidad': 'mortalidad_porcentaje',
         'Salida animales': 'salida_animales',
         'Incremento de biomasa': 'incremento_biomasa',
-        'Gananacia de peso por día': 'ganancia_peso_día',
+        'Gananacia de peso por día': 'ganancia_peso_dia',
         'Densidad final (Animales/m2)': 'densidad_final',
         'Carga final (Kg/m2)': 'carga_final'
       },
@@ -4200,7 +5210,9 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       listadoEspecies: [],
       listadoSiembras: [],
       imprimirRecursos: [],
+      listadoLotes: [],
       f_siembra: '',
+      f_lote: '',
       f_especie: '',
       f_inicio_d: '',
       f_inicio_h: '',
@@ -4242,8 +5254,8 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       var me = this;
       this.listarEspecies();
       this.listarSiembras();
+      this.listarLotes();
       axios.get("api/traer-existencias").then(function (response) {
-        console.log(response.data);
         me.listadoExistencias = response.data.existencias;
       });
     },
@@ -4259,6 +5271,12 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         me.listadoSiembras = response.data.siembra;
       });
     },
+    listarLotes: function listarLotes() {
+      var me = this;
+      axios.get("api/listadoLotes").then(function (response) {
+        me.listadoLotes = response.data;
+      });
+    },
     filtroCiclo: function filtroCiclo() {
       var me = this;
 
@@ -4266,6 +5284,12 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         this.smb = '-1';
       } else {
         this.smb = this.f_siembra;
+      }
+
+      if (this.f_lote == '') {
+        this.lot = '-1';
+      } else {
+        this.lot = this.f_lote;
       }
 
       if (this.f_especie == '') {
@@ -4300,6 +5324,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
       var data = {
         'f_siembra': this.smb,
+        'f_lote': this.lot,
         'f_especie': this.esp,
         'f_inicio_d': this.fecd,
         'f_inicio_h': this.fech,
@@ -4307,9 +5332,8 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         'f_peso_h': this.pesoh
       };
       axios.post("api/filtro-ciclos", data).then(function (response) {
-        me.listadoExistencias = response.data.existencias; // console.log(response.data);
+        me.listadoExistencias = response.data.existencias;
       });
-      console.log('buscar');
     }
   },
   mounted: function mounted() {
@@ -4458,34 +5482,50 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
 
 /* harmony default export */ __webpack_exports__["default"] = ({
   data: function data() {
     return {
       json_fields: {
         'Siembra': 'nombre_siembra',
-        'Fecha inicio siembra': 'fecha_inicio',
+        'Area': 'capacidad',
+        'Inicio siembra': 'fecha_inicio',
+        'Tiempo de cultivo': 'intervalo_tiempo',
         'Cantidad Inicial': 'cantidad_inicial',
+        'Biomasa inicial': 'biomasa_inicial',
         'Peso inicial': 'peso_inicial',
+        'Carga inicial': 'carga_inicial',
         'Animales final': 'cant_actual',
         'Peso actual': 'peso_actual',
-        'Intervalo de tiempo': 'intervalo_tiempo',
         'Biomasa disponible': 'biomasa_disponible',
         'Salida de biomasa': 'salida_biomasa',
-        'Biomasa acumulada': 'biomasa_acumulada',
         'Mortalidad': 'mortalidad',
         'Mortalidad kg': 'mortalidad_kg',
         'Mortalidad %': 'mortalidad_porcentaje',
         'Salida animales': 'salida_animales',
+        'Densidad inicial (Animales/m2)': 'densidad_inicial',
         'Densidad final (Animales/m2)': 'densidad_final',
         'Carga final (Kg/m2)': 'carga_final',
         'Horas hombre': 'horas_hombre',
-        'Costo minutos Hombre': 'costo_minutosh',
+        'Costo Horas': 'costo_minutosh',
         'Costo total recursos': 'costo_total_recurso',
+        'Costo horas': 'costo_horas',
         'Costo total alimentos': 'costo_total_alimento',
-        'Costo total': 'costo_tot',
         'Total Kg Alimento': 'cantidad_total_alimento',
-        'Conversión alimenticia parcial': 'conversion_alimenticia_siembra'
+        'Costo total': 'costo_tot',
+        'Costo producccion final': 'costo_produccion_final',
+        'Conversión alimenticia parcial': 'conversion_alimenticia_siembra',
+        'Conversion final': 'conversion_final',
+        'Ganancia peso dia': 'ganancia_peso_dia',
+        '% Supervivencia final': 'porc_supervivencia_final'
       },
       listadoExistencias: [],
       listadoEspecies: [],
@@ -4531,7 +5571,6 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       this.listarEspecies();
       this.listarSiembras();
       axios.get("api/traer-existencias-detalle").then(function (response) {
-        console.log(response.data);
         me.listadoExistencias = response.data.existencias;
       });
     },
@@ -4583,7 +5622,6 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       axios.post("api/filtro-existencias-detalle", data).then(function (response) {
         me.listadoExistencias = response.data.existencias;
       });
-      console.log('buscar');
     }
   },
   mounted: function mounted() {
@@ -4726,8 +5764,6 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 //
 //
 //
-//
-//
 
 
 /* harmony default export */ __webpack_exports__["default"] = ({
@@ -4736,13 +5772,14 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       json_fields: {
         '#': 'id',
         'Fecha ': 'fecha_parametro',
+        'Contenedor': 'contenedor',
         '12:00 a.m': '12_am',
         '4:00 a.m': '4_am',
         '7:00 a.m': '7_am',
         '4:00 p.m': '4_pm',
-        '8:00 a.m': '8_pm',
+        '8:00 p.m': '8_pm',
         'Temperatura': 'temperatura',
-        'Ph': 'ph',
+        'PH': 'ph',
         'Amonio': 'amonio',
         'Nitrito': 'nitrito',
         'Nitrato': 'nitrato',
@@ -4834,7 +5871,6 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         'f_inicio_h': this.f_h
       };
       axios.post("api/filtro-parametros", data).then(function (response) {
-        console.log(response.data);
         me.listadoParametros = response.data.calidad_agua;
         me.promedios = response.data.promedios;
       });
@@ -4876,7 +5912,6 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
         editando: 0;
 
-        console.log('guardado');
         me.listar();
         $('#modalParametros').modal('hide');
       });
@@ -4893,13 +5928,11 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       var me = this;
       this.form.put('api/parametros-calidad/' + this.form.id).then(function (_ref2) {
         var data = _ref2.data;
-        console.log(data);
         $('#modalParametros').modal('hide');
         me.listar();
 
         _this2.form.reset();
       });
-      console.log('editando' + this.form.id);
     },
     eliminarParametros: function eliminarParametros(objeto) {
       var me = this;
@@ -4913,7 +5946,6 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         if (willDelete) {
           axios["delete"]('api/parametros-calidad/' + objeto).then(function (_ref3) {
             var data = _ref3.data;
-            console.log('eliminar' + objeto);
             me.listar();
           });
         }
@@ -5024,20 +6056,21 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 //
 //
 //
+//
+//
 
 /* harmony default export */ __webpack_exports__["default"] = ({
   data: function data() {
     return {
       json_fields: {
         'Siembra': 'nombre_siembra',
-        'Salida de biomasa': 'salida_biomasa',
-        'Salida animales': 'salida_animales',
-        'Costo minutos Hombre': 'costo_minutosh',
-        'Costo total recursos': 'costo_total_recurso',
-        'Costo total alimentos': 'costo_total_alimento',
-        'Costo total': 'costo_tot',
-        'Total Kg Alimento': 'cantidad_total_alimento',
-        'Costo de producción': 'costo_produccion'
+        'Costo Horas': 'costo_minutosh',
+        'Costo recursos': 'costo_total_recurso',
+        'Costo alimentos': 'costo_total_alimento',
+        'Total Alimento (KG)': 'cantidad_total_alimento',
+        'Costo total siembra': 'costo_tot',
+        'Costo total de producción parcial': 'costo_produccion_parcial',
+        'Biomasa disponible por alimento': 'bio_dispo_alimen'
       },
       listadoExistencias: [],
       listadoEspecies: [],
@@ -5084,7 +6117,6 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       this.listarEspecies();
       this.listarSiembras();
       axios.get("api/informes-biomasa-alimento").then(function (response) {
-        console.log(response.data);
         me.listadoExistencias = response.data.existencias;
       });
     },
@@ -5128,9 +6160,8 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         'f_inicio_h': this.fech
       };
       axios.post("api/filtro-biomasa-alimento", data).then(function (response) {
-        me.listadoExistencias = response.data.existencias; // console.log(response.data);
+        me.listadoExistencias = response.data.existencias;
       });
-      console.log('buscar');
     }
   },
   mounted: function mounted() {
@@ -5156,14 +6187,30 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var vue_json_excel__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! vue-json-excel */ "./node_modules/vue-json-excel/dist/vue-json-excel.esm.js");
 
 
-var _methods;
-
-function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
 
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 //
 //
 //
@@ -5248,16 +6295,20 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
     return {
       json_fields: {
         'Siembra': 'nombre_siembra',
+        'Estado': 'estado',
         'Tipo actividad': 'actividad',
         'Minutos hombre': 'minutos_hombre',
         'Costo total minutos': 'costo_minutos',
         'Cantidad total recurso': 'cantidad_recurso',
         'Costo total recurso': 'costo_recurso',
         'Cantidad total alimento': 'cantidad_alimento',
-        'Costo total alimento': 'costo_alimento'
+        'Costo total alimento': 'costo_alimento',
+        'Costo total actividad': 'costo_total_actividad',
+        '%Costo total producción': 'porcentaje_total_produccion'
       },
       f_actividad: '',
       f_siembra: '',
+      f_estado: '',
       listado: [],
       listadoSiembras: [],
       listadoActividades: [],
@@ -5267,7 +6318,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
   components: {
     downloadexcel: vue_json_excel__WEBPACK_IMPORTED_MODULE_2__["default"]
   },
-  methods: (_methods = {
+  methods: {
     fetchData: function fetchData() {
       var _this = this;
 
@@ -5293,48 +6344,57 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         }, _callee);
       }))();
     },
-    buscarResultados: function buscarResultados() {},
     listar: function listar() {
       var me = this;
       axios.get("api/informes-recursos-necesarios").then(function (response) {
         me.listado = response.data.recursosNecesarios.data;
         me.promedios = response.data.promedioRecursos;
       });
-    }
-  }, _defineProperty(_methods, "buscarResultados", function buscarResultados() {
-    var me = this;
+    },
+    buscarResultados: function buscarResultados() {
+      var me = this;
 
-    if (this.f_siembra == '') {
-      this.f_s = '-1';
-    } else {
-      this.f_s = this.f_siembra;
-    }
+      if (this.f_siembra == '') {
+        this.f_s = '-1';
+      } else {
+        this.f_s = this.f_siembra;
+      }
 
-    if (this.f_actividad == '') {
-      this.actividad = '-1';
-    } else {
-      this.actividad = this.f_actividad;
-    }
+      if (this.f_estado == '') {
+        this.f_e = '-1';
+      } else {
+        this.f_e = this.f_estado;
+      }
 
-    var data = {
-      'f_siembra': this.f_s,
-      'f_actividad': this.actividad
-    };
-    axios.post("api/filtro-recursos", data).then(function (response) {
-      me.listado = response.data.recursosNecesarios;
-      me.promedios = response.data.promedioRecursos;
-    });
-  }), _defineProperty(_methods, "listarSiembras", function listarSiembras() {
-    var me = this;
-    axios.get("api/siembras").then(function (response) {
-      me.listadoSiembras = response.data.siembra;
-    });
-  }), _defineProperty(_methods, "listarActividades", function listarActividades() {
-    var me = this;
-    axios.get("api/actividades").then(function (response) {
-      me.listadoActividades = response.data;
-    });
-  }), _methods),
+      if (this.f_actividad == '') {
+        this.actividad = '-1';
+      } else {
+        this.actividad = this.f_actividad;
+      }
+
+      var data = {
+        'f_siembra': this.f_s,
+        'f_estado': this.f_e,
+        'f_actividad': this.actividad
+      };
+      axios.post("api/filtro-recursos", data).then(function (response) {
+        me.listado = response.data.recursosNecesarios.data;
+        me.promedios = response.data.promedioRecursos;
+      });
+    },
+    listarSiembras: function listarSiembras() {
+      var me = this;
+      axios.get("api/siembras").then(function (response) {
+        me.listadoSiembras = response.data.siembra;
+      });
+    },
+    listarActividades: function listarActividades() {
+      var me = this;
+      axios.get("api/actividades").then(function (response) {
+        me.listadoActividades = response.data;
+      });
+    }
+  },
   mounted: function mounted() {
     this.listar();
     this.listarSiembras();
@@ -5368,8 +6428,6 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
-//
-//
 //
 //
 //
@@ -5620,7 +6678,6 @@ vue__WEBPACK_IMPORTED_MODULE_1___default.a.component(vform__WEBPACK_IMPORTED_MOD
       var me = this;
       this.ver_registros = 1;
       $("#modalIngreso").modal('show');
-      console.log(id);
       this.idSiembraRegistro = id;
       this.tipo_registro = 0;
     },
@@ -5693,7 +6750,6 @@ vue__WEBPACK_IMPORTED_MODULE_1___default.a.component(vform__WEBPACK_IMPORTED_MOD
           };
           axios.post('api/actualizarEstado/' + this.id_finalizar, data).then(function (_ref2) {
             var response = _ref2.response;
-            console.log(response);
             _this2.id_finalizar = '';
             _this2.ini_descanso = '';
             _this2.fin_descanso = '';
@@ -5708,7 +6764,6 @@ vue__WEBPACK_IMPORTED_MODULE_1___default.a.component(vform__WEBPACK_IMPORTED_MOD
           };
           axios.post('api/actualizarEstado/' + this.id_finalizar, _data).then(function (_ref3) {
             var response = _ref3.response;
-            console.log(response);
             _this2.id_finalizar = '';
             _this2.ini_descanso = '';
             $('#modalFinalizar').modal('hide');
@@ -5719,8 +6774,6 @@ vue__WEBPACK_IMPORTED_MODULE_1___default.a.component(vform__WEBPACK_IMPORTED_MOD
       } else {
         swal("Advertencia", "Por favor, diligencia los datos restantes", "warning");
       }
-
-      console.log('finalizar' + this.id_finalizar);
     }
   },
   mounted: function mounted() {
@@ -5881,6 +6934,23 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 
 /* harmony default export */ __webpack_exports__["default"] = ({
   data: function data() {
@@ -5894,17 +6964,17 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         'Costo minutos hombre': 'costo_minutosh',
         'Costo acumulado minutos': 'costo_h_acum',
         'Recurso': 'recurso',
-        'Costo': 'costo_r',
-        'Costo acumulado': 'costo_r_acum',
+        'Cantidad Recurso': 'cantidad_recurso',
+        'Costo Recurso': 'costo_total_recurso',
+        'Costo acumulado Recurso': 'costo_r_acum',
         'Alimento': 'alimento',
         'Cantidad KG mañana': 'cant_manana',
         'Cantidad KG tarde': 'cant_tarde',
-        'Costo Alimento': 'costo_a',
-        'Costo Total': 'costo_total_alimento',
-        'Costo acumulado Alimento': 'costo_a_acum'
+        'Costo Alimento': 'costo_total_alimento',
+        'Costo acumulado Alimento': 'costo_a_acum',
+        'Costo Actividad': 'costo_total_actividad'
       },
       listados: [],
-      listadors: [],
       listadorn: [],
       listadoe: [],
       listadoActividades: [],
@@ -5920,7 +6990,9 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       recurso_s: '',
       fecha_ra1: '',
       fecha_ra2: '',
-      costo_acum: 0
+      costo_acum: 0,
+      tipoActividad: '',
+      listadoPromedios: []
     };
   },
   components: {
@@ -5956,19 +7028,12 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
     listar: function listar() {
       var me = this;
       axios.get("api/informes").then(function (response) {
-        me.listadors = response.data.recursosSiembras;
         me.listadorn = response.data.recursosNecesarios;
+        me.listadoPromedios = response.data.promedioRecursos;
       });
       axios.get("api/traer-recursos").then(function (response) {
-        console.log(response.data.recursosNecesarios);
         me.imprimirRecursos = response.data.recursosNecesarios;
       });
-    },
-    incrementar: function incrementar(incremento) {
-      this.costo_acum += parseFloat(incremento);
-      var aux_acum = parseFloat(this.costo_acum);
-      console.log('aux_acum=' + aux_acum);
-      return aux_acum;
     },
     listarActividades: function listarActividades() {
       var me = this;
@@ -6052,17 +7117,13 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       };
       axios.post("api/filtroInformes", data).then(function (response) {
         me.listadorn = response.data.recursosNecesarios;
-        me.listadors = response.data.recursosSiembras; // console.log(response.data);
       });
       axios.post("api/informe-recursos", data).then(function (response) {
-        console.log(response.data.recursosNecesarios);
         me.imprimirRecursos = response.data.recursosNecesarios;
       });
-      console.log('buscar');
     }
   },
   mounted: function mounted() {
-    console.log('Component mounted.');
     this.listar();
     this.listarSiembras();
     this.listarAlimentos();
@@ -6208,9 +7269,8 @@ vue__WEBPACK_IMPORTED_MODULE_0___default.a.component(vform__WEBPACK_IMPORTED_MOD
       this.form.post('api/recursos').then(function (_ref) {
         var data = _ref.data;
 
-        editando: 0, console.log(data);
+        editando: 0, me.listar();
 
-        me.listar();
         $('#modalRecursos').modal('hide');
         me.form.recurso = '';
         me.form.unidad = '';
@@ -6238,11 +7298,9 @@ vue__WEBPACK_IMPORTED_MODULE_0___default.a.component(vform__WEBPACK_IMPORTED_MOD
       var me = this;
       this.form.put('api/recursos/' + this.form.id).then(function (_ref2) {
         var data = _ref2.data;
-        console.log(data);
         $('#modalRecursos').modal('hide');
         me.listar();
       });
-      console.log('editando');
     },
     eliminar: function eliminar(index) {
       var me = this;
@@ -6257,14 +7315,13 @@ vue__WEBPACK_IMPORTED_MODULE_0___default.a.component(vform__WEBPACK_IMPORTED_MOD
           me.form["delete"]('api/recursos/' + index).then(function (_ref3) {
             var data = _ref3.data;
             me.listar();
-            console.log('eliminar' + index);
           });
         }
       });
     }
   },
   mounted: function mounted() {
-    this.listar(); //console.log('Component mounted.')
+    this.listar();
   }
 });
 
@@ -6477,6 +7534,46 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 
 
 /* harmony default export */ __webpack_exports__["default"] = ({
@@ -6487,7 +7584,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         'Siembra': 'nombre_siembra',
         'Fecha': 'fecha_ra',
         'Minutos hombre': 'minutos_hombre',
-        'Costo total minutos': 'total_minutos_hombre',
+        'Costo minutos hombre': 'total_minutos_hombre',
         'Recurso': 'recurso',
         'Cantidad': 'cantidad_recurso',
         'Costo': 'costo',
@@ -6504,28 +7601,73 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         cantidad_recurso: '',
         detalles: ''
       }),
+      fecha_inicio: '',
+      hora_inicio: '07:00',
+      fecha_fin: '',
+      hora_fin: '07:00',
       t_actividad: '',
       fecha_ra1: '',
       fecha_ra2: '',
       f_siembra: '',
       alimento_s: '',
       recurso_s: '',
+      see_all: 0,
       busqueda: '',
       addSiembras: [],
       listado: [],
       promedios: [],
-      listadoRS: [],
-      listadorxs: [],
       listadoSiembras: [],
       listadoAlimentos: [],
       listadoActividades: [],
       listadoRecursos: [],
       nombresRecursos: [],
-      nombresAlimentos: []
+      nombresAlimentos: [],
+      offset: 10,
+      pagination: {
+        'total': 0,
+        'current_page': 0,
+        'per_page': 0,
+        'last_page': 0,
+        'from': 0,
+        'to': 0
+      },
+      showPagination: 1
     };
   },
   components: {
     downloadexcel: vue_json_excel__WEBPACK_IMPORTED_MODULE_2__["default"]
+  },
+  computed: {
+    isActived: function isActived() {
+      return this.pagination.current_page;
+    },
+    //Calcula los elementos de la paginación
+    pagesNumber: function pagesNumber() {
+      if (!this.pagination.to) {
+        return [];
+      }
+
+      var from = this.pagination.current_page - this.offset;
+
+      if (from < 1) {
+        from = 1;
+      }
+
+      var to = from + this.offset * 2;
+
+      if (to >= this.pagination.last_page) {
+        to = this.pagination.last_page;
+      }
+
+      var pagesArray = [];
+
+      while (from <= to) {
+        pagesArray.push(from);
+        from++;
+      }
+
+      return pagesArray;
+    }
   },
   methods: {
     fetchData: function fetchData() {
@@ -6558,6 +7700,8 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       $('#modalRecursos').modal('show');
     },
     buscarResultados: function buscarResultados() {
+      var _this2 = this;
+
       var me = this;
 
       if (this.f_siembra == '') {
@@ -6570,6 +7714,12 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         this.actividad = '-1';
       } else {
         this.actividad = this.t_actividad;
+      }
+
+      if (this.see_all == '') {
+        this.check = 0;
+      } else {
+        this.check = this.see_all;
       }
 
       if (this.recurso_s == '') {
@@ -6602,21 +7752,28 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         'recurso_s': this.rec,
         'alimento_s': this.ali,
         'fecha_ra1': this.fecha1,
-        'fecha_ra2': this.fecha2
+        'fecha_ra2': this.fecha2,
+        'see_all': this.check
       };
       axios.post("api/searchResults", data).then(function (response) {
-        me.listado = response.data.recursosNecesarios;
-        me.promedios = response.data.promedioRecursos;
+        if (response.data.pagination) {
+          _this2.showPagination = 1;
+          me.listado = response.data.recursosNecesarios.data;
+          me.pagination = response.data.pagination;
+        } else {
+          _this2.showPagination = 0;
+          me.listado = response.data.recursosNecesarios;
+          me.promedios = response.data.promedioRecursos;
+          me.pagination = [];
+        }
       });
-      console.log('buscar');
     },
-    listar: function listar() {
+    listar: function listar(page) {
       var me = this;
-      axios.get("api/recursos-necesarios").then(function (response) {
-        me.listado = response.data.recursosNecesarios;
-        me.listadoRS = response.data.recursosSiembra;
-        me.listadorxs = response.data.registrosxSiembra;
+      axios.get("api/recursos-necesarios?page=" + page).then(function (response) {
+        me.listado = response.data.recursosNecesarios.data;
         me.promedios = response.data.promedioRecursos;
+        me.pagination = response.data.pagination;
       });
     },
     listarSiembras: function listarSiembras() {
@@ -6661,7 +7818,6 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       var me = this;
       this.form.post("api/recursos-necesarios").then(function (_ref) {
         var data = _ref.data;
-        console.log('guardado');
         me.listar();
         $('#modalRecursos').modal('hide');
       });
@@ -6678,20 +7834,38 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         if (willDelete) {
           axios["delete"]('api/recursos-necesarios/' + objeto).then(function (_ref2) {
             var data = _ref2.data;
-            console.log('eliminar' + objeto);
             me.listar();
           });
         }
       });
+    },
+    calcularDiferenciaTiempo: function calcularDiferenciaTiempo() {
+      var inicio = new Date(this.fecha_inicio + ' ' + this.hora_inicio); // el evento cuyo tiempo ha transcurrido aquí:
+
+      var fin = new Date(this.fecha_fin + ' ' + this.hora_fin);
+      var transcurso = fin.getTime() - inicio.getTime(); // tiempo en milisegundos
+
+      var tiempoMinutos = transcurso / 60000;
+
+      if (transcurso > 0) {
+        this.form.cantidad_recurso = tiempoMinutos;
+      } //console.log(transcurso / 60000);//minutos
+      //console.log(transcurso / 3600000); //horas
+
+    },
+    cambiarPagina: function cambiarPagina(page) {
+      var me = this; //Actualiza la página actual
+
+      me.pagination.current_page = page;
+      me.listar(page);
     }
   },
   mounted: function mounted() {
-    this.listar();
+    this.listar(1);
     this.listarSiembras();
     this.listarAlimentos();
     this.listarRecursos();
     this.listarActividades();
-    console.log('Component mounted.');
   }
 });
 
@@ -6712,7 +7886,6 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var vform__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(vform__WEBPACK_IMPORTED_MODULE_1__);
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
-//
 //
 //
 //
@@ -7244,7 +8417,7 @@ vue__WEBPACK_IMPORTED_MODULE_0___default.a.component(vform__WEBPACK_IMPORTED_MOD
       fecha_registro: '',
       tipo_registro: '',
       peso_ganado: '',
-      mortalidad: '',
+      mortalidad: 0,
       biomasa: '',
       cantidad: '',
       aux_lote: '',
@@ -7275,7 +8448,7 @@ vue__WEBPACK_IMPORTED_MODULE_0___default.a.component(vform__WEBPACK_IMPORTED_MOD
       };
       axios.put('api/siembras/' + id, data).then(function (_ref2) {
         var data = _ref2.data;
-        _this.id_edit_item = '', _this.aux_lote = '', _this.aux_cantidad = '', _this.aux_peso_inicial = ''; // console.log(response)
+        _this.id_edit_item = '', _this.aux_lote = '', _this.aux_cantidad = '', _this.aux_peso_inicial = '';
       });
     },
     listarEspecies: function listarEspecies() {
@@ -7303,7 +8476,7 @@ vue__WEBPACK_IMPORTED_MODULE_0___default.a.component(vform__WEBPACK_IMPORTED_MOD
       this.listarEspecies();
       this.listarContenedores();
       this.id_edita = '';
-      this.listadoItems = []; // console.log('añadir item') 
+      this.listadoItems = [];
     },
     editarSiembra: function editarSiembra(siembra) {
       var me = this;
@@ -7321,7 +8494,6 @@ vue__WEBPACK_IMPORTED_MODULE_0___default.a.component(vform__WEBPACK_IMPORTED_MOD
       });
     },
     editarAlimento: function editarAlimento(objeto) {
-      console.log(objeto);
       var me = this; // let objeto = []
 
       this.editandoAlimento = 1;
@@ -7330,7 +8502,6 @@ vue__WEBPACK_IMPORTED_MODULE_0___default.a.component(vform__WEBPACK_IMPORTED_MOD
     guardarEdita: function guardarEdita(objeto) {
       var _this2 = this;
 
-      console.log(objeto);
       var me = this;
       var data = {
         siembra: this.form,
@@ -7360,7 +8531,6 @@ vue__WEBPACK_IMPORTED_MODULE_0___default.a.component(vform__WEBPACK_IMPORTED_MOD
       axios.post("api/siembras-alimentacion/" + id).then(function (response) {
         me.listadoRN = response.data.recursosNecesarios;
       });
-      console.log(id);
     },
     anadirEspecie: function anadirEspecie() {
       var _this3 = this;
@@ -7389,7 +8559,6 @@ vue__WEBPACK_IMPORTED_MODULE_0___default.a.component(vform__WEBPACK_IMPORTED_MOD
       }
     },
     removeItem: function removeItem(index) {
-      console.log(index);
       var me = this;
       me.listadoItems.pop(index, 1);
       this.listadoEspecies.push({
@@ -7432,8 +8601,7 @@ vue__WEBPACK_IMPORTED_MODULE_0___default.a.component(vform__WEBPACK_IMPORTED_MOD
       var me = this;
       this.ver_registros = 0; // this.idSiembraRegistro = id;
 
-      var aux_campos = me.campos[id]; // console.log(me.campos);
-
+      var aux_campos = me.campos[id];
       var data = {
         campos: aux_campos,
         id_siembra: id,
@@ -7442,7 +8610,6 @@ vue__WEBPACK_IMPORTED_MODULE_0___default.a.component(vform__WEBPACK_IMPORTED_MOD
       };
       axios.post('api/registros', data).then(function (_ref4) {
         var response = _ref4.response;
-        console.log(response);
         me.aux_campos = [];
         me.ver_registros = 1;
         me.abrirIngreso(id);
@@ -7498,7 +8665,6 @@ vue__WEBPACK_IMPORTED_MODULE_0___default.a.component(vform__WEBPACK_IMPORTED_MOD
           };
           axios.post('api/actualizarEstado/' + this.id_finalizar, data).then(function (_ref5) {
             var response = _ref5.response;
-            console.log(response);
             _this4.id_finalizar = '';
             _this4.ini_descanso = '';
             _this4.fin_descanso = '';
@@ -7513,7 +8679,6 @@ vue__WEBPACK_IMPORTED_MODULE_0___default.a.component(vform__WEBPACK_IMPORTED_MOD
           };
           axios.post('api/actualizarEstado/' + this.id_finalizar, _data).then(function (_ref6) {
             var response = _ref6.response;
-            console.log(response);
             _this4.id_finalizar = '';
             _this4.ini_descanso = '';
             $('#modalFinalizar').modal('hide');
@@ -7524,8 +8689,6 @@ vue__WEBPACK_IMPORTED_MODULE_0___default.a.component(vform__WEBPACK_IMPORTED_MOD
       } else {
         swal("Advertencia", "Por favor, diligencia los datos restantes", "warning");
       }
-
-      console.log('finalizar' + this.id_finalizar);
     },
     guardar: function guardar() {
       var _this5 = this;
@@ -7555,8 +8718,6 @@ vue__WEBPACK_IMPORTED_MODULE_0___default.a.component(vform__WEBPACK_IMPORTED_MOD
       } else {
         alert('Debe diligenciar todos los campos');
       }
-
-      console.log('guardar');
     },
     guardarRecursos: function guardarRecursos() {
       var _this6 = this;
@@ -7566,7 +8727,6 @@ vue__WEBPACK_IMPORTED_MODULE_0___default.a.component(vform__WEBPACK_IMPORTED_MOD
       if (this.editandoAlimento == 0) {
         axios.post("api/recursos-necesarios", this.form).then(function (_ref8) {
           var data = _ref8.data;
-          console.log('guardado');
           me.listar();
           me.abrirCrear(_this6.form.id_siembra);
           swal("Excelente!", "Los datos se guardaron correctamente!", "success");
@@ -7617,7 +8777,6 @@ vue__WEBPACK_IMPORTED_MODULE_0___default.a.component(vform__WEBPACK_IMPORTED_MOD
         if (willDelete) {
           axios["delete"]('api/recursos-necesarios/' + objeto).then(function (_ref11) {
             var data = _ref11.data;
-            console.log('eliminar' + objeto);
             me.abrirCrear(_this7.idSiembraR);
             me.listar();
           });
@@ -7805,9 +8964,7 @@ __webpack_require__.r(__webpack_exports__);
       if (confirm('Esta seguro de inactivar este usuario?')) {
         axios["delete"]("api/usuarios/" + id_elim).then(function (response) {
           me.listar();
-        })["catch"](function (error) {
-          console.log(error);
-        });
+        })["catch"](function (error) {});
       }
     },
     guardar: function guardar() {
@@ -7824,9 +8981,7 @@ __webpack_require__.r(__webpack_exports__);
               me.form.password = '';
               $('#agregar').modal('hide');
               me.listar();
-            })["catch"](function (error) {
-              console.log(error);
-            });
+            })["catch"](function (error) {});
           }
         } else {
           axios.put("api/usuarios/" + this.id_edita, this.form.all()).then(function (response) {
@@ -7835,19 +8990,13 @@ __webpack_require__.r(__webpack_exports__);
             me.form.password = '';
             $('#agregar').modal('hide');
             me.listar();
-          })["catch"](function (error) {
-            console.log(error);
-          });
+          })["catch"](function (error) {});
         }
-      } else {
-        console.log('errors: ', this.form.errors().all());
-      }
+      } else {}
     },
     listar: function listar() {
       var me = this;
       axios.get("api/usuarios").then(function (response) {
-        //console.log("llega");
-        //console.log(response.data);
         me.listado = response.data;
       });
     },
@@ -7860,7 +9009,7 @@ __webpack_require__.r(__webpack_exports__);
     }
   },
   mounted: function mounted() {
-    this.listar(); //console.log('Component mounted.')
+    this.listar();
   }
 });
 
@@ -43239,765 +44388,6 @@ process.umask = function() { return 0; };
 
 /***/ }),
 
-/***/ "./node_modules/regenerator-runtime/runtime.js":
-/*!*****************************************************!*\
-  !*** ./node_modules/regenerator-runtime/runtime.js ***!
-  \*****************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-/**
- * Copyright (c) 2014-present, Facebook, Inc.
- *
- * This source code is licensed under the MIT license found in the
- * LICENSE file in the root directory of this source tree.
- */
-
-var runtime = (function (exports) {
-  "use strict";
-
-  var Op = Object.prototype;
-  var hasOwn = Op.hasOwnProperty;
-  var undefined; // More compressible than void 0.
-  var $Symbol = typeof Symbol === "function" ? Symbol : {};
-  var iteratorSymbol = $Symbol.iterator || "@@iterator";
-  var asyncIteratorSymbol = $Symbol.asyncIterator || "@@asyncIterator";
-  var toStringTagSymbol = $Symbol.toStringTag || "@@toStringTag";
-
-  function define(obj, key, value) {
-    Object.defineProperty(obj, key, {
-      value: value,
-      enumerable: true,
-      configurable: true,
-      writable: true
-    });
-    return obj[key];
-  }
-  try {
-    // IE 8 has a broken Object.defineProperty that only works on DOM objects.
-    define({}, "");
-  } catch (err) {
-    define = function(obj, key, value) {
-      return obj[key] = value;
-    };
-  }
-
-  function wrap(innerFn, outerFn, self, tryLocsList) {
-    // If outerFn provided and outerFn.prototype is a Generator, then outerFn.prototype instanceof Generator.
-    var protoGenerator = outerFn && outerFn.prototype instanceof Generator ? outerFn : Generator;
-    var generator = Object.create(protoGenerator.prototype);
-    var context = new Context(tryLocsList || []);
-
-    // The ._invoke method unifies the implementations of the .next,
-    // .throw, and .return methods.
-    generator._invoke = makeInvokeMethod(innerFn, self, context);
-
-    return generator;
-  }
-  exports.wrap = wrap;
-
-  // Try/catch helper to minimize deoptimizations. Returns a completion
-  // record like context.tryEntries[i].completion. This interface could
-  // have been (and was previously) designed to take a closure to be
-  // invoked without arguments, but in all the cases we care about we
-  // already have an existing method we want to call, so there's no need
-  // to create a new function object. We can even get away with assuming
-  // the method takes exactly one argument, since that happens to be true
-  // in every case, so we don't have to touch the arguments object. The
-  // only additional allocation required is the completion record, which
-  // has a stable shape and so hopefully should be cheap to allocate.
-  function tryCatch(fn, obj, arg) {
-    try {
-      return { type: "normal", arg: fn.call(obj, arg) };
-    } catch (err) {
-      return { type: "throw", arg: err };
-    }
-  }
-
-  var GenStateSuspendedStart = "suspendedStart";
-  var GenStateSuspendedYield = "suspendedYield";
-  var GenStateExecuting = "executing";
-  var GenStateCompleted = "completed";
-
-  // Returning this object from the innerFn has the same effect as
-  // breaking out of the dispatch switch statement.
-  var ContinueSentinel = {};
-
-  // Dummy constructor functions that we use as the .constructor and
-  // .constructor.prototype properties for functions that return Generator
-  // objects. For full spec compliance, you may wish to configure your
-  // minifier not to mangle the names of these two functions.
-  function Generator() {}
-  function GeneratorFunction() {}
-  function GeneratorFunctionPrototype() {}
-
-  // This is a polyfill for %IteratorPrototype% for environments that
-  // don't natively support it.
-  var IteratorPrototype = {};
-  IteratorPrototype[iteratorSymbol] = function () {
-    return this;
-  };
-
-  var getProto = Object.getPrototypeOf;
-  var NativeIteratorPrototype = getProto && getProto(getProto(values([])));
-  if (NativeIteratorPrototype &&
-      NativeIteratorPrototype !== Op &&
-      hasOwn.call(NativeIteratorPrototype, iteratorSymbol)) {
-    // This environment has a native %IteratorPrototype%; use it instead
-    // of the polyfill.
-    IteratorPrototype = NativeIteratorPrototype;
-  }
-
-  var Gp = GeneratorFunctionPrototype.prototype =
-    Generator.prototype = Object.create(IteratorPrototype);
-  GeneratorFunction.prototype = Gp.constructor = GeneratorFunctionPrototype;
-  GeneratorFunctionPrototype.constructor = GeneratorFunction;
-  GeneratorFunction.displayName = define(
-    GeneratorFunctionPrototype,
-    toStringTagSymbol,
-    "GeneratorFunction"
-  );
-
-  // Helper for defining the .next, .throw, and .return methods of the
-  // Iterator interface in terms of a single ._invoke method.
-  function defineIteratorMethods(prototype) {
-    ["next", "throw", "return"].forEach(function(method) {
-      define(prototype, method, function(arg) {
-        return this._invoke(method, arg);
-      });
-    });
-  }
-
-  exports.isGeneratorFunction = function(genFun) {
-    var ctor = typeof genFun === "function" && genFun.constructor;
-    return ctor
-      ? ctor === GeneratorFunction ||
-        // For the native GeneratorFunction constructor, the best we can
-        // do is to check its .name property.
-        (ctor.displayName || ctor.name) === "GeneratorFunction"
-      : false;
-  };
-
-  exports.mark = function(genFun) {
-    if (Object.setPrototypeOf) {
-      Object.setPrototypeOf(genFun, GeneratorFunctionPrototype);
-    } else {
-      genFun.__proto__ = GeneratorFunctionPrototype;
-      define(genFun, toStringTagSymbol, "GeneratorFunction");
-    }
-    genFun.prototype = Object.create(Gp);
-    return genFun;
-  };
-
-  // Within the body of any async function, `await x` is transformed to
-  // `yield regeneratorRuntime.awrap(x)`, so that the runtime can test
-  // `hasOwn.call(value, "__await")` to determine if the yielded value is
-  // meant to be awaited.
-  exports.awrap = function(arg) {
-    return { __await: arg };
-  };
-
-  function AsyncIterator(generator, PromiseImpl) {
-    function invoke(method, arg, resolve, reject) {
-      var record = tryCatch(generator[method], generator, arg);
-      if (record.type === "throw") {
-        reject(record.arg);
-      } else {
-        var result = record.arg;
-        var value = result.value;
-        if (value &&
-            typeof value === "object" &&
-            hasOwn.call(value, "__await")) {
-          return PromiseImpl.resolve(value.__await).then(function(value) {
-            invoke("next", value, resolve, reject);
-          }, function(err) {
-            invoke("throw", err, resolve, reject);
-          });
-        }
-
-        return PromiseImpl.resolve(value).then(function(unwrapped) {
-          // When a yielded Promise is resolved, its final value becomes
-          // the .value of the Promise<{value,done}> result for the
-          // current iteration.
-          result.value = unwrapped;
-          resolve(result);
-        }, function(error) {
-          // If a rejected Promise was yielded, throw the rejection back
-          // into the async generator function so it can be handled there.
-          return invoke("throw", error, resolve, reject);
-        });
-      }
-    }
-
-    var previousPromise;
-
-    function enqueue(method, arg) {
-      function callInvokeWithMethodAndArg() {
-        return new PromiseImpl(function(resolve, reject) {
-          invoke(method, arg, resolve, reject);
-        });
-      }
-
-      return previousPromise =
-        // If enqueue has been called before, then we want to wait until
-        // all previous Promises have been resolved before calling invoke,
-        // so that results are always delivered in the correct order. If
-        // enqueue has not been called before, then it is important to
-        // call invoke immediately, without waiting on a callback to fire,
-        // so that the async generator function has the opportunity to do
-        // any necessary setup in a predictable way. This predictability
-        // is why the Promise constructor synchronously invokes its
-        // executor callback, and why async functions synchronously
-        // execute code before the first await. Since we implement simple
-        // async functions in terms of async generators, it is especially
-        // important to get this right, even though it requires care.
-        previousPromise ? previousPromise.then(
-          callInvokeWithMethodAndArg,
-          // Avoid propagating failures to Promises returned by later
-          // invocations of the iterator.
-          callInvokeWithMethodAndArg
-        ) : callInvokeWithMethodAndArg();
-    }
-
-    // Define the unified helper method that is used to implement .next,
-    // .throw, and .return (see defineIteratorMethods).
-    this._invoke = enqueue;
-  }
-
-  defineIteratorMethods(AsyncIterator.prototype);
-  AsyncIterator.prototype[asyncIteratorSymbol] = function () {
-    return this;
-  };
-  exports.AsyncIterator = AsyncIterator;
-
-  // Note that simple async functions are implemented on top of
-  // AsyncIterator objects; they just return a Promise for the value of
-  // the final result produced by the iterator.
-  exports.async = function(innerFn, outerFn, self, tryLocsList, PromiseImpl) {
-    if (PromiseImpl === void 0) PromiseImpl = Promise;
-
-    var iter = new AsyncIterator(
-      wrap(innerFn, outerFn, self, tryLocsList),
-      PromiseImpl
-    );
-
-    return exports.isGeneratorFunction(outerFn)
-      ? iter // If outerFn is a generator, return the full iterator.
-      : iter.next().then(function(result) {
-          return result.done ? result.value : iter.next();
-        });
-  };
-
-  function makeInvokeMethod(innerFn, self, context) {
-    var state = GenStateSuspendedStart;
-
-    return function invoke(method, arg) {
-      if (state === GenStateExecuting) {
-        throw new Error("Generator is already running");
-      }
-
-      if (state === GenStateCompleted) {
-        if (method === "throw") {
-          throw arg;
-        }
-
-        // Be forgiving, per 25.3.3.3.3 of the spec:
-        // https://people.mozilla.org/~jorendorff/es6-draft.html#sec-generatorresume
-        return doneResult();
-      }
-
-      context.method = method;
-      context.arg = arg;
-
-      while (true) {
-        var delegate = context.delegate;
-        if (delegate) {
-          var delegateResult = maybeInvokeDelegate(delegate, context);
-          if (delegateResult) {
-            if (delegateResult === ContinueSentinel) continue;
-            return delegateResult;
-          }
-        }
-
-        if (context.method === "next") {
-          // Setting context._sent for legacy support of Babel's
-          // function.sent implementation.
-          context.sent = context._sent = context.arg;
-
-        } else if (context.method === "throw") {
-          if (state === GenStateSuspendedStart) {
-            state = GenStateCompleted;
-            throw context.arg;
-          }
-
-          context.dispatchException(context.arg);
-
-        } else if (context.method === "return") {
-          context.abrupt("return", context.arg);
-        }
-
-        state = GenStateExecuting;
-
-        var record = tryCatch(innerFn, self, context);
-        if (record.type === "normal") {
-          // If an exception is thrown from innerFn, we leave state ===
-          // GenStateExecuting and loop back for another invocation.
-          state = context.done
-            ? GenStateCompleted
-            : GenStateSuspendedYield;
-
-          if (record.arg === ContinueSentinel) {
-            continue;
-          }
-
-          return {
-            value: record.arg,
-            done: context.done
-          };
-
-        } else if (record.type === "throw") {
-          state = GenStateCompleted;
-          // Dispatch the exception by looping back around to the
-          // context.dispatchException(context.arg) call above.
-          context.method = "throw";
-          context.arg = record.arg;
-        }
-      }
-    };
-  }
-
-  // Call delegate.iterator[context.method](context.arg) and handle the
-  // result, either by returning a { value, done } result from the
-  // delegate iterator, or by modifying context.method and context.arg,
-  // setting context.delegate to null, and returning the ContinueSentinel.
-  function maybeInvokeDelegate(delegate, context) {
-    var method = delegate.iterator[context.method];
-    if (method === undefined) {
-      // A .throw or .return when the delegate iterator has no .throw
-      // method always terminates the yield* loop.
-      context.delegate = null;
-
-      if (context.method === "throw") {
-        // Note: ["return"] must be used for ES3 parsing compatibility.
-        if (delegate.iterator["return"]) {
-          // If the delegate iterator has a return method, give it a
-          // chance to clean up.
-          context.method = "return";
-          context.arg = undefined;
-          maybeInvokeDelegate(delegate, context);
-
-          if (context.method === "throw") {
-            // If maybeInvokeDelegate(context) changed context.method from
-            // "return" to "throw", let that override the TypeError below.
-            return ContinueSentinel;
-          }
-        }
-
-        context.method = "throw";
-        context.arg = new TypeError(
-          "The iterator does not provide a 'throw' method");
-      }
-
-      return ContinueSentinel;
-    }
-
-    var record = tryCatch(method, delegate.iterator, context.arg);
-
-    if (record.type === "throw") {
-      context.method = "throw";
-      context.arg = record.arg;
-      context.delegate = null;
-      return ContinueSentinel;
-    }
-
-    var info = record.arg;
-
-    if (! info) {
-      context.method = "throw";
-      context.arg = new TypeError("iterator result is not an object");
-      context.delegate = null;
-      return ContinueSentinel;
-    }
-
-    if (info.done) {
-      // Assign the result of the finished delegate to the temporary
-      // variable specified by delegate.resultName (see delegateYield).
-      context[delegate.resultName] = info.value;
-
-      // Resume execution at the desired location (see delegateYield).
-      context.next = delegate.nextLoc;
-
-      // If context.method was "throw" but the delegate handled the
-      // exception, let the outer generator proceed normally. If
-      // context.method was "next", forget context.arg since it has been
-      // "consumed" by the delegate iterator. If context.method was
-      // "return", allow the original .return call to continue in the
-      // outer generator.
-      if (context.method !== "return") {
-        context.method = "next";
-        context.arg = undefined;
-      }
-
-    } else {
-      // Re-yield the result returned by the delegate method.
-      return info;
-    }
-
-    // The delegate iterator is finished, so forget it and continue with
-    // the outer generator.
-    context.delegate = null;
-    return ContinueSentinel;
-  }
-
-  // Define Generator.prototype.{next,throw,return} in terms of the
-  // unified ._invoke helper method.
-  defineIteratorMethods(Gp);
-
-  define(Gp, toStringTagSymbol, "Generator");
-
-  // A Generator should always return itself as the iterator object when the
-  // @@iterator function is called on it. Some browsers' implementations of the
-  // iterator prototype chain incorrectly implement this, causing the Generator
-  // object to not be returned from this call. This ensures that doesn't happen.
-  // See https://github.com/facebook/regenerator/issues/274 for more details.
-  Gp[iteratorSymbol] = function() {
-    return this;
-  };
-
-  Gp.toString = function() {
-    return "[object Generator]";
-  };
-
-  function pushTryEntry(locs) {
-    var entry = { tryLoc: locs[0] };
-
-    if (1 in locs) {
-      entry.catchLoc = locs[1];
-    }
-
-    if (2 in locs) {
-      entry.finallyLoc = locs[2];
-      entry.afterLoc = locs[3];
-    }
-
-    this.tryEntries.push(entry);
-  }
-
-  function resetTryEntry(entry) {
-    var record = entry.completion || {};
-    record.type = "normal";
-    delete record.arg;
-    entry.completion = record;
-  }
-
-  function Context(tryLocsList) {
-    // The root entry object (effectively a try statement without a catch
-    // or a finally block) gives us a place to store values thrown from
-    // locations where there is no enclosing try statement.
-    this.tryEntries = [{ tryLoc: "root" }];
-    tryLocsList.forEach(pushTryEntry, this);
-    this.reset(true);
-  }
-
-  exports.keys = function(object) {
-    var keys = [];
-    for (var key in object) {
-      keys.push(key);
-    }
-    keys.reverse();
-
-    // Rather than returning an object with a next method, we keep
-    // things simple and return the next function itself.
-    return function next() {
-      while (keys.length) {
-        var key = keys.pop();
-        if (key in object) {
-          next.value = key;
-          next.done = false;
-          return next;
-        }
-      }
-
-      // To avoid creating an additional object, we just hang the .value
-      // and .done properties off the next function object itself. This
-      // also ensures that the minifier will not anonymize the function.
-      next.done = true;
-      return next;
-    };
-  };
-
-  function values(iterable) {
-    if (iterable) {
-      var iteratorMethod = iterable[iteratorSymbol];
-      if (iteratorMethod) {
-        return iteratorMethod.call(iterable);
-      }
-
-      if (typeof iterable.next === "function") {
-        return iterable;
-      }
-
-      if (!isNaN(iterable.length)) {
-        var i = -1, next = function next() {
-          while (++i < iterable.length) {
-            if (hasOwn.call(iterable, i)) {
-              next.value = iterable[i];
-              next.done = false;
-              return next;
-            }
-          }
-
-          next.value = undefined;
-          next.done = true;
-
-          return next;
-        };
-
-        return next.next = next;
-      }
-    }
-
-    // Return an iterator with no values.
-    return { next: doneResult };
-  }
-  exports.values = values;
-
-  function doneResult() {
-    return { value: undefined, done: true };
-  }
-
-  Context.prototype = {
-    constructor: Context,
-
-    reset: function(skipTempReset) {
-      this.prev = 0;
-      this.next = 0;
-      // Resetting context._sent for legacy support of Babel's
-      // function.sent implementation.
-      this.sent = this._sent = undefined;
-      this.done = false;
-      this.delegate = null;
-
-      this.method = "next";
-      this.arg = undefined;
-
-      this.tryEntries.forEach(resetTryEntry);
-
-      if (!skipTempReset) {
-        for (var name in this) {
-          // Not sure about the optimal order of these conditions:
-          if (name.charAt(0) === "t" &&
-              hasOwn.call(this, name) &&
-              !isNaN(+name.slice(1))) {
-            this[name] = undefined;
-          }
-        }
-      }
-    },
-
-    stop: function() {
-      this.done = true;
-
-      var rootEntry = this.tryEntries[0];
-      var rootRecord = rootEntry.completion;
-      if (rootRecord.type === "throw") {
-        throw rootRecord.arg;
-      }
-
-      return this.rval;
-    },
-
-    dispatchException: function(exception) {
-      if (this.done) {
-        throw exception;
-      }
-
-      var context = this;
-      function handle(loc, caught) {
-        record.type = "throw";
-        record.arg = exception;
-        context.next = loc;
-
-        if (caught) {
-          // If the dispatched exception was caught by a catch block,
-          // then let that catch block handle the exception normally.
-          context.method = "next";
-          context.arg = undefined;
-        }
-
-        return !! caught;
-      }
-
-      for (var i = this.tryEntries.length - 1; i >= 0; --i) {
-        var entry = this.tryEntries[i];
-        var record = entry.completion;
-
-        if (entry.tryLoc === "root") {
-          // Exception thrown outside of any try block that could handle
-          // it, so set the completion value of the entire function to
-          // throw the exception.
-          return handle("end");
-        }
-
-        if (entry.tryLoc <= this.prev) {
-          var hasCatch = hasOwn.call(entry, "catchLoc");
-          var hasFinally = hasOwn.call(entry, "finallyLoc");
-
-          if (hasCatch && hasFinally) {
-            if (this.prev < entry.catchLoc) {
-              return handle(entry.catchLoc, true);
-            } else if (this.prev < entry.finallyLoc) {
-              return handle(entry.finallyLoc);
-            }
-
-          } else if (hasCatch) {
-            if (this.prev < entry.catchLoc) {
-              return handle(entry.catchLoc, true);
-            }
-
-          } else if (hasFinally) {
-            if (this.prev < entry.finallyLoc) {
-              return handle(entry.finallyLoc);
-            }
-
-          } else {
-            throw new Error("try statement without catch or finally");
-          }
-        }
-      }
-    },
-
-    abrupt: function(type, arg) {
-      for (var i = this.tryEntries.length - 1; i >= 0; --i) {
-        var entry = this.tryEntries[i];
-        if (entry.tryLoc <= this.prev &&
-            hasOwn.call(entry, "finallyLoc") &&
-            this.prev < entry.finallyLoc) {
-          var finallyEntry = entry;
-          break;
-        }
-      }
-
-      if (finallyEntry &&
-          (type === "break" ||
-           type === "continue") &&
-          finallyEntry.tryLoc <= arg &&
-          arg <= finallyEntry.finallyLoc) {
-        // Ignore the finally entry if control is not jumping to a
-        // location outside the try/catch block.
-        finallyEntry = null;
-      }
-
-      var record = finallyEntry ? finallyEntry.completion : {};
-      record.type = type;
-      record.arg = arg;
-
-      if (finallyEntry) {
-        this.method = "next";
-        this.next = finallyEntry.finallyLoc;
-        return ContinueSentinel;
-      }
-
-      return this.complete(record);
-    },
-
-    complete: function(record, afterLoc) {
-      if (record.type === "throw") {
-        throw record.arg;
-      }
-
-      if (record.type === "break" ||
-          record.type === "continue") {
-        this.next = record.arg;
-      } else if (record.type === "return") {
-        this.rval = this.arg = record.arg;
-        this.method = "return";
-        this.next = "end";
-      } else if (record.type === "normal" && afterLoc) {
-        this.next = afterLoc;
-      }
-
-      return ContinueSentinel;
-    },
-
-    finish: function(finallyLoc) {
-      for (var i = this.tryEntries.length - 1; i >= 0; --i) {
-        var entry = this.tryEntries[i];
-        if (entry.finallyLoc === finallyLoc) {
-          this.complete(entry.completion, entry.afterLoc);
-          resetTryEntry(entry);
-          return ContinueSentinel;
-        }
-      }
-    },
-
-    "catch": function(tryLoc) {
-      for (var i = this.tryEntries.length - 1; i >= 0; --i) {
-        var entry = this.tryEntries[i];
-        if (entry.tryLoc === tryLoc) {
-          var record = entry.completion;
-          if (record.type === "throw") {
-            var thrown = record.arg;
-            resetTryEntry(entry);
-          }
-          return thrown;
-        }
-      }
-
-      // The context.catch method must only be called with a location
-      // argument that corresponds to a known catch block.
-      throw new Error("illegal catch attempt");
-    },
-
-    delegateYield: function(iterable, resultName, nextLoc) {
-      this.delegate = {
-        iterator: values(iterable),
-        resultName: resultName,
-        nextLoc: nextLoc
-      };
-
-      if (this.method === "next") {
-        // Deliberately forget the last sent value so that we don't
-        // accidentally pass it on to the delegate.
-        this.arg = undefined;
-      }
-
-      return ContinueSentinel;
-    }
-  };
-
-  // Regardless of whether this script is executing as a CommonJS module
-  // or not, return the runtime object so that we can declare the variable
-  // regeneratorRuntime in the outer scope, which allows this module to be
-  // injected easily by `bin/regenerator --include-runtime script.js`.
-  return exports;
-
-}(
-  // If this script is executing as a CommonJS module, use module.exports
-  // as the regeneratorRuntime namespace. Otherwise create a new empty
-  // object. Either way, the resulting object will be used to initialize
-  // the regeneratorRuntime variable at the top of this file.
-   true ? module.exports : undefined
-));
-
-try {
-  regeneratorRuntime = runtime;
-} catch (accidentalStrictMode) {
-  // This module should not be running in strict mode, so the above
-  // assignment should always work unless something is misconfigured. Just
-  // in case runtime.js accidentally runs in strict mode, we can escape
-  // strict mode using a global Function call. This could conceivably fail
-  // if a Content Security Policy forbids using Function, but in that case
-  // the proper solution is to fix the accidental strict mode problem. If
-  // you've misconfigured your bundler to force strict mode and applied a
-  // CSP to forbid Function, and you're not willing to fix either of those
-  // problems, please detail your unique predicament in a GitHub issue.
-  Function("r", "regeneratorRuntime = r")(runtime);
-}
-
-
-/***/ }),
-
 /***/ "./node_modules/setimmediate/setImmediate.js":
 /*!***************************************************!*\
   !*** ./node_modules/setimmediate/setImmediate.js ***!
@@ -45974,7 +46364,7 @@ var render = function() {
                         attrs: {
                           fetch: _vm.fetchData,
                           fields: _vm.json_fields,
-                          name: "informe-alimentos.xls",
+                          name: "alimentacion.xls",
                           type: "xls"
                         }
                       },
@@ -46180,11 +46570,54 @@ var render = function() {
                   ]),
                   _vm._v(" "),
                   _c("div", { staticClass: "form-group col-md-2" }, [
+                    _c("input", {
+                      directives: [
+                        {
+                          name: "model",
+                          rawName: "v-model",
+                          value: _vm.see_all,
+                          expression: "see_all"
+                        }
+                      ],
+                      staticClass: "form-check-input",
+                      attrs: { type: "checkbox", value: "1", id: "see_all" },
+                      domProps: {
+                        checked: Array.isArray(_vm.see_all)
+                          ? _vm._i(_vm.see_all, "1") > -1
+                          : _vm.see_all
+                      },
+                      on: {
+                        change: function($event) {
+                          var $$a = _vm.see_all,
+                            $$el = $event.target,
+                            $$c = $$el.checked ? true : false
+                          if (Array.isArray($$a)) {
+                            var $$v = "1",
+                              $$i = _vm._i($$a, $$v)
+                            if ($$el.checked) {
+                              $$i < 0 && (_vm.see_all = $$a.concat([$$v]))
+                            } else {
+                              $$i > -1 &&
+                                (_vm.see_all = $$a
+                                  .slice(0, $$i)
+                                  .concat($$a.slice($$i + 1)))
+                            }
+                          } else {
+                            _vm.see_all = $$c
+                          }
+                        }
+                      }
+                    }),
+                    _vm._v(" "),
+                    _vm._m(0)
+                  ]),
+                  _vm._v(" "),
+                  _c("div", { staticClass: "form-group col-md-2" }, [
                     _c(
                       "button",
                       {
                         staticClass: "btn btn-primary rounded-circle mt-4",
-                        attrs: { type: "submit" },
+                        attrs: { type: "button" },
                         on: {
                           click: function($event) {
                             return _vm.buscarResultados()
@@ -46201,149 +46634,235 @@ var render = function() {
             _c("div", [
               _c(
                 "table",
-                { staticClass: "table table-sm table-hover table-responsive" },
+                {
+                  staticClass:
+                    "table table-sticky table-bordered table-striped table-sm table-sm-responsive"
+                },
                 [
-                  _vm._m(0),
+                  _vm._m(1),
                   _vm._v(" "),
                   _c(
                     "tbody",
-                    [
-                      _vm._l(_vm.listado, function(item, index) {
-                        return _c("tr", { key: index }, [
-                          _c("td", {
-                            domProps: { textContent: _vm._s(index + 1) }
-                          }),
-                          _vm._v(" "),
-                          _c("td", {
-                            domProps: { textContent: _vm._s(item.actividad) }
-                          }),
-                          _vm._v(" "),
-                          _c("td", {
-                            domProps: {
-                              textContent: _vm._s(item.nombre_siembra)
-                            }
-                          }),
-                          _vm._v(" "),
-                          _c("td", {
-                            domProps: { textContent: _vm._s(item.fecha_ra) }
-                          }),
-                          _vm._v(" "),
-                          _c("td", {
-                            domProps: {
-                              textContent: _vm._s(item.minutos_hombre)
-                            }
-                          }),
-                          _vm._v(" "),
-                          _c("td", {
-                            domProps: { textContent: _vm._s(item.alimento) }
-                          }),
-                          _vm._v(" "),
-                          _c("td", {
-                            domProps: {
-                              textContent: _vm._s(
-                                item.cant_manana == null
-                                  ? "-"
-                                  : item.cant_manana + " kg"
-                              )
-                            }
-                          }),
-                          _vm._v(" "),
-                          _c("td", {
-                            domProps: {
-                              textContent: _vm._s(
-                                item.cant_tarde == null
-                                  ? "-"
-                                  : item.cant_tarde + " kg"
-                              )
-                            }
-                          }),
-                          _vm._v(" "),
-                          _c("td", {
-                            domProps: {
-                              textContent: _vm._s(
-                                item.alimento_dia == null
-                                  ? "-"
-                                  : item.alimento_dia + " kg"
-                              )
-                            }
-                          }),
-                          _vm._v(" "),
-                          _c("td", {
-                            domProps: { textContent: _vm._s(item.costo_kg) }
-                          }),
-                          _vm._v(" "),
-                          _c("td", {
-                            domProps: {
-                              textContent: _vm._s(item.costo_total_alimento)
-                            }
-                          }),
-                          _vm._v(" "),
-                          _c("td", {
-                            domProps: {
-                              textContent: _vm._s(item.conv_alimenticia)
-                            }
-                          }),
-                          _vm._v(" "),
-                          _c("td", {
-                            domProps: {
-                              textContent: _vm._s(item.incr_bio_acum_conver)
-                            }
-                          }),
-                          _vm._v(" "),
-                          _c("td", {
-                            domProps: { textContent: _vm._s(item.detalles) }
-                          })
-                        ])
-                      }),
-                      _vm._v(" "),
-                      _c("tr", [
-                        _c(
-                          "th",
-                          {
-                            staticClass: "text-right",
-                            attrs: { colspan: "4" }
-                          },
-                          [_vm._v("TOTAL:")]
-                        ),
-                        _vm._v(" "),
-                        _c("th", {
-                          domProps: { textContent: _vm._s(_vm.promedios.tmh) }
+                    _vm._l(_vm.listado, function(item, index) {
+                      return _c("tr", { key: index }, [
+                        _c("td", {
+                          domProps: { textContent: _vm._s(index + 1) }
                         }),
                         _vm._v(" "),
-                        _c("th"),
-                        _vm._v(" "),
-                        _c("th", {
-                          domProps: { textContent: _vm._s(_vm.promedios.cman) }
+                        _c("td", {
+                          domProps: { textContent: _vm._s(item.actividad) }
                         }),
                         _vm._v(" "),
-                        _c("th", {
-                          domProps: { textContent: _vm._s(_vm.promedios.ctar) }
+                        _c("td", {
+                          staticClass: "fixed-column",
+                          domProps: { textContent: _vm._s(item.nombre_siembra) }
                         }),
                         _vm._v(" "),
-                        _c("th", {
-                          domProps: { textContent: _vm._s(_vm.promedios.alid) }
+                        _c("td", {
+                          domProps: { textContent: _vm._s(item.fecha_ra) }
                         }),
                         _vm._v(" "),
-                        _c("th", {
-                          domProps: { textContent: _vm._s(_vm.promedios.coskg) }
+                        _c("td", {
+                          domProps: { textContent: _vm._s(item.minutos_hombre) }
                         }),
                         _vm._v(" "),
-                        _c("th", {
-                          domProps: { textContent: _vm._s(_vm.promedios.cta) }
+                        _c("td", {
+                          domProps: { textContent: _vm._s(item.alimento) }
                         }),
                         _vm._v(" "),
-                        _c("th"),
+                        _c("td", {
+                          domProps: {
+                            textContent: _vm._s(
+                              item.cant_manana == null
+                                ? "-"
+                                : item.cant_manana + " kg"
+                            )
+                          }
+                        }),
                         _vm._v(" "),
-                        _c("th", {
-                          domProps: { textContent: _vm._s(_vm.promedios.icb) }
+                        _c("td", {
+                          domProps: {
+                            textContent: _vm._s(
+                              item.cant_tarde == null
+                                ? "-"
+                                : item.cant_tarde + " kg"
+                            )
+                          }
+                        }),
+                        _vm._v(" "),
+                        _c("td", {
+                          domProps: {
+                            textContent: _vm._s(
+                              item.alimento_dia == null
+                                ? "-"
+                                : item.alimento_dia + " kg"
+                            )
+                          }
+                        }),
+                        _vm._v(" "),
+                        _c("td", {
+                          domProps: { textContent: _vm._s(item.costo_kg) }
+                        }),
+                        _vm._v(" "),
+                        _c("td", {
+                          domProps: {
+                            textContent: _vm._s(item.costo_total_alimento)
+                          }
+                        }),
+                        _vm._v(" "),
+                        _c("td", {
+                          domProps: {
+                            textContent: _vm._s(item.conv_alimenticia)
+                          }
+                        }),
+                        _vm._v(" "),
+                        _c("td", {
+                          domProps: {
+                            textContent: _vm._s(item.incr_bio_acum_conver)
+                          }
+                        }),
+                        _vm._v(" "),
+                        _c("td", {
+                          domProps: { textContent: _vm._s(item.detalles) }
                         })
                       ])
-                    ],
-                    2
-                  )
+                    }),
+                    0
+                  ),
+                  _vm._v(" "),
+                  _c("tfoot", [
+                    _c("tr", [
+                      _c(
+                        "th",
+                        { staticClass: "text-right", attrs: { colspan: "4" } },
+                        [_vm._v("TOTAL:")]
+                      ),
+                      _vm._v(" "),
+                      _c("th", {
+                        domProps: { textContent: _vm._s(_vm.promedios.tmh) }
+                      }),
+                      _vm._v(" "),
+                      _c("th"),
+                      _vm._v(" "),
+                      _c("th", {
+                        domProps: { textContent: _vm._s(_vm.promedios.cman) }
+                      }),
+                      _vm._v(" "),
+                      _c("th", {
+                        domProps: { textContent: _vm._s(_vm.promedios.ctar) }
+                      }),
+                      _vm._v(" "),
+                      _c("th", {
+                        domProps: { textContent: _vm._s(_vm.promedios.alid) }
+                      }),
+                      _vm._v(" "),
+                      _c("th", {
+                        domProps: { textContent: _vm._s(_vm.promedios.coskg) }
+                      }),
+                      _vm._v(" "),
+                      _c("th", {
+                        domProps: { textContent: _vm._s(_vm.promedios.cta) }
+                      }),
+                      _vm._v(" "),
+                      _c("th"),
+                      _vm._v(" "),
+                      _c("th", {
+                        domProps: { textContent: _vm._s(_vm.promedios.icb) }
+                      })
+                    ])
+                  ])
                 ]
               )
-            ])
+            ]),
+            _vm._v(" "),
+            _c(
+              "nav",
+              {
+                directives: [
+                  {
+                    name: "show",
+                    rawName: "v-show",
+                    value: _vm.showPagination,
+                    expression: "showPagination"
+                  }
+                ],
+                staticClass: "mt-5 navigation "
+              },
+              [
+                _c(
+                  "ul",
+                  { staticClass: "pagination justify-content-center" },
+                  [
+                    _vm.pagination.current_page > 1
+                      ? _c("li", { staticClass: "page-item" }, [
+                          _c(
+                            "a",
+                            {
+                              staticClass: "page-link",
+                              attrs: { href: "#" },
+                              on: {
+                                click: function($event) {
+                                  $event.preventDefault()
+                                  return _vm.cambiarPagina(
+                                    _vm.pagination.current_page - 1
+                                  )
+                                }
+                              }
+                            },
+                            [_vm._v("Ant")]
+                          )
+                        ])
+                      : _vm._e(),
+                    _vm._v(" "),
+                    _vm._l(_vm.pagesNumber, function(page) {
+                      return _c(
+                        "li",
+                        {
+                          key: page,
+                          staticClass: "page-item",
+                          class: [page == _vm.isActived ? "active" : ""]
+                        },
+                        [
+                          _c("a", {
+                            staticClass: "page-link",
+                            attrs: { href: "#" },
+                            domProps: { textContent: _vm._s(page) },
+                            on: {
+                              click: function($event) {
+                                $event.preventDefault()
+                                return _vm.cambiarPagina(page)
+                              }
+                            }
+                          })
+                        ]
+                      )
+                    }),
+                    _vm._v(" "),
+                    _vm.pagination.current_page < _vm.pagination.last_page
+                      ? _c("li", { staticClass: "page-item" }, [
+                          _c(
+                            "a",
+                            {
+                              staticClass: "page-link",
+                              attrs: { href: "#" },
+                              on: {
+                                click: function($event) {
+                                  $event.preventDefault()
+                                  return _vm.cambiarPagina(
+                                    _vm.pagination.current_page + 1
+                                  )
+                                }
+                              }
+                            },
+                            [_vm._v("Sig")]
+                          )
+                        ])
+                      : _vm._e()
+                  ],
+                  2
+                )
+              ]
+            )
           ])
         ])
       ])
@@ -46367,7 +46886,7 @@ var render = function() {
           { staticClass: "modal-dialog modal-lg", attrs: { role: "document" } },
           [
             _c("div", { staticClass: "modal-content" }, [
-              _vm._m(1),
+              _vm._m(2),
               _vm._v(" "),
               _c("div", { staticClass: "modal-body" }, [
                 _c("form", { staticClass: "row" }, [
@@ -46728,7 +47247,7 @@ var render = function() {
                     staticClass: "btn btn-secondary",
                     attrs: { type: "button", "data-dismiss": "modal" }
                   },
-                  [_vm._v("Close")]
+                  [_vm._v("Cancelar")]
                 ),
                 _vm._v(" "),
                 _c(
@@ -46757,25 +47276,40 @@ var staticRenderFns = [
     var _vm = this
     var _h = _vm.$createElement
     var _c = _vm._self._c || _h
-    return _c("thead", [
+    return _c(
+      "label",
+      { staticClass: "form-check-label", attrs: { for: "see_all" } },
+      [
+        _c("span"),
+        _vm._v(
+          "\n                    Ver todos los registros\n                  "
+        )
+      ]
+    )
+  },
+  function() {
+    var _vm = this
+    var _h = _vm.$createElement
+    var _c = _vm._self._c || _h
+    return _c("thead", { staticClass: "thead-primary" }, [
       _c("tr", [
         _c("th", [_vm._v("#")]),
         _vm._v(" "),
-        _c("th", [_vm._v("Tipo de "), _c("br"), _vm._v(" Actividad")]),
+        _c("th", [_vm._v("Tipo de Actividad")]),
         _vm._v(" "),
-        _c("th", [_vm._v("Siembras")]),
+        _c("th", { staticClass: "fixed-column" }, [_vm._v("Siembra")]),
         _vm._v(" "),
         _c("th", [_vm._v("Fecha")]),
         _vm._v(" "),
         _c("th", [_vm._v("Minutos hombre")]),
         _vm._v(" "),
-        _c("th", [_c("br"), _vm._v("Alimento")]),
+        _c("th", [_vm._v(" Alimento")]),
         _vm._v(" "),
-        _c("th", [_vm._v("Cantidad"), _c("br"), _vm._v("Mañana")]),
+        _c("th", [_vm._v("Cantidad Mañana")]),
         _vm._v(" "),
-        _c("th", [_vm._v("Cantidad"), _c("br"), _vm._v("Tarde")]),
+        _c("th", [_vm._v("Cantidad Tarde")]),
         _vm._v(" "),
-        _c("th", [_vm._v("Total"), _c("br"), _vm._v("día")]),
+        _c("th", [_vm._v("Total día")]),
         _vm._v(" "),
         _c("th", [_vm._v("Costo Kg")]),
         _vm._v(" "),
@@ -46785,7 +47319,7 @@ var staticRenderFns = [
         _vm._v(" "),
         _c("th", [_vm._v("Incremento biomasa acumulada por conversión")]),
         _vm._v(" "),
-        _c("th", { attrs: { width: "15%" } }, [_vm._v("Detalles")])
+        _c("th", [_vm._v("Detalles")])
       ])
     ])
   },
@@ -47105,7 +47639,7 @@ var staticRenderFns = [
     var _vm = this
     var _h = _vm.$createElement
     var _c = _vm._self._c || _h
-    return _c("thead", [
+    return _c("thead", { staticClass: "thead-primary" }, [
       _c("tr", [
         _c("th", { attrs: { scope: "col" } }, [_vm._v("#")]),
         _vm._v(" "),
@@ -47309,326 +47843,349 @@ var render = function() {
                     )
                   ]),
                   _vm._v(" "),
-                  _c("div", [
-                    _c("h2", [
-                      _vm._v(
-                        "Registros de párametros de agua " +
-                          _vm._s(_vm.listadoParametros[0].contenedor)
-                      )
-                    ]),
-                    _vm._v(" "),
-                    _c(
-                      "table",
-                      {
-                        staticClass: "table table-striped table-hover table-sm"
-                      },
-                      [
-                        _vm._m(0),
-                        _vm._v(" "),
-                        _c(
-                          "tbody",
-                          [
-                            _vm._l(_vm.listadoParametros, function(lp, index) {
-                              return lp.id != null
-                                ? _c("tr", { key: index }, [
-                                    _c("th", {
-                                      domProps: {
-                                        textContent: _vm._s(index + 1)
-                                      }
-                                    }),
-                                    _vm._v(" "),
-                                    _c("th", {
-                                      domProps: { textContent: _vm._s(lp.id) }
-                                    }),
-                                    _vm._v(" "),
-                                    _c("td", {
-                                      domProps: {
-                                        textContent: _vm._s(lp.fecha_parametro)
-                                      }
-                                    }),
-                                    _vm._v(" "),
-                                    _c("td", {
-                                      domProps: {
-                                        textContent: _vm._s(lp["12_am"])
-                                      }
-                                    }),
-                                    _vm._v(" "),
-                                    _c("td", {
-                                      domProps: {
-                                        textContent: _vm._s(lp["4_am"])
-                                      }
-                                    }),
-                                    _vm._v(" "),
-                                    _c("td", {
-                                      domProps: {
-                                        textContent: _vm._s(lp["7_am"])
-                                      }
-                                    }),
-                                    _vm._v(" "),
-                                    _c("td", {
-                                      domProps: {
-                                        textContent: _vm._s(lp["4_pm"])
-                                      }
-                                    }),
-                                    _vm._v(" "),
-                                    _c("td", {
-                                      domProps: {
-                                        textContent: _vm._s(lp["8_pm"])
-                                      }
-                                    }),
-                                    _vm._v(" "),
-                                    _c("td", {
-                                      domProps: {
-                                        textContent: _vm._s(lp.temperatura)
-                                      }
-                                    }),
-                                    _vm._v(" "),
-                                    _c("td", {
-                                      domProps: { textContent: _vm._s(lp.ph) }
-                                    }),
-                                    _vm._v(" "),
-                                    _c("td", {
-                                      domProps: {
-                                        textContent: _vm._s(lp.amonio)
-                                      }
-                                    }),
-                                    _vm._v(" "),
-                                    _c("td", {
-                                      domProps: {
-                                        textContent: _vm._s(lp.nitrito)
-                                      }
-                                    }),
-                                    _vm._v(" "),
-                                    _c("td", {
-                                      domProps: {
-                                        textContent: _vm._s(lp.nitrato)
-                                      }
-                                    }),
-                                    _vm._v(" "),
-                                    _c("td", {
-                                      domProps: {
-                                        textContent: _vm._s(lp.otros)
-                                      }
-                                    }),
-                                    _vm._v(" "),
-                                    _c("td", [
-                                      _c(
-                                        "button",
-                                        {
-                                          staticClass: "btn btn-success",
-                                          attrs: { type: "button" },
-                                          on: {
-                                            click: function($event) {
-                                              return _vm.editarParametros(lp)
-                                            }
-                                          }
-                                        },
-                                        [
-                                          _c("i", {
-                                            staticClass: "fas fa-edit"
-                                          })
-                                        ]
-                                      ),
-                                      _vm._v(" "),
-                                      _c(
-                                        "button",
-                                        {
-                                          staticClass: "btn btn-danger",
-                                          attrs: { type: "button" },
-                                          on: {
-                                            click: function($event) {
-                                              return _vm.eliminarParametros(
-                                                lp.id
-                                              )
-                                            }
-                                          }
-                                        },
-                                        [
-                                          _c("i", {
-                                            staticClass: "fas fa-trash"
-                                          })
-                                        ]
-                                      )
-                                    ])
-                                  ])
-                                : _vm._e()
-                            }),
-                            _vm._v(" "),
-                            _c(
-                              "tr",
-                              { staticClass: "bg-secondary text-white" },
-                              [
-                                _c("th", { attrs: { colspan: "3" } }, [
-                                  _vm._v("PROMEDIO:")
-                                ]),
-                                _vm._v(" "),
-                                _c("td", {
-                                  domProps: {
-                                    textContent: _vm._s(
-                                      _vm.promedios.promedio_12_am
-                                    )
-                                  }
-                                }),
-                                _vm._v(" "),
-                                _c("td", {
-                                  domProps: {
-                                    textContent: _vm._s(
-                                      _vm.promedios.promedio_4_am
-                                    )
-                                  }
-                                }),
-                                _vm._v(" "),
-                                _c("td", {
-                                  domProps: {
-                                    textContent: _vm._s(
-                                      _vm.promedios.promedio_7_am
-                                    )
-                                  }
-                                }),
-                                _vm._v(" "),
-                                _c("td", {
-                                  domProps: {
-                                    textContent: _vm._s(
-                                      _vm.promedios.promedio_4_pm
-                                    )
-                                  }
-                                }),
-                                _vm._v(" "),
-                                _c("td", {
-                                  domProps: {
-                                    textContent: _vm._s(
-                                      _vm.promedios.promedio_8_pm
-                                    )
-                                  }
-                                }),
-                                _vm._v(" "),
-                                _c("td", {
-                                  domProps: {
-                                    textContent: _vm._s(
-                                      _vm.promedios.promedio_temperatura
-                                    )
-                                  }
-                                }),
-                                _vm._v(" "),
-                                _c("td", {
-                                  domProps: {
-                                    textContent: _vm._s(
-                                      _vm.promedios.promedio_ph
-                                    )
-                                  }
-                                }),
-                                _vm._v(" "),
-                                _c("td", {
-                                  domProps: {
-                                    textContent: _vm._s(
-                                      _vm.promedios.promedio_amonio
-                                    )
-                                  }
-                                }),
-                                _vm._v(" "),
-                                _c("td", {
-                                  domProps: {
-                                    textContent: _vm._s(
-                                      _vm.promedios.promedio_nitrito
-                                    )
-                                  }
-                                }),
-                                _vm._v(" "),
-                                _c("td", {
-                                  domProps: {
-                                    textContent: _vm._s(
-                                      _vm.promedios.promedio_nitrato
-                                    )
-                                  }
-                                }),
-                                _vm._v(" "),
-                                _c("td", {
-                                  domProps: {
-                                    textContent: _vm._s(
-                                      _vm.promedios.promedio_otros
-                                    )
-                                  }
-                                })
-                              ]
-                            )
-                          ],
-                          2
-                        )
-                      ]
-                    )
-                  ])
-                ])
-              : _vm._e(),
-            _vm._v(" "),
-            _vm.mostrar == 0
-              ? _c("div", { staticClass: "row" }, [
                   _c(
-                    "table",
-                    { staticClass: "table table-striped table-responsive-sm" },
+                    "div",
+                    {
+                      staticClass: "table-container",
+                      attrs: { id: "table-container2" }
+                    },
                     [
-                      _vm._m(1),
+                      _c("h2", [
+                        _vm._v(
+                          "Registros de párametros de agua " +
+                            _vm._s(_vm.listadoParametros[0].contenedor)
+                        )
+                      ]),
                       _vm._v(" "),
                       _c(
-                        "tbody",
-                        _vm._l(_vm.listadoParametrosContenedores, function(
-                          contenedor,
-                          index
-                        ) {
-                          return _c("tr", { key: index }, [
-                            _c("th", {
-                              attrs: { scope: "row" },
-                              domProps: { textContent: _vm._s(index + 1) }
-                            }),
-                            _vm._v(" "),
-                            _c("td", {
-                              domProps: {
-                                textContent: _vm._s(contenedor.contenedor)
-                              }
-                            }),
-                            _vm._v(" "),
-                            _c("td", {
-                              domProps: {
-                                textContent: _vm._s(contenedor.nombre_siembra)
-                              }
-                            }),
-                            _vm._v(" "),
-                            _c("td", {
-                              domProps: {
-                                textContent: _vm._s(contenedor.capacidad)
-                              }
-                            }),
-                            _vm._v(" "),
-                            _c("td", {
-                              domProps: {
-                                textContent: _vm._s(
-                                  _vm.estados[contenedor.estado]
-                                )
-                              }
-                            }),
-                            _vm._v(" "),
-                            _c("td", [
+                        "table",
+                        {
+                          staticClass:
+                            "table-sticky table table-sm table-hover table-bordered"
+                        },
+                        [
+                          _vm._m(0),
+                          _vm._v(" "),
+                          _c(
+                            "tbody",
+                            [
+                              _vm._l(_vm.listadoParametros, function(
+                                lp,
+                                index
+                              ) {
+                                return lp.id != null
+                                  ? _c("tr", { key: index }, [
+                                      _c("th", {
+                                        domProps: {
+                                          textContent: _vm._s(index + 1)
+                                        }
+                                      }),
+                                      _vm._v(" "),
+                                      _c("th", {
+                                        domProps: { textContent: _vm._s(lp.id) }
+                                      }),
+                                      _vm._v(" "),
+                                      _c("td", {
+                                        domProps: {
+                                          textContent: _vm._s(
+                                            lp.fecha_parametro
+                                          )
+                                        }
+                                      }),
+                                      _vm._v(" "),
+                                      _c("td", {
+                                        domProps: {
+                                          textContent: _vm._s(lp["12_am"])
+                                        }
+                                      }),
+                                      _vm._v(" "),
+                                      _c("td", {
+                                        domProps: {
+                                          textContent: _vm._s(lp["4_am"])
+                                        }
+                                      }),
+                                      _vm._v(" "),
+                                      _c("td", {
+                                        domProps: {
+                                          textContent: _vm._s(lp["7_am"])
+                                        }
+                                      }),
+                                      _vm._v(" "),
+                                      _c("td", {
+                                        domProps: {
+                                          textContent: _vm._s(lp["4_pm"])
+                                        }
+                                      }),
+                                      _vm._v(" "),
+                                      _c("td", {
+                                        domProps: {
+                                          textContent: _vm._s(lp["8_pm"])
+                                        }
+                                      }),
+                                      _vm._v(" "),
+                                      _c("td", {
+                                        domProps: {
+                                          textContent: _vm._s(lp.temperatura)
+                                        }
+                                      }),
+                                      _vm._v(" "),
+                                      _c("td", {
+                                        domProps: { textContent: _vm._s(lp.ph) }
+                                      }),
+                                      _vm._v(" "),
+                                      _c("td", {
+                                        domProps: {
+                                          textContent: _vm._s(lp.amonio)
+                                        }
+                                      }),
+                                      _vm._v(" "),
+                                      _c("td", {
+                                        domProps: {
+                                          textContent: _vm._s(lp.nitrito)
+                                        }
+                                      }),
+                                      _vm._v(" "),
+                                      _c("td", {
+                                        domProps: {
+                                          textContent: _vm._s(lp.nitrato)
+                                        }
+                                      }),
+                                      _vm._v(" "),
+                                      _c("td", {
+                                        domProps: {
+                                          textContent: _vm._s(lp.otros)
+                                        }
+                                      }),
+                                      _vm._v(" "),
+                                      _c("td", [
+                                        _c(
+                                          "button",
+                                          {
+                                            staticClass: "btn btn-success",
+                                            attrs: { type: "button" },
+                                            on: {
+                                              click: function($event) {
+                                                return _vm.editarParametros(lp)
+                                              }
+                                            }
+                                          },
+                                          [
+                                            _c("i", {
+                                              staticClass: "fas fa-edit"
+                                            })
+                                          ]
+                                        ),
+                                        _vm._v(" "),
+                                        _c(
+                                          "button",
+                                          {
+                                            staticClass: "btn btn-danger",
+                                            attrs: { type: "button" },
+                                            on: {
+                                              click: function($event) {
+                                                return _vm.eliminarParametros(
+                                                  lp.id
+                                                )
+                                              }
+                                            }
+                                          },
+                                          [
+                                            _c("i", {
+                                              staticClass: "fas fa-trash"
+                                            })
+                                          ]
+                                        )
+                                      ])
+                                    ])
+                                  : _vm._e()
+                              }),
+                              _vm._v(" "),
                               _c(
-                                "button",
-                                {
-                                  staticClass: "btn btn-primary",
-                                  on: {
-                                    click: function($event) {
-                                      return _vm.mostrarParametros(
-                                        contenedor.id
+                                "tr",
+                                { staticClass: "bg-secondary text-white" },
+                                [
+                                  _c("th", { attrs: { colspan: "3" } }, [
+                                    _vm._v("PROMEDIO:")
+                                  ]),
+                                  _vm._v(" "),
+                                  _c("td", {
+                                    domProps: {
+                                      textContent: _vm._s(
+                                        _vm.promedios.promedio_12_am
                                       )
                                     }
-                                  }
-                                },
-                                [_c("i", { staticClass: "far fa-eye" })]
+                                  }),
+                                  _vm._v(" "),
+                                  _c("td", {
+                                    domProps: {
+                                      textContent: _vm._s(
+                                        _vm.promedios.promedio_4_am
+                                      )
+                                    }
+                                  }),
+                                  _vm._v(" "),
+                                  _c("td", {
+                                    domProps: {
+                                      textContent: _vm._s(
+                                        _vm.promedios.promedio_7_am
+                                      )
+                                    }
+                                  }),
+                                  _vm._v(" "),
+                                  _c("td", {
+                                    domProps: {
+                                      textContent: _vm._s(
+                                        _vm.promedios.promedio_4_pm
+                                      )
+                                    }
+                                  }),
+                                  _vm._v(" "),
+                                  _c("td", {
+                                    domProps: {
+                                      textContent: _vm._s(
+                                        _vm.promedios.promedio_8_pm
+                                      )
+                                    }
+                                  }),
+                                  _vm._v(" "),
+                                  _c("td", {
+                                    domProps: {
+                                      textContent: _vm._s(
+                                        _vm.promedios.promedio_temperatura
+                                      )
+                                    }
+                                  }),
+                                  _vm._v(" "),
+                                  _c("td", {
+                                    domProps: {
+                                      textContent: _vm._s(
+                                        _vm.promedios.promedio_ph
+                                      )
+                                    }
+                                  }),
+                                  _vm._v(" "),
+                                  _c("td", {
+                                    domProps: {
+                                      textContent: _vm._s(
+                                        _vm.promedios.promedio_amonio
+                                      )
+                                    }
+                                  }),
+                                  _vm._v(" "),
+                                  _c("td", {
+                                    domProps: {
+                                      textContent: _vm._s(
+                                        _vm.promedios.promedio_nitrito
+                                      )
+                                    }
+                                  }),
+                                  _vm._v(" "),
+                                  _c("td", {
+                                    domProps: {
+                                      textContent: _vm._s(
+                                        _vm.promedios.promedio_nitrato
+                                      )
+                                    }
+                                  }),
+                                  _vm._v(" "),
+                                  _c("td", {
+                                    domProps: {
+                                      textContent: _vm._s(
+                                        _vm.promedios.promedio_otros
+                                      )
+                                    }
+                                  })
+                                ]
                               )
-                            ])
-                          ])
-                        }),
-                        0
+                            ],
+                            2
+                          )
+                        ]
                       )
                     ]
                   )
                 ])
+              : _vm._e(),
+            _vm._v(" "),
+            _vm.mostrar == 0
+              ? _c(
+                  "div",
+                  {
+                    staticClass: "table-container",
+                    attrs: { id: "table-container2" }
+                  },
+                  [
+                    _c(
+                      "table",
+                      {
+                        staticClass:
+                          "table-sticky table table-sm table-hover table-bordered"
+                      },
+                      [
+                        _vm._m(1),
+                        _vm._v(" "),
+                        _c(
+                          "tbody",
+                          _vm._l(_vm.listadoParametrosContenedores, function(
+                            contenedor,
+                            index
+                          ) {
+                            return _c("tr", { key: index }, [
+                              _c("th", {
+                                attrs: { scope: "row" },
+                                domProps: { textContent: _vm._s(index + 1) }
+                              }),
+                              _vm._v(" "),
+                              _c("td", {
+                                domProps: {
+                                  textContent: _vm._s(contenedor.contenedor)
+                                }
+                              }),
+                              _vm._v(" "),
+                              _c("td", {
+                                domProps: {
+                                  textContent: _vm._s(contenedor.nombre_siembra)
+                                }
+                              }),
+                              _vm._v(" "),
+                              _c("td", {
+                                domProps: {
+                                  textContent: _vm._s(contenedor.capacidad)
+                                }
+                              }),
+                              _vm._v(" "),
+                              _c("td", {
+                                domProps: {
+                                  textContent: _vm._s(
+                                    _vm.estados[contenedor.estado]
+                                  )
+                                }
+                              }),
+                              _vm._v(" "),
+                              _c("td", [
+                                _c(
+                                  "button",
+                                  {
+                                    staticClass: "btn btn-primary",
+                                    on: {
+                                      click: function($event) {
+                                        return _vm.mostrarParametros(
+                                          contenedor.id
+                                        )
+                                      }
+                                    }
+                                  },
+                                  [_c("i", { staticClass: "far fa-eye" })]
+                                )
+                              ])
+                            ])
+                          }),
+                          0
+                        )
+                      ]
+                    )
+                  ]
+                )
               : _vm._e()
           ])
         ])
@@ -47659,7 +48216,7 @@ var render = function() {
                 _c(
                   "form",
                   {
-                    staticClass: "row container",
+                    staticClass: "container",
                     on: {
                       submit: function($event) {
                         $event.preventDefault()
@@ -47668,50 +48225,10 @@ var render = function() {
                     }
                   },
                   [
-                    _c("div", { staticClass: "col-md-6" }, [
-                      _c("div", { staticClass: "form-group row" }, [
-                        _vm._m(3),
-                        _vm._v(" "),
-                        _c("div", { staticClass: "col-sm-6" }, [
-                          _c("input", {
-                            directives: [
-                              {
-                                name: "model",
-                                rawName: "v-model",
-                                value: _vm.form.fecha_parametro,
-                                expression: "form.fecha_parametro"
-                              }
-                            ],
-                            staticClass: "form-control",
-                            attrs: {
-                              type: "date",
-                              id: "fecha_registro",
-                              placeholder: "Fecha de registro",
-                              step: "any",
-                              required: ""
-                            },
-                            domProps: { value: _vm.form.fecha_parametro },
-                            on: {
-                              input: function($event) {
-                                if ($event.target.composing) {
-                                  return
-                                }
-                                _vm.$set(
-                                  _vm.form,
-                                  "fecha_parametro",
-                                  $event.target.value
-                                )
-                              }
-                            }
-                          })
-                        ])
-                      ]),
-                      _vm._v(" "),
-                      _vm._m(4),
-                      _vm._v(" "),
-                      _c("div", { staticClass: "border rounded p-3 mb-3" }, [
+                    _c("div", { staticClass: "row" }, [
+                      _c("div", { staticClass: "col-md-6" }, [
                         _c("div", { staticClass: "form-group row" }, [
-                          _vm._m(5),
+                          _vm._m(3),
                           _vm._v(" "),
                           _c("div", { staticClass: "col-sm-6" }, [
                             _c("input", {
@@ -47719,18 +48236,19 @@ var render = function() {
                                 {
                                   name: "model",
                                   rawName: "v-model",
-                                  value: _vm.form["12_am"],
-                                  expression: "form['12_am']"
+                                  value: _vm.form.fecha_parametro,
+                                  expression: "form.fecha_parametro"
                                 }
                               ],
                               staticClass: "form-control",
                               attrs: {
-                                type: "number",
-                                id: "12am",
-                                placeholder: "Párametros 12am ",
-                                step: "any"
+                                type: "date",
+                                id: "fecha_registro",
+                                placeholder: "Fecha de registro",
+                                step: "any",
+                                required: ""
                               },
-                              domProps: { value: _vm.form["12_am"] },
+                              domProps: { value: _vm.form.fecha_parametro },
                               on: {
                                 input: function($event) {
                                   if ($event.target.composing) {
@@ -47738,7 +48256,242 @@ var render = function() {
                                   }
                                   _vm.$set(
                                     _vm.form,
-                                    "12_am",
+                                    "fecha_parametro",
+                                    $event.target.value
+                                  )
+                                }
+                              }
+                            })
+                          ])
+                        ]),
+                        _vm._v(" "),
+                        _vm._m(4),
+                        _vm._v(" "),
+                        _c("div", { staticClass: "border rounded p-3 mb-3" }, [
+                          _c("div", { staticClass: "form-group row" }, [
+                            _vm._m(5),
+                            _vm._v(" "),
+                            _c("div", { staticClass: "col-sm-6" }, [
+                              _c("input", {
+                                directives: [
+                                  {
+                                    name: "model",
+                                    rawName: "v-model",
+                                    value: _vm.form["12_am"],
+                                    expression: "form['12_am']"
+                                  }
+                                ],
+                                staticClass: "form-control",
+                                attrs: {
+                                  type: "number",
+                                  id: "12am",
+                                  placeholder: "Párametros 12am ",
+                                  step: "any"
+                                },
+                                domProps: { value: _vm.form["12_am"] },
+                                on: {
+                                  input: function($event) {
+                                    if ($event.target.composing) {
+                                      return
+                                    }
+                                    _vm.$set(
+                                      _vm.form,
+                                      "12_am",
+                                      $event.target.value
+                                    )
+                                  }
+                                }
+                              })
+                            ])
+                          ]),
+                          _vm._v(" "),
+                          _c("div", { staticClass: "form-group row" }, [
+                            _vm._m(6),
+                            _vm._v(" "),
+                            _c("div", { staticClass: "col-sm-6" }, [
+                              _c("input", {
+                                directives: [
+                                  {
+                                    name: "model",
+                                    rawName: "v-model",
+                                    value: _vm.form["4_am"],
+                                    expression: "form['4_am']"
+                                  }
+                                ],
+                                staticClass: "form-control",
+                                attrs: {
+                                  type: "number",
+                                  id: "4am",
+                                  placeholder: "Párametros 4am",
+                                  step: "any"
+                                },
+                                domProps: { value: _vm.form["4_am"] },
+                                on: {
+                                  input: function($event) {
+                                    if ($event.target.composing) {
+                                      return
+                                    }
+                                    _vm.$set(
+                                      _vm.form,
+                                      "4_am",
+                                      $event.target.value
+                                    )
+                                  }
+                                }
+                              })
+                            ])
+                          ]),
+                          _vm._v(" "),
+                          _c("div", { staticClass: "form-group row" }, [
+                            _vm._m(7),
+                            _vm._v(" "),
+                            _c("div", { staticClass: "col-sm-6" }, [
+                              _c("input", {
+                                directives: [
+                                  {
+                                    name: "model",
+                                    rawName: "v-model",
+                                    value: _vm.form["7_am"],
+                                    expression: "form['7_am']"
+                                  }
+                                ],
+                                staticClass: "form-control",
+                                attrs: {
+                                  type: "number",
+                                  id: "7am",
+                                  placeholder: "Párametros 7am",
+                                  step: "any"
+                                },
+                                domProps: { value: _vm.form["7_am"] },
+                                on: {
+                                  input: function($event) {
+                                    if ($event.target.composing) {
+                                      return
+                                    }
+                                    _vm.$set(
+                                      _vm.form,
+                                      "7_am",
+                                      $event.target.value
+                                    )
+                                  }
+                                }
+                              })
+                            ])
+                          ]),
+                          _vm._v(" "),
+                          _c("div", { staticClass: "form-group row" }, [
+                            _vm._m(8),
+                            _vm._v(" "),
+                            _c("div", { staticClass: "col-sm-6" }, [
+                              _c("input", {
+                                directives: [
+                                  {
+                                    name: "model",
+                                    rawName: "v-model",
+                                    value: _vm.form["4_pm"],
+                                    expression: "form['4_pm']"
+                                  }
+                                ],
+                                staticClass: "form-control",
+                                attrs: {
+                                  type: "number",
+                                  id: "4pm",
+                                  placeholder: "Párametros 4pm",
+                                  step: "any"
+                                },
+                                domProps: { value: _vm.form["4_pm"] },
+                                on: {
+                                  input: function($event) {
+                                    if ($event.target.composing) {
+                                      return
+                                    }
+                                    _vm.$set(
+                                      _vm.form,
+                                      "4_pm",
+                                      $event.target.value
+                                    )
+                                  }
+                                }
+                              })
+                            ])
+                          ]),
+                          _vm._v(" "),
+                          _c("div", { staticClass: "form-group row" }, [
+                            _vm._m(9),
+                            _vm._v(" "),
+                            _c("div", { staticClass: "col-sm-6" }, [
+                              _c("input", {
+                                directives: [
+                                  {
+                                    name: "model",
+                                    rawName: "v-model",
+                                    value: _vm.form["8_pm"],
+                                    expression: "form['8_pm']"
+                                  }
+                                ],
+                                staticClass: "form-control",
+                                attrs: {
+                                  type: "number",
+                                  id: "8pm",
+                                  placeholder: "Párametros 8pm",
+                                  step: "any"
+                                },
+                                domProps: { value: _vm.form["8_pm"] },
+                                on: {
+                                  input: function($event) {
+                                    if ($event.target.composing) {
+                                      return
+                                    }
+                                    _vm.$set(
+                                      _vm.form,
+                                      "8_pm",
+                                      $event.target.value
+                                    )
+                                  }
+                                }
+                              })
+                            ])
+                          ])
+                        ])
+                      ]),
+                      _vm._v(" "),
+                      _c("div", { staticClass: "col-md-6" }, [
+                        _c("div", { staticClass: "form-group row" }, [
+                          _c(
+                            "label",
+                            {
+                              staticClass: "col-sm-6 col-form-label",
+                              attrs: { for: "Temperatura" }
+                            },
+                            [_vm._v("Temperatura: ")]
+                          ),
+                          _vm._v(" "),
+                          _c("div", { staticClass: "col-sm-6" }, [
+                            _c("input", {
+                              directives: [
+                                {
+                                  name: "model",
+                                  rawName: "v-model",
+                                  value: _vm.form.temperatura,
+                                  expression: "form.temperatura"
+                                }
+                              ],
+                              staticClass: "form-control",
+                              attrs: {
+                                type: "number",
+                                id: "temperatura",
+                                placeholder: "Temperatura",
+                                step: "any"
+                              },
+                              domProps: { value: _vm.form.temperatura },
+                              on: {
+                                input: function($event) {
+                                  if ($event.target.composing) {
+                                    return
+                                  }
+                                  _vm.$set(
+                                    _vm.form,
+                                    "temperatura",
                                     $event.target.value
                                   )
                                 }
@@ -47748,7 +48501,14 @@ var render = function() {
                         ]),
                         _vm._v(" "),
                         _c("div", { staticClass: "form-group row" }, [
-                          _vm._m(6),
+                          _c(
+                            "label",
+                            {
+                              staticClass: "col-sm-6 col-form-label",
+                              attrs: { for: "ph" }
+                            },
+                            [_vm._v("PH: ")]
+                          ),
                           _vm._v(" "),
                           _c("div", { staticClass: "col-sm-6" }, [
                             _c("input", {
@@ -47756,18 +48516,58 @@ var render = function() {
                                 {
                                   name: "model",
                                   rawName: "v-model",
-                                  value: _vm.form["4_am"],
-                                  expression: "form['4_am']"
+                                  value: _vm.form.ph,
+                                  expression: "form.ph"
                                 }
                               ],
                               staticClass: "form-control",
                               attrs: {
                                 type: "number",
-                                id: "4am",
-                                placeholder: "Párametros 4am",
+                                id: "ph",
+                                placeholder: "ph",
                                 step: "any"
                               },
-                              domProps: { value: _vm.form["4_am"] },
+                              domProps: { value: _vm.form.ph },
+                              on: {
+                                input: function($event) {
+                                  if ($event.target.composing) {
+                                    return
+                                  }
+                                  _vm.$set(_vm.form, "ph", $event.target.value)
+                                }
+                              }
+                            })
+                          ])
+                        ]),
+                        _vm._v(" "),
+                        _c("div", { staticClass: "form-group row" }, [
+                          _c(
+                            "label",
+                            {
+                              staticClass: "col-sm-6 col-form-label",
+                              attrs: { for: "Amonio" }
+                            },
+                            [_vm._v("Amonio: ")]
+                          ),
+                          _vm._v(" "),
+                          _c("div", { staticClass: "col-sm-6" }, [
+                            _c("input", {
+                              directives: [
+                                {
+                                  name: "model",
+                                  rawName: "v-model",
+                                  value: _vm.form.amonio,
+                                  expression: "form.amonio"
+                                }
+                              ],
+                              staticClass: "form-control",
+                              attrs: {
+                                type: "number",
+                                id: "amonio",
+                                placeholder: "Amonio",
+                                step: "any"
+                              },
+                              domProps: { value: _vm.form.amonio },
                               on: {
                                 input: function($event) {
                                   if ($event.target.composing) {
@@ -47775,7 +48575,7 @@ var render = function() {
                                   }
                                   _vm.$set(
                                     _vm.form,
-                                    "4_am",
+                                    "amonio",
                                     $event.target.value
                                   )
                                 }
@@ -47785,7 +48585,14 @@ var render = function() {
                         ]),
                         _vm._v(" "),
                         _c("div", { staticClass: "form-group row" }, [
-                          _vm._m(7),
+                          _c(
+                            "label",
+                            {
+                              staticClass: "col-sm-6 col-form-label",
+                              attrs: { for: "Nitrito" }
+                            },
+                            [_vm._v("Nitrito: ")]
+                          ),
                           _vm._v(" "),
                           _c("div", { staticClass: "col-sm-6" }, [
                             _c("input", {
@@ -47793,18 +48600,18 @@ var render = function() {
                                 {
                                   name: "model",
                                   rawName: "v-model",
-                                  value: _vm.form["7_am"],
-                                  expression: "form['7_am']"
+                                  value: _vm.form.nitrito,
+                                  expression: "form.nitrito"
                                 }
                               ],
                               staticClass: "form-control",
                               attrs: {
                                 type: "number",
-                                id: "7am",
-                                placeholder: "Párametros 7am",
+                                id: "nitrito",
+                                placeholder: "Nitrito",
                                 step: "any"
                               },
-                              domProps: { value: _vm.form["7_am"] },
+                              domProps: { value: _vm.form.nitrito },
                               on: {
                                 input: function($event) {
                                   if ($event.target.composing) {
@@ -47812,7 +48619,7 @@ var render = function() {
                                   }
                                   _vm.$set(
                                     _vm.form,
-                                    "7_am",
+                                    "nitrito",
                                     $event.target.value
                                   )
                                 }
@@ -47822,7 +48629,14 @@ var render = function() {
                         ]),
                         _vm._v(" "),
                         _c("div", { staticClass: "form-group row" }, [
-                          _vm._m(8),
+                          _c(
+                            "label",
+                            {
+                              staticClass: "col-sm-6 col-form-label",
+                              attrs: { for: "Nitrato" }
+                            },
+                            [_vm._v("Nitrato: ")]
+                          ),
                           _vm._v(" "),
                           _c("div", { staticClass: "col-sm-6" }, [
                             _c("input", {
@@ -47830,18 +48644,18 @@ var render = function() {
                                 {
                                   name: "model",
                                   rawName: "v-model",
-                                  value: _vm.form["4_pm"],
-                                  expression: "form['4_pm']"
+                                  value: _vm.form.nitrato,
+                                  expression: "form.nitrato"
                                 }
                               ],
                               staticClass: "form-control",
                               attrs: {
                                 type: "number",
-                                id: "4pm",
-                                placeholder: "Párametros 4pm",
+                                id: "nitrato",
+                                placeholder: "Nitrato",
                                 step: "any"
                               },
-                              domProps: { value: _vm.form["4_pm"] },
+                              domProps: { value: _vm.form.nitrato },
                               on: {
                                 input: function($event) {
                                   if ($event.target.composing) {
@@ -47849,7 +48663,7 @@ var render = function() {
                                   }
                                   _vm.$set(
                                     _vm.form,
-                                    "4_pm",
+                                    "nitrato",
                                     $event.target.value
                                   )
                                 }
@@ -47859,7 +48673,14 @@ var render = function() {
                         ]),
                         _vm._v(" "),
                         _c("div", { staticClass: "form-group row" }, [
-                          _vm._m(9),
+                          _c(
+                            "label",
+                            {
+                              staticClass: "col-sm-6 col-form-label",
+                              attrs: { for: "" }
+                            },
+                            [_vm._v("Otros: ")]
+                          ),
                           _vm._v(" "),
                           _c("div", { staticClass: "col-sm-6" }, [
                             _c("input", {
@@ -47867,18 +48688,18 @@ var render = function() {
                                 {
                                   name: "model",
                                   rawName: "v-model",
-                                  value: _vm.form["8_pm"],
-                                  expression: "form['8_pm']"
+                                  value: _vm.form.otros,
+                                  expression: "form.otros"
                                 }
                               ],
                               staticClass: "form-control",
                               attrs: {
                                 type: "number",
-                                id: "8pm",
-                                placeholder: "Párametros 8pm",
+                                id: "otros",
+                                placeholder: "Otros",
                                 step: "any"
                               },
-                              domProps: { value: _vm.form["8_pm"] },
+                              domProps: { value: _vm.form.otros },
                               on: {
                                 input: function($event) {
                                   if ($event.target.composing) {
@@ -47886,341 +48707,140 @@ var render = function() {
                                   }
                                   _vm.$set(
                                     _vm.form,
-                                    "8_pm",
+                                    "otros",
                                     $event.target.value
                                   )
                                 }
                               }
                             })
                           ])
-                        ])
-                      ]),
-                      _vm._v(" "),
-                      _c("div", { staticClass: "form-group row" }, [
-                        _c(
-                          "label",
-                          {
-                            staticClass: "col-sm-6 col-form-label",
-                            attrs: { for: "Temperatura" }
-                          },
-                          [_vm._v("Temperatura: ")]
-                        ),
-                        _vm._v(" "),
-                        _c("div", { staticClass: "col-sm-6" }, [
-                          _c("input", {
-                            directives: [
-                              {
-                                name: "model",
-                                rawName: "v-model",
-                                value: _vm.form.temperatura,
-                                expression: "form.temperatura"
-                              }
-                            ],
-                            staticClass: "form-control",
-                            attrs: {
-                              type: "number",
-                              id: "temperatura",
-                              placeholder: "Temperatura",
-                              step: "any"
-                            },
-                            domProps: { value: _vm.form.temperatura },
-                            on: {
-                              input: function($event) {
-                                if ($event.target.composing) {
-                                  return
-                                }
-                                _vm.$set(
-                                  _vm.form,
-                                  "temperatura",
-                                  $event.target.value
-                                )
-                              }
-                            }
-                          })
-                        ])
-                      ]),
-                      _vm._v(" "),
-                      _c("div", { staticClass: "form-group row" }, [
-                        _c(
-                          "label",
-                          {
-                            staticClass: "col-sm-6 col-form-label",
-                            attrs: { for: "ph" }
-                          },
-                          [_vm._v("PH: ")]
-                        ),
-                        _vm._v(" "),
-                        _c("div", { staticClass: "col-sm-6" }, [
-                          _c("input", {
-                            directives: [
-                              {
-                                name: "model",
-                                rawName: "v-model",
-                                value: _vm.form.ph,
-                                expression: "form.ph"
-                              }
-                            ],
-                            staticClass: "form-control",
-                            attrs: {
-                              type: "number",
-                              id: "ph",
-                              placeholder: "ph",
-                              step: "any"
-                            },
-                            domProps: { value: _vm.form.ph },
-                            on: {
-                              input: function($event) {
-                                if ($event.target.composing) {
-                                  return
-                                }
-                                _vm.$set(_vm.form, "ph", $event.target.value)
-                              }
-                            }
-                          })
-                        ])
-                      ]),
-                      _vm._v(" "),
-                      _c("div", { staticClass: "form-group row" }, [
-                        _c(
-                          "label",
-                          {
-                            staticClass: "col-sm-6 col-form-label",
-                            attrs: { for: "Amonio" }
-                          },
-                          [_vm._v("Amonio: ")]
-                        ),
-                        _vm._v(" "),
-                        _c("div", { staticClass: "col-sm-6" }, [
-                          _c("input", {
-                            directives: [
-                              {
-                                name: "model",
-                                rawName: "v-model",
-                                value: _vm.form.amonio,
-                                expression: "form.amonio"
-                              }
-                            ],
-                            staticClass: "form-control",
-                            attrs: {
-                              type: "number",
-                              id: "amonio",
-                              placeholder: "Amonio",
-                              step: "any"
-                            },
-                            domProps: { value: _vm.form.amonio },
-                            on: {
-                              input: function($event) {
-                                if ($event.target.composing) {
-                                  return
-                                }
-                                _vm.$set(
-                                  _vm.form,
-                                  "amonio",
-                                  $event.target.value
-                                )
-                              }
-                            }
-                          })
-                        ])
-                      ]),
-                      _vm._v(" "),
-                      _c("div", { staticClass: "form-group row" }, [
-                        _c(
-                          "label",
-                          {
-                            staticClass: "col-sm-6 col-form-label",
-                            attrs: { for: "Nitrito" }
-                          },
-                          [_vm._v("Nitrito: ")]
-                        ),
-                        _vm._v(" "),
-                        _c("div", { staticClass: "col-sm-6" }, [
-                          _c("input", {
-                            directives: [
-                              {
-                                name: "model",
-                                rawName: "v-model",
-                                value: _vm.form.nitrito,
-                                expression: "form.nitrito"
-                              }
-                            ],
-                            staticClass: "form-control",
-                            attrs: {
-                              type: "number",
-                              id: "nitrito",
-                              placeholder: "Nitrito",
-                              step: "any"
-                            },
-                            domProps: { value: _vm.form.nitrito },
-                            on: {
-                              input: function($event) {
-                                if ($event.target.composing) {
-                                  return
-                                }
-                                _vm.$set(
-                                  _vm.form,
-                                  "nitrito",
-                                  $event.target.value
-                                )
-                              }
-                            }
-                          })
-                        ])
-                      ]),
-                      _vm._v(" "),
-                      _c("div", { staticClass: "form-group row" }, [
-                        _c(
-                          "label",
-                          {
-                            staticClass: "col-sm-6 col-form-label",
-                            attrs: { for: "Nitrato" }
-                          },
-                          [_vm._v("Nitrato: ")]
-                        ),
-                        _vm._v(" "),
-                        _c("div", { staticClass: "col-sm-6" }, [
-                          _c("input", {
-                            directives: [
-                              {
-                                name: "model",
-                                rawName: "v-model",
-                                value: _vm.form.nitrato,
-                                expression: "form.nitrato"
-                              }
-                            ],
-                            staticClass: "form-control",
-                            attrs: {
-                              type: "number",
-                              id: "nitrato",
-                              placeholder: "Nitrato",
-                              step: "any"
-                            },
-                            domProps: { value: _vm.form.nitrato },
-                            on: {
-                              input: function($event) {
-                                if ($event.target.composing) {
-                                  return
-                                }
-                                _vm.$set(
-                                  _vm.form,
-                                  "nitrato",
-                                  $event.target.value
-                                )
-                              }
-                            }
-                          })
-                        ])
-                      ]),
-                      _vm._v(" "),
-                      _c("div", { staticClass: "form-group row" }, [
-                        _c(
-                          "label",
-                          {
-                            staticClass: "col-sm-6 col-form-label",
-                            attrs: { for: "" }
-                          },
-                          [_vm._v("Otros: ")]
-                        ),
-                        _vm._v(" "),
-                        _c("div", { staticClass: "col-sm-6" }, [
-                          _c("input", {
-                            directives: [
-                              {
-                                name: "model",
-                                rawName: "v-model",
-                                value: _vm.form.otros,
-                                expression: "form.otros"
-                              }
-                            ],
-                            staticClass: "form-control",
-                            attrs: {
-                              type: "number",
-                              id: "otros",
-                              placeholder: "Otros",
-                              step: "any"
-                            },
-                            domProps: { value: _vm.form.otros },
-                            on: {
-                              input: function($event) {
-                                if ($event.target.composing) {
-                                  return
-                                }
-                                _vm.$set(_vm.form, "otros", $event.target.value)
-                              }
-                            }
-                          })
                         ])
                       ])
                     ]),
                     _vm._v(" "),
                     _c(
                       "div",
-                      { staticClass: "col-md-6" },
-                      _vm._l(_vm.listadoContenedores, function(lc, index) {
-                        return _c("div", { key: index }, [
-                          _vm.editando == 0
-                            ? _c("div", [
-                                _c("input", {
-                                  directives: [
-                                    {
-                                      name: "model",
-                                      rawName: "v-model",
-                                      value: _vm.form.id_contenedor,
-                                      expression: "form.id_contenedor"
-                                    }
-                                  ],
-                                  attrs: { type: "checkbox" },
-                                  domProps: {
-                                    value: lc.id,
-                                    checked: Array.isArray(
-                                      _vm.form.id_contenedor
+                      { staticClass: "row" },
+                      [
+                        _c(
+                          "h4",
+                          {
+                            staticClass: "col-12 text-center text-primary my-4"
+                          },
+                          [_vm._v(" Listado de contenedores")]
+                        ),
+                        _vm._v(" "),
+                        _vm._l(_vm.listadoContenedores, function(lc, index) {
+                          return _c(
+                            "div",
+                            {
+                              key: index,
+                              staticClass: "col-lg-3 col-md-4 col-sm-6"
+                            },
+                            _vm._l(lc, function(cont) {
+                              return _c("div", { key: cont.id }, [
+                                _vm.editando == 0
+                                  ? _c(
+                                      "div",
+                                      {
+                                        staticClass:
+                                          "form-check form-check-inline mb-2"
+                                      },
+                                      [
+                                        _c("input", {
+                                          directives: [
+                                            {
+                                              name: "model",
+                                              rawName: "v-model",
+                                              value: _vm.form.id_contenedor,
+                                              expression: "form.id_contenedor"
+                                            }
+                                          ],
+                                          staticClass: "form-check-input",
+                                          attrs: {
+                                            type: "checkbox",
+                                            id: "contenedor-" + cont.id
+                                          },
+                                          domProps: {
+                                            value: cont.id,
+                                            checked: Array.isArray(
+                                              _vm.form.id_contenedor
+                                            )
+                                              ? _vm._i(
+                                                  _vm.form.id_contenedor,
+                                                  cont.id
+                                                ) > -1
+                                              : _vm.form.id_contenedor
+                                          },
+                                          on: {
+                                            change: function($event) {
+                                              var $$a = _vm.form.id_contenedor,
+                                                $$el = $event.target,
+                                                $$c = $$el.checked
+                                                  ? true
+                                                  : false
+                                              if (Array.isArray($$a)) {
+                                                var $$v = cont.id,
+                                                  $$i = _vm._i($$a, $$v)
+                                                if ($$el.checked) {
+                                                  $$i < 0 &&
+                                                    _vm.$set(
+                                                      _vm.form,
+                                                      "id_contenedor",
+                                                      $$a.concat([$$v])
+                                                    )
+                                                } else {
+                                                  $$i > -1 &&
+                                                    _vm.$set(
+                                                      _vm.form,
+                                                      "id_contenedor",
+                                                      $$a
+                                                        .slice(0, $$i)
+                                                        .concat(
+                                                          $$a.slice($$i + 1)
+                                                        )
+                                                    )
+                                                }
+                                              } else {
+                                                _vm.$set(
+                                                  _vm.form,
+                                                  "id_contenedor",
+                                                  $$c
+                                                )
+                                              }
+                                            }
+                                          }
+                                        }),
+                                        _vm._v(" "),
+                                        _c(
+                                          "label",
+                                          {
+                                            staticClass: "form-check-label",
+                                            attrs: {
+                                              for: "contenedor-" + cont.id
+                                            }
+                                          },
+                                          [
+                                            _c("span"),
+                                            _vm._v(
+                                              "\n                      " +
+                                                _vm._s(cont.contenedor) +
+                                                "\n                    "
+                                            )
+                                          ]
+                                        ),
+                                        _vm._v(" "),
+                                        _c("br")
+                                      ]
                                     )
-                                      ? _vm._i(_vm.form.id_contenedor, lc.id) >
-                                        -1
-                                      : _vm.form.id_contenedor
-                                  },
-                                  on: {
-                                    change: function($event) {
-                                      var $$a = _vm.form.id_contenedor,
-                                        $$el = $event.target,
-                                        $$c = $$el.checked ? true : false
-                                      if (Array.isArray($$a)) {
-                                        var $$v = lc.id,
-                                          $$i = _vm._i($$a, $$v)
-                                        if ($$el.checked) {
-                                          $$i < 0 &&
-                                            _vm.$set(
-                                              _vm.form,
-                                              "id_contenedor",
-                                              $$a.concat([$$v])
-                                            )
-                                        } else {
-                                          $$i > -1 &&
-                                            _vm.$set(
-                                              _vm.form,
-                                              "id_contenedor",
-                                              $$a
-                                                .slice(0, $$i)
-                                                .concat($$a.slice($$i + 1))
-                                            )
-                                        }
-                                      } else {
-                                        _vm.$set(_vm.form, "id_contenedor", $$c)
-                                      }
-                                    }
-                                  }
-                                }),
-                                _vm._v(" "),
-                                _c("label", { attrs: { for: "contenedor" } }, [
-                                  _vm._v(_vm._s(lc.contenedor))
-                                ]),
-                                _vm._v(" "),
-                                _c("br")
+                                  : _vm._e()
                               ])
-                            : _vm._e()
-                        ])
-                      }),
-                      0
+                            }),
+                            0
+                          )
+                        })
+                      ],
+                      2
                     ),
                     _vm._v(" "),
                     _c("div", { staticClass: "form-group row" }, [
@@ -48260,15 +48880,13 @@ var staticRenderFns = [
     var _vm = this
     var _h = _vm.$createElement
     var _c = _vm._self._c || _h
-    return _c("thead", {}, [
+    return _c("thead", { staticClass: "thead-primary" }, [
       _c("tr", [
         _c("th", { attrs: { rowspan: "2", "data-field": "id" } }, [
           _vm._v("#")
         ]),
         _vm._v(" "),
-        _c("th", { attrs: { rowspan: "2" } }, [
-          _vm._v("ID registro párametros")
-        ]),
+        _c("th", { attrs: { rowspan: "2" } }, [_vm._v("ID registro")]),
         _vm._v(" "),
         _c("th", { attrs: { rowspan: "2", "data-field": "id" } }, [
           _vm._v("Fecha")
@@ -48326,7 +48944,7 @@ var staticRenderFns = [
     var _vm = this
     var _h = _vm.$createElement
     var _c = _vm._self._c || _h
-    return _c("thead", [
+    return _c("thead", { staticClass: "thead-primary" }, [
       _c("tr", [
         _c("th", { attrs: { scope: "col" } }, [_vm._v("#")]),
         _vm._v(" "),
@@ -48867,29 +49485,326 @@ var render = function() {
   var _vm = this
   var _h = _vm.$createElement
   var _c = _vm._self._c || _h
-  return _vm._m(0)
+  return _c("div", { staticClass: "container" }, [
+    _c("div", { staticClass: "row justify-content-center" }, [
+      _c("div", { staticClass: "col-md-12" }, [
+        _c("div", { staticClass: "card" }, [
+          _vm._m(0),
+          _vm._v(" "),
+          _c("div", { staticClass: "card-body" }, [
+            _c("section", { staticClass: "content-dashboard" }, [
+              _c("div", { staticClass: "card" }, [
+                _c(
+                  "div",
+                  { staticClass: "box-option rounded" },
+                  [
+                    _vm._m(1),
+                    _vm._v(" "),
+                    _c(
+                      "router-link",
+                      {
+                        staticClass:
+                          "description-option bg-primary text-center",
+                        attrs: { to: "/siembras" }
+                      },
+                      [
+                        _c("h4", { staticClass: " text-white" }, [
+                          _vm._v("Siembras")
+                        ])
+                      ]
+                    )
+                  ],
+                  1
+                )
+              ]),
+              _vm._v(" "),
+              _c("div", { staticClass: "card" }, [
+                _c(
+                  "div",
+                  { staticClass: "box-option rounded" },
+                  [
+                    _vm._m(2),
+                    _vm._v(" "),
+                    _c(
+                      "router-link",
+                      {
+                        staticClass:
+                          "description-option bg-primary text-center",
+                        attrs: { to: "/recursos-necesarios" }
+                      },
+                      [
+                        _c("h4", { staticClass: " text-white" }, [
+                          _vm._v("Recursos necesarios")
+                        ])
+                      ]
+                    )
+                  ],
+                  1
+                )
+              ]),
+              _vm._v(" "),
+              _c("div", { staticClass: "card" }, [
+                _c(
+                  "div",
+                  { staticClass: "box-option rounded" },
+                  [
+                    _vm._m(3),
+                    _vm._v(" "),
+                    _c(
+                      "router-link",
+                      {
+                        staticClass:
+                          "description-option bg-primary text-center",
+                        attrs: { to: "/alimentacion" }
+                      },
+                      [
+                        _c("h4", { staticClass: " text-white" }, [
+                          _vm._v("Alimentación")
+                        ])
+                      ]
+                    )
+                  ],
+                  1
+                )
+              ]),
+              _vm._v(" "),
+              _c("div", { staticClass: "card" }, [
+                _c(
+                  "div",
+                  { staticClass: "box-option rounded" },
+                  [
+                    _vm._m(4),
+                    _vm._v(" "),
+                    _c(
+                      "router-link",
+                      {
+                        staticClass:
+                          "description-option bg-primary text-center",
+                        attrs: { to: "/informes-biomasa-alimento" }
+                      },
+                      [
+                        _c("h4", { staticClass: " text-white" }, [
+                          _vm._v("Biomasa por alimentacion")
+                        ])
+                      ]
+                    )
+                  ],
+                  1
+                )
+              ]),
+              _vm._v(" "),
+              _c("div", { staticClass: "card" }, [
+                _c(
+                  "div",
+                  { staticClass: "box-option rounded" },
+                  [
+                    _vm._m(5),
+                    _vm._v(" "),
+                    _c(
+                      "router-link",
+                      {
+                        staticClass:
+                          "description-option bg-primary text-center",
+                        attrs: { to: "/calidad-agua" }
+                      },
+                      [
+                        _c("h4", { staticClass: " text-white" }, [
+                          _vm._v("Párametros de calidad")
+                        ])
+                      ]
+                    )
+                  ],
+                  1
+                )
+              ]),
+              _vm._v(" "),
+              _c("div", { staticClass: "card" }, [
+                _c(
+                  "div",
+                  { staticClass: "box-option rounded" },
+                  [
+                    _vm._m(6),
+                    _vm._v(" "),
+                    _c(
+                      "router-link",
+                      {
+                        staticClass:
+                          "description-option bg-primary text-center",
+                        attrs: { to: "/especies" }
+                      },
+                      [
+                        _c("h4", { staticClass: " text-white" }, [
+                          _vm._v("Especies")
+                        ])
+                      ]
+                    )
+                  ],
+                  1
+                )
+              ]),
+              _vm._v(" "),
+              _c("div", { staticClass: "card" }, [
+                _c(
+                  "div",
+                  { staticClass: "box-option rounded" },
+                  [
+                    _vm._m(7),
+                    _vm._v(" "),
+                    _c(
+                      "router-link",
+                      {
+                        staticClass:
+                          "description-option bg-primary text-center",
+                        attrs: { to: "/alimentos" }
+                      },
+                      [
+                        _c("h4", { staticClass: " text-white" }, [
+                          _vm._v("Alimentos")
+                        ])
+                      ]
+                    )
+                  ],
+                  1
+                )
+              ]),
+              _vm._v(" "),
+              _c("div", { staticClass: "card" }, [
+                _c(
+                  "div",
+                  { staticClass: "box-option rounded" },
+                  [
+                    _vm._m(8),
+                    _vm._v(" "),
+                    _c(
+                      "router-link",
+                      {
+                        staticClass:
+                          "description-option bg-primary text-center",
+                        attrs: { to: "/recursos" }
+                      },
+                      [
+                        _c("h4", { staticClass: " text-white" }, [
+                          _vm._v("Recursos")
+                        ])
+                      ]
+                    )
+                  ],
+                  1
+                )
+              ]),
+              _vm._v(" "),
+              _c("div", { staticClass: "card" }, [
+                _c(
+                  "div",
+                  { staticClass: "box-option rounded" },
+                  [
+                    _vm._m(9),
+                    _vm._v(" "),
+                    _c(
+                      "router-link",
+                      {
+                        staticClass:
+                          "description-option bg-primary text-center",
+                        attrs: { to: "/usuarios" }
+                      },
+                      [
+                        _c("h4", { staticClass: " text-white" }, [
+                          _vm._v("Usuarios")
+                        ])
+                      ]
+                    )
+                  ],
+                  1
+                )
+              ])
+            ])
+          ])
+        ])
+      ])
+    ])
+  ])
 }
 var staticRenderFns = [
   function() {
     var _vm = this
     var _h = _vm.$createElement
     var _c = _vm._self._c || _h
-    return _c("div", { staticClass: "container" }, [
-      _c("div", { staticClass: "row justify-content-center" }, [
-        _c("div", { staticClass: "col-md-12" }, [
-          _c("div", { staticClass: "card" }, [
-            _c("div", { staticClass: "card-header" }, [
-              _vm._v("Panel de Administración")
-            ]),
-            _vm._v(" "),
-            _c("div", { staticClass: "card-body jumbotron" }, [
-              _c("h1", { staticClass: "display-4" }, [
-                _vm._v("Bienvenido al gestor de Aquamazonia!!")
-              ])
-            ])
-          ])
-        ])
-      ])
+    return _c("div", { staticClass: "card-header" }, [
+      _c("h3", [_vm._v("Bienvenido a Aquamazonia")]),
+      _vm._v(" "),
+      _c("h5", [_vm._v("Panel de Administración")])
+    ])
+  },
+  function() {
+    var _vm = this
+    var _h = _vm.$createElement
+    var _c = _vm._self._c || _h
+    return _c("div", { staticClass: "cover-option bg-light text-center" }, [
+      _c("i", { staticClass: "fa fa-4x fa-fish" })
+    ])
+  },
+  function() {
+    var _vm = this
+    var _h = _vm.$createElement
+    var _c = _vm._self._c || _h
+    return _c("div", { staticClass: "cover-option bg-light text-center" }, [
+      _c("i", { staticClass: "fa fa-4x fa-plus-square" })
+    ])
+  },
+  function() {
+    var _vm = this
+    var _h = _vm.$createElement
+    var _c = _vm._self._c || _h
+    return _c("div", { staticClass: "cover-option bg-light text-center" }, [
+      _c("i", { staticClass: "fa fa-4x fa-utensils" })
+    ])
+  },
+  function() {
+    var _vm = this
+    var _h = _vm.$createElement
+    var _c = _vm._self._c || _h
+    return _c("div", { staticClass: "cover-option bg-light text-center" }, [
+      _c("i", { staticClass: "fa fa-4x fa-file-alt" })
+    ])
+  },
+  function() {
+    var _vm = this
+    var _h = _vm.$createElement
+    var _c = _vm._self._c || _h
+    return _c("div", { staticClass: "cover-option bg-light text-center" }, [
+      _c("i", { staticClass: "fa fa-4x fa-tint" })
+    ])
+  },
+  function() {
+    var _vm = this
+    var _h = _vm.$createElement
+    var _c = _vm._self._c || _h
+    return _c("div", { staticClass: "cover-option bg-light text-center" }, [
+      _c("i", { staticClass: "fa fa-4x fa-tools" })
+    ])
+  },
+  function() {
+    var _vm = this
+    var _h = _vm.$createElement
+    var _c = _vm._self._c || _h
+    return _c("div", { staticClass: "cover-option bg-light text-center" }, [
+      _c("i", { staticClass: "fa fa-4x fa-tools" })
+    ])
+  },
+  function() {
+    var _vm = this
+    var _h = _vm.$createElement
+    var _c = _vm._self._c || _h
+    return _c("div", { staticClass: "cover-option bg-light text-center" }, [
+      _c("i", { staticClass: "fa fa-4x fa-tools" })
+    ])
+  },
+  function() {
+    var _vm = this
+    var _h = _vm.$createElement
+    var _c = _vm._self._c || _h
+    return _c("div", { staticClass: "cover-option bg-light text-center" }, [
+      _c("i", { staticClass: "fa fa-4x fa-user" })
     ])
   }
 ]
@@ -48941,60 +49856,64 @@ var render = function() {
             ]),
             _vm._v(" "),
             _c("div", { staticClass: "row" }, [
-              _c("table", { staticClass: "table table-striped" }, [
-                _vm._m(0),
-                _vm._v(" "),
-                _c(
-                  "tbody",
-                  _vm._l(_vm.listado, function(especie, index) {
-                    return _c("tr", { key: especie.id }, [
-                      _c("th", {
-                        attrs: { scope: "row" },
-                        domProps: { textContent: _vm._s(index) }
-                      }),
-                      _vm._v(" "),
-                      _c("td", {
-                        domProps: { textContent: _vm._s(especie.especie) }
-                      }),
-                      _vm._v(" "),
-                      _c("td", {
-                        domProps: { textContent: _vm._s(especie.descripcion) }
-                      }),
-                      _vm._v(" "),
-                      _c("td", [
-                        _c(
-                          "button",
-                          {
-                            staticClass: "btn btn-success",
-                            attrs: { type: "button" },
-                            on: {
-                              click: function($event) {
-                                return _vm.cargaEditar(especie)
-                              }
-                            }
-                          },
-                          [_c("i", { staticClass: "fas fa-edit" })]
-                        ),
+              _c(
+                "table",
+                { staticClass: "table table-striped table-sm table-bordered" },
+                [
+                  _vm._m(0),
+                  _vm._v(" "),
+                  _c(
+                    "tbody",
+                    _vm._l(_vm.listado, function(especie, index) {
+                      return _c("tr", { key: especie.id }, [
+                        _c("th", {
+                          attrs: { scope: "row" },
+                          domProps: { textContent: _vm._s(index) }
+                        }),
                         _vm._v(" "),
-                        _c(
-                          "button",
-                          {
-                            staticClass: "btn btn-danger",
-                            attrs: { type: "button" },
-                            on: {
-                              click: function($event) {
-                                return _vm.eliminar(especie.id)
+                        _c("td", {
+                          domProps: { textContent: _vm._s(especie.especie) }
+                        }),
+                        _vm._v(" "),
+                        _c("td", {
+                          domProps: { textContent: _vm._s(especie.descripcion) }
+                        }),
+                        _vm._v(" "),
+                        _c("td", [
+                          _c(
+                            "button",
+                            {
+                              staticClass: "btn btn-success",
+                              attrs: { type: "button" },
+                              on: {
+                                click: function($event) {
+                                  return _vm.cargaEditar(especie)
+                                }
                               }
-                            }
-                          },
-                          [_c("i", { staticClass: "fas fa-trash" })]
-                        )
+                            },
+                            [_c("i", { staticClass: "fas fa-edit" })]
+                          ),
+                          _vm._v(" "),
+                          _c(
+                            "button",
+                            {
+                              staticClass: "btn btn-danger",
+                              attrs: { type: "button" },
+                              on: {
+                                click: function($event) {
+                                  return _vm.eliminar(especie.id)
+                                }
+                              }
+                            },
+                            [_c("i", { staticClass: "fas fa-trash" })]
+                          )
+                        ])
                       ])
-                    ])
-                  }),
-                  0
-                )
-              ])
+                    }),
+                    0
+                  )
+                ]
+              )
             ])
           ])
         ])
@@ -49179,7 +50098,7 @@ var staticRenderFns = [
     var _vm = this
     var _h = _vm.$createElement
     var _c = _vm._self._c || _h
-    return _c("thead", [
+    return _c("thead", { staticClass: "thead-primary" }, [
       _c("tr", [
         _c("th", { attrs: { scope: "col" } }, [_vm._v("#")]),
         _vm._v(" "),
@@ -49282,7 +50201,7 @@ var render = function() {
       _c("div", { staticClass: "col-md-12" }, [
         _c("div", { staticClass: "card" }, [
           _c("div", { staticClass: "card-header" }, [
-            _vm._v("Informes Actividades(Muestreo y Pesca)")
+            _vm._v("Informes Actividades (Muestreo y Pesca)")
           ]),
           _vm._v(" "),
           _c("div", { staticClass: "card-body" }, [
@@ -49408,8 +50327,8 @@ var render = function() {
                     ]),
                     _vm._v(" "),
                     _c("div", { staticClass: "form-group col-md-2" }, [
-                      _c("label", { attrs: { for: "actividad" } }, [
-                        _vm._v("Lote: ")
+                      _c("label", { attrs: { for: "lote" } }, [
+                        _vm._v("Lotes:")
                       ]),
                       _vm._v(" "),
                       _c(
@@ -49419,12 +50338,12 @@ var render = function() {
                             {
                               name: "model",
                               rawName: "v-model",
-                              value: _vm.f_actividad,
-                              expression: "f_actividad"
+                              value: _vm.f_lote,
+                              expression: "f_lote"
                             }
                           ],
-                          staticClass: "form-control",
-                          attrs: { id: "actividad", name: "tipo_actividad" },
+                          staticClass: "custom-select",
+                          attrs: { id: "lote" },
                           on: {
                             change: function($event) {
                               var $$selectedVal = Array.prototype.filter
@@ -49435,29 +50354,26 @@ var render = function() {
                                   var val = "_value" in o ? o._value : o.value
                                   return val
                                 })
-                              _vm.f_actividad = $event.target.multiple
+                              _vm.f_lote = $event.target.multiple
                                 ? $$selectedVal
                                 : $$selectedVal[0]
                             }
                           }
                         },
                         [
-                          _c("option", { attrs: { selected: "" } }, [
-                            _vm._v(" Seleccionar")
+                          _c("option", { attrs: { value: "-1" } }, [
+                            _vm._v("Seleccionar")
                           ]),
                           _vm._v(" "),
-                          _c("option", { attrs: { value: "0" } }, [
-                            _vm._v("Muestreo")
-                          ]),
-                          _vm._v(" "),
-                          _c("option", { attrs: { value: "1" } }, [
-                            _vm._v("Pesca")
-                          ]),
-                          _vm._v(" "),
-                          _c("option", { attrs: { value: "2" } }, [
-                            _vm._v("Mortalidad Inicial")
-                          ])
-                        ]
+                          _vm._l(_vm.listadoLotes, function(lote, index) {
+                            return _c(
+                              "option",
+                              { key: index, domProps: { value: lote.lote } },
+                              [_vm._v(_vm._s(lote.lote))]
+                            )
+                          })
+                        ],
+                        2
                       )
                     ]),
                     _vm._v(" "),
@@ -49739,59 +50655,84 @@ var render = function() {
               ])
             ]),
             _vm._v(" "),
-            _c("div", [
-              _c(
-                "table",
-                { staticClass: "table table-sm table-responsive table-hover" },
-                [
-                  _vm._m(0),
-                  _vm._v(" "),
-                  _c(
-                    "tbody",
-                    _vm._l(_vm.listadoRegistros, function(lr, index) {
-                      return _c("tr", { key: index }, [
-                        _c("td", {
-                          domProps: { textContent: _vm._s(index + 1) }
-                        }),
-                        _vm._v(" "),
-                        _c("td", {
-                          domProps: { textContent: _vm._s(lr.nombre_siembra) }
-                        }),
-                        _vm._v(" "),
-                        _c("td", {
-                          domProps: { textContent: _vm._s(lr.fecha_registro) }
-                        }),
-                        _vm._v(" "),
-                        _c("td", {
-                          domProps: { textContent: _vm._s(lr.especie) }
-                        }),
-                        _vm._v(" "),
-                        _c("td", {
-                          domProps: { textContent: _vm._s(lr.nombre_registro) }
-                        }),
-                        _vm._v(" "),
-                        _c("td", {
-                          domProps: { textContent: _vm._s(lr.peso_ganado) }
-                        }),
-                        _vm._v(" "),
-                        _c("td", {
-                          domProps: { textContent: _vm._s(lr.mortalidad) }
-                        }),
-                        _vm._v(" "),
-                        _c("td", {
-                          domProps: { textContent: _vm._s(lr.biomasa) }
-                        }),
-                        _vm._v(" "),
-                        _c("td", {
-                          domProps: { textContent: _vm._s(lr.cantidad) }
-                        })
-                      ])
-                    }),
-                    0
-                  )
-                ]
-              )
-            ])
+            _c(
+              "div",
+              {
+                staticClass: "table-container",
+                attrs: { id: "table-container2" }
+              },
+              [
+                _c(
+                  "table",
+                  {
+                    staticClass:
+                      "table-sticky table table-sm table-hover table-bordered"
+                  },
+                  [
+                    _vm._m(0),
+                    _vm._v(" "),
+                    _c(
+                      "tbody",
+                      _vm._l(_vm.listadoRegistros, function(lr, index) {
+                        return _c("tr", { key: index }, [
+                          _c("td", {
+                            domProps: { textContent: _vm._s(index + 1) }
+                          }),
+                          _vm._v(" "),
+                          _c("td", {
+                            domProps: { textContent: _vm._s(lr.nombre_siembra) }
+                          }),
+                          _vm._v(" "),
+                          _c("td", {
+                            domProps: { textContent: _vm._s(lr.lote) }
+                          }),
+                          _vm._v(" "),
+                          _c("td", {
+                            domProps: { textContent: _vm._s(lr.fecha_registro) }
+                          }),
+                          _vm._v(" "),
+                          _c("td", {
+                            domProps: { textContent: _vm._s(lr.especie) }
+                          }),
+                          _vm._v(" "),
+                          _c("td", {
+                            domProps: {
+                              textContent: _vm._s(lr.nombre_registro)
+                            }
+                          }),
+                          _vm._v(" "),
+                          _c("td", {
+                            domProps: { textContent: _vm._s(lr.peso_ganado) }
+                          }),
+                          _vm._v(" "),
+                          _c("td", {
+                            domProps: { textContent: _vm._s(lr.mortalidad) }
+                          }),
+                          _vm._v(" "),
+                          _c("td", {
+                            domProps: { textContent: _vm._s(lr.biomasa) }
+                          }),
+                          _vm._v(" "),
+                          _c("td", {
+                            domProps: { textContent: _vm._s(lr.cantidad) }
+                          }),
+                          _vm._v(" "),
+                          _c("td", [
+                            _vm._v(
+                              _vm._s(
+                                (lr.biomasa_disponible =
+                                  (lr.cantidad * lr.peso_ganado) / 1000)
+                              )
+                            )
+                          ])
+                        ])
+                      }),
+                      0
+                    )
+                  ]
+                )
+              ]
+            )
           ])
         ])
       ])
@@ -49803,11 +50744,13 @@ var staticRenderFns = [
     var _vm = this
     var _h = _vm.$createElement
     var _c = _vm._self._c || _h
-    return _c("thead", [
+    return _c("thead", { staticClass: "thead-primary" }, [
       _c("tr", [
         _c("th", [_vm._v("#")]),
         _vm._v(" "),
         _c("th", [_vm._v("Siembra")]),
+        _vm._v(" "),
+        _c("th", [_vm._v("Lote")]),
         _vm._v(" "),
         _c("th", [_vm._v("Fecha de registro")]),
         _vm._v(" "),
@@ -49819,9 +50762,11 @@ var staticRenderFns = [
         _vm._v(" "),
         _c("th", [_vm._v("Mortalidad")]),
         _vm._v(" "),
-        _c("th", [_vm._v("Biomasa muestreo")]),
+        _c("th", [_vm._v("Salida biomasa muestreo")]),
         _vm._v(" "),
-        _c("th", [_vm._v("Cantidad")])
+        _c("th", [_vm._v("Cantidad")]),
+        _vm._v(" "),
+        _c("th", [_vm._v("Biomasa disponible")])
       ])
     ])
   }
@@ -50010,92 +50955,112 @@ var render = function() {
               )
             ]),
             _vm._v(" "),
-            _c("div", [
-              _c(
-                "table",
-                {
-                  staticClass:
-                    "table table-striped table-sm table-hover table-responsive"
-                },
-                [
-                  _vm._m(1),
-                  _vm._v(" "),
-                  _c(
-                    "tbody",
-                    _vm._l(_vm.listadoExistencias, function(le, index) {
-                      return _c("tr", { key: index }, [
-                        _c("td", {
-                          domProps: { textContent: _vm._s(index + 1) }
-                        }),
-                        _vm._v(" "),
-                        _c("td", {
-                          domProps: { textContent: _vm._s(le.nombre_siembra) }
-                        }),
-                        _vm._v(" "),
-                        _c("td", {
-                          domProps: { textContent: _vm._s(le.capacidad) }
-                        }),
-                        _vm._v(" "),
-                        _c("td", {
-                          domProps: { textContent: _vm._s(le.cantidad_inicial) }
-                        }),
-                        _vm._v(" "),
-                        _c("td", {
-                          domProps: { textContent: _vm._s(le.biomasa_inicial) }
-                        }),
-                        _vm._v(" "),
-                        _c("td", {
-                          domProps: {
-                            textContent: _vm._s(le.biomasa_disponible + " kg")
-                          }
-                        }),
-                        _vm._v(" "),
-                        le.salida_biomasa
-                          ? _c("td", [
-                              _vm._v(_vm._s(le.salida_biomasa) + " kg")
-                            ])
-                          : _c("td", [_vm._v("0")]),
-                        _vm._v(" "),
-                        _c("td", {
-                          domProps: {
-                            textContent: _vm._s(
-                              le.mortalidad_kg ? le.mortalidad_kg + " kg" : "0"
-                            )
-                          }
-                        }),
-                        _vm._v(" "),
-                        le.salida_animales
-                          ? _c("td", [_vm._v(_vm._s(le.salida_animales))])
-                          : _c("td", [_vm._v("0")]),
-                        _vm._v(" "),
-                        _c("td", {
-                          domProps: {
-                            textContent: _vm._s(le.cantidad_total_alimento)
-                          }
-                        }),
-                        _vm._v(" "),
-                        _c("td", {
-                          domProps: {
-                            textContent: _vm._s(le.incr_bio_acum_conver)
-                          }
-                        }),
-                        _vm._v(" "),
-                        _c("td", {
-                          domProps: { textContent: _vm._s(le.bio_dispo_alimen) }
-                        }),
-                        _vm._v(" "),
-                        _c("td", {
-                          domProps: {
-                            textContent: _vm._s(le.porc_supervivencia_final)
-                          }
-                        })
-                      ])
-                    }),
-                    0
-                  )
-                ]
-              )
-            ])
+            _c(
+              "div",
+              {
+                staticClass: "table-container",
+                attrs: { id: "table-container2" }
+              },
+              [
+                _c(
+                  "table",
+                  {
+                    staticClass:
+                      "table-sticky table table-sm table-hover table-bordered"
+                  },
+                  [
+                    _vm._m(1),
+                    _vm._v(" "),
+                    _c(
+                      "tbody",
+                      _vm._l(_vm.listadoExistencias, function(le, index) {
+                        return _c("tr", { key: index }, [
+                          _c("td", {
+                            domProps: { textContent: _vm._s(index + 1) }
+                          }),
+                          _vm._v(" "),
+                          _c("td", {
+                            staticClass: "fixed-column",
+                            domProps: { textContent: _vm._s(le.nombre_siembra) }
+                          }),
+                          _vm._v(" "),
+                          _c("td", {
+                            domProps: { textContent: _vm._s(le.capacidad) }
+                          }),
+                          _vm._v(" "),
+                          _c("td", {
+                            domProps: {
+                              textContent: _vm._s(le.cantidad_inicial)
+                            }
+                          }),
+                          _vm._v(" "),
+                          _c("td", {
+                            domProps: {
+                              textContent: _vm._s(le.biomasa_inicial)
+                            }
+                          }),
+                          _vm._v(" "),
+                          _c("td", {
+                            domProps: {
+                              textContent: _vm._s(le.biomasa_disponible + " kg")
+                            }
+                          }),
+                          _vm._v(" "),
+                          le.salida_biomasa
+                            ? _c("td", [
+                                _vm._v(_vm._s(le.salida_biomasa) + " kg")
+                              ])
+                            : _c("td", [_vm._v("0")]),
+                          _vm._v(" "),
+                          _c("td", {
+                            domProps: { textContent: _vm._s(le.mortalidad) }
+                          }),
+                          _vm._v(" "),
+                          _c("td", {
+                            domProps: {
+                              textContent: _vm._s(
+                                le.mortalidad_kg
+                                  ? le.mortalidad_kg + " kg"
+                                  : "0"
+                              )
+                            }
+                          }),
+                          _vm._v(" "),
+                          le.salida_animales
+                            ? _c("td", [_vm._v(_vm._s(le.salida_animales))])
+                            : _c("td", [_vm._v("0")]),
+                          _vm._v(" "),
+                          _c("td", {
+                            domProps: {
+                              textContent: _vm._s(le.cantidad_total_alimento)
+                            }
+                          }),
+                          _vm._v(" "),
+                          _c("td", {
+                            domProps: {
+                              textContent: _vm._s(le.incr_bio_acum_conver)
+                            }
+                          }),
+                          _vm._v(" "),
+                          _c("td", {
+                            domProps: {
+                              textContent: _vm._s(le.bio_dispo_alimen)
+                            }
+                          }),
+                          _vm._v(" "),
+                          _c("td", {
+                            domProps: {
+                              textContent: _vm._s(le.porc_supervivencia_final)
+                            }
+                          })
+                        ])
+                      }),
+                      0
+                    )
+                  ]
+                )
+              ]
+            )
           ])
         ])
       ])
@@ -50115,11 +51080,11 @@ var staticRenderFns = [
     var _vm = this
     var _h = _vm.$createElement
     var _c = _vm._self._c || _h
-    return _c("thead", [
+    return _c("thead", { staticClass: "thead-primary" }, [
       _c("tr", [
         _c("th", [_vm._v("#")]),
         _vm._v(" "),
-        _c("th", [_vm._v("Siembra")]),
+        _c("th", { staticClass: "fixed-column" }, [_vm._v("Siembra")]),
         _vm._v(" "),
         _c("th", [_vm._v("Area m"), _c("sup", [_vm._v("3")])]),
         _vm._v(" "),
@@ -50131,6 +51096,8 @@ var staticRenderFns = [
         _vm._v(" "),
         _c("th", [_vm._v("Salida de biomasa")]),
         _vm._v(" "),
+        _c("th", [_vm._v("Mortalidad")]),
+        _vm._v(" "),
         _c("th", [_vm._v("Mort. Kg")]),
         _vm._v(" "),
         _c("th", [_vm._v("Salida animales")]),
@@ -50141,7 +51108,7 @@ var staticRenderFns = [
         _vm._v(" "),
         _c("th", [_vm._v("Biomasa disponible por alimento")]),
         _vm._v(" "),
-        _c("th", [_vm._v("Supervivencia final")])
+        _c("th", [_vm._v("% Supervivencia final")])
       ])
     ])
   }
@@ -50172,7 +51139,7 @@ var render = function() {
       _c("div", { staticClass: "col-md-12" }, [
         _c("div", { staticClass: "card" }, [
           _c("div", { staticClass: "card-header" }, [
-            _vm._v("Informes especies existentes")
+            _vm._v("Informes ciclo productivo")
           ]),
           _vm._v(" "),
           _c("div", { staticClass: "card-body" }, [
@@ -50223,6 +51190,55 @@ var render = function() {
                         "option",
                         { key: index, domProps: { value: ls.id } },
                         [_vm._v(_vm._s(ls.nombre_siembra))]
+                      )
+                    })
+                  ],
+                  2
+                )
+              ]),
+              _vm._v(" "),
+              _c("div", { staticClass: "form-group col-md-2" }, [
+                _c("label", { attrs: { for: "lote" } }, [_vm._v("Lotes:")]),
+                _vm._v(" "),
+                _c(
+                  "select",
+                  {
+                    directives: [
+                      {
+                        name: "model",
+                        rawName: "v-model",
+                        value: _vm.f_lote,
+                        expression: "f_lote"
+                      }
+                    ],
+                    staticClass: "custom-select",
+                    attrs: { id: "lote" },
+                    on: {
+                      change: function($event) {
+                        var $$selectedVal = Array.prototype.filter
+                          .call($event.target.options, function(o) {
+                            return o.selected
+                          })
+                          .map(function(o) {
+                            var val = "_value" in o ? o._value : o.value
+                            return val
+                          })
+                        _vm.f_lote = $event.target.multiple
+                          ? $$selectedVal
+                          : $$selectedVal[0]
+                      }
+                    }
+                  },
+                  [
+                    _c("option", { attrs: { value: "-1" } }, [
+                      _vm._v("Seleccionar")
+                    ]),
+                    _vm._v(" "),
+                    _vm._l(_vm.listadoLotes, function(lote, index) {
+                      return _c(
+                        "option",
+                        { key: index, domProps: { value: lote.lote } },
+                        [_vm._v(_vm._s(lote.lote))]
                       )
                     })
                   ],
@@ -50442,7 +51458,7 @@ var render = function() {
                 "table",
                 {
                   staticClass:
-                    "table table-striped table-sm table-hover table-responsive"
+                    "table table-bordered table-striped table-sm table-sticky"
                 },
                 [
                   _vm._m(1),
@@ -50456,7 +51472,16 @@ var render = function() {
                         }),
                         _vm._v(" "),
                         _c("td", {
+                          staticClass: "fixed-column",
                           domProps: { textContent: _vm._s(le.nombre_siembra) }
+                        }),
+                        _vm._v(" "),
+                        _c("td", {
+                          domProps: { textContent: _vm._s(le.lote) }
+                        }),
+                        _vm._v(" "),
+                        _c("td", {
+                          domProps: { textContent: _vm._s(le.capacidad) }
                         }),
                         _vm._v(" "),
                         _c("td", {
@@ -50574,19 +51599,23 @@ var staticRenderFns = [
     var _vm = this
     var _h = _vm.$createElement
     var _c = _vm._self._c || _h
-    return _c("thead", [
+    return _c("thead", { staticClass: "thead-primary" }, [
       _c("tr", [
         _c("th", [_vm._v("#")]),
         _vm._v(" "),
-        _c("th", [_vm._v("Siembra")]),
+        _c("th", { staticClass: "fixed-column" }, [_vm._v("Siembra")]),
+        _vm._v(" "),
+        _c("th", [_vm._v("Lote")]),
+        _vm._v(" "),
+        _c("th", [_vm._v("Area")]),
         _vm._v(" "),
         _c("th", [_vm._v("Especie")]),
         _vm._v(" "),
         _c("th", [_vm._v("Inicio siembra")]),
         _vm._v(" "),
-        _c("th", [_vm._v("Cant Ini")]),
+        _c("th", [_vm._v("Cant Inicial")]),
         _vm._v(" "),
-        _c("th", [_vm._v("Peso Ini")]),
+        _c("th", [_vm._v("Peso Inicial")]),
         _vm._v(" "),
         _c("th", [_vm._v("Cant Actual")]),
         _vm._v(" "),
@@ -50648,12 +51677,12 @@ var render = function() {
   var _vm = this
   var _h = _vm.$createElement
   var _c = _vm._self._c || _h
-  return _c("div", { staticClass: "container-sm" }, [
+  return _c("div", { staticClass: "container" }, [
     _c("div", { staticClass: "row justify-content-center" }, [
       _c("div", { staticClass: "col-md-12" }, [
         _c("div", { staticClass: "card" }, [
           _c("div", { staticClass: "card-header" }, [
-            _vm._v("Informes consolidado variables de producción")
+            _vm._v("Informe consolidado variables de producción")
           ]),
           _vm._v(" "),
           _c("div", { staticClass: "card-body" }, [
@@ -50662,52 +51691,53 @@ var render = function() {
             _c("div", { staticClass: "row" }, [
               _c("div", { staticClass: "form-group col-md-2" }, [
                 _c("label", { attrs: { for: "siembra" } }, [
-                  _vm._v("Siembras:\n                        "),
-                  _c(
-                    "select",
-                    {
-                      directives: [
-                        {
-                          name: "model",
-                          rawName: "v-model",
-                          value: _vm.f_siembra,
-                          expression: "f_siembra"
-                        }
-                      ],
-                      staticClass: "custom-select",
-                      attrs: { id: "siembra" },
-                      on: {
-                        change: function($event) {
-                          var $$selectedVal = Array.prototype.filter
-                            .call($event.target.options, function(o) {
-                              return o.selected
-                            })
-                            .map(function(o) {
-                              var val = "_value" in o ? o._value : o.value
-                              return val
-                            })
-                          _vm.f_siembra = $event.target.multiple
-                            ? $$selectedVal
-                            : $$selectedVal[0]
-                        }
+                  _vm._v("Siembras:")
+                ]),
+                _vm._v(" "),
+                _c(
+                  "select",
+                  {
+                    directives: [
+                      {
+                        name: "model",
+                        rawName: "v-model",
+                        value: _vm.f_siembra,
+                        expression: "f_siembra"
                       }
-                    },
-                    [
-                      _c("option", { attrs: { value: "-1" } }, [
-                        _vm._v("Seleccionar")
-                      ]),
-                      _vm._v(" "),
-                      _vm._l(_vm.listadoSiembras, function(ls, index) {
-                        return _c(
-                          "option",
-                          { key: index, domProps: { value: ls.id } },
-                          [_vm._v(_vm._s(ls.nombre_siembra))]
-                        )
-                      })
                     ],
-                    2
-                  )
-                ])
+                    staticClass: "custom-select",
+                    attrs: { id: "siembra" },
+                    on: {
+                      change: function($event) {
+                        var $$selectedVal = Array.prototype.filter
+                          .call($event.target.options, function(o) {
+                            return o.selected
+                          })
+                          .map(function(o) {
+                            var val = "_value" in o ? o._value : o.value
+                            return val
+                          })
+                        _vm.f_siembra = $event.target.multiple
+                          ? $$selectedVal
+                          : $$selectedVal[0]
+                      }
+                    }
+                  },
+                  [
+                    _c("option", { attrs: { value: "-1" } }, [
+                      _vm._v("Seleccionar")
+                    ]),
+                    _vm._v(" "),
+                    _vm._l(_vm.listadoSiembras, function(ls, index) {
+                      return _c(
+                        "option",
+                        { key: index, domProps: { value: ls.id } },
+                        [_vm._v(_vm._s(ls.nombre_siembra))]
+                      )
+                    })
+                  ],
+                  2
+                )
               ]),
               _vm._v(" "),
               _c("div", { staticClass: "form-group col-md-2" }, [
@@ -50791,7 +51821,7 @@ var render = function() {
                       attrs: {
                         fetch: _vm.fetchData,
                         fields: _vm.json_fields,
-                        name: "informe-ciclo-productivo.xls",
+                        name: "informe-consolidado.xls",
                         type: "xls"
                       }
                     },
@@ -50805,154 +51835,198 @@ var render = function() {
               )
             ]),
             _vm._v(" "),
-            _c("div", [
-              _c(
-                "table",
-                {
-                  staticClass:
-                    "table table-striped table-sm table-hover table-responsive"
-                },
-                [
-                  _vm._m(1),
-                  _vm._v(" "),
-                  _c(
-                    "tbody",
-                    _vm._l(_vm.listadoExistencias, function(le, index) {
-                      return _c("tr", { key: index }, [
-                        _c("td", {
-                          domProps: { textContent: _vm._s(index + 1) }
-                        }),
-                        _vm._v(" "),
-                        _c("td", {
-                          domProps: { textContent: _vm._s(le.nombre_siembra) }
-                        }),
-                        _vm._v(" "),
-                        _c("td", {
-                          domProps: { textContent: _vm._s(le.capacidad) }
-                        }),
-                        _vm._v(" "),
-                        _c("td", {
-                          domProps: { textContent: _vm._s(le.fecha_inicio) }
-                        }),
-                        _vm._v(" "),
-                        _c("td", {
-                          domProps: { textContent: _vm._s(le.intervalo_tiempo) }
-                        }),
-                        _vm._v(" "),
-                        _c("td", {
-                          domProps: { textContent: _vm._s(le.cantidad_inicial) }
-                        }),
-                        _vm._v(" "),
-                        _c("td", {
-                          domProps: { textContent: _vm._s(le.biomasa_inicial) }
-                        }),
-                        _vm._v(" "),
-                        _c("td", {
-                          domProps: {
-                            textContent: _vm._s(le.peso_inicial + " gr")
-                          }
-                        }),
-                        _vm._v(" "),
-                        _c("td", {
-                          domProps: { textContent: _vm._s(le.cant_actual) }
-                        }),
-                        _vm._v(" "),
-                        _c("td", {
-                          domProps: {
-                            textContent: _vm._s(le.peso_actual + " gr")
-                          }
-                        }),
-                        _vm._v(" "),
-                        _c("td", {
-                          domProps: {
-                            textContent: _vm._s(le.biomasa_disponible + " kg")
-                          }
-                        }),
-                        _vm._v(" "),
-                        le.salida_biomasa
-                          ? _c("td", [
-                              _vm._v(_vm._s(le.salida_biomasa) + " kg")
-                            ])
-                          : _c("td", [_vm._v("0")]),
-                        _vm._v(" "),
-                        _c("td", {
-                          domProps: {
-                            textContent: _vm._s(
-                              le.mortalidad_kg ? le.mortalidad_kg + " kg" : "0"
-                            )
-                          }
-                        }),
-                        _vm._v(" "),
-                        le.mortalidad_porcentaje
-                          ? _c("td", [_vm._v(_vm._s(le.mortalidad_porcentaje))])
-                          : _c("td", [_vm._v("0")]),
-                        _vm._v(" "),
-                        le.salida_animales
-                          ? _c("td", [_vm._v(_vm._s(le.salida_animales))])
-                          : _c("td", [_vm._v("0")]),
-                        _vm._v(" "),
-                        _c("td", {
-                          domProps: { textContent: _vm._s(le.densidad_final) }
-                        }),
-                        _vm._v(" "),
-                        _c("td", {
-                          domProps: { textContent: _vm._s(le.carga_final) }
-                        }),
-                        _vm._v(" "),
-                        _c("td", {
-                          domProps: { textContent: _vm._s(le.horas_hombre) }
-                        }),
-                        _vm._v(" "),
-                        _c("td", {
-                          domProps: { textContent: _vm._s(le.costo_minutosh) }
-                        }),
-                        _vm._v(" "),
-                        _c("td", {
-                          domProps: {
-                            textContent: _vm._s(le.costo_total_recurso)
-                          }
-                        }),
-                        _vm._v(" "),
-                        _c("td", {
-                          domProps: {
-                            textContent: _vm._s(le.costo_total_alimento)
-                          }
-                        }),
-                        _vm._v(" "),
-                        _c("td", {
-                          domProps: {
-                            textContent: _vm._s(le.cantidad_total_alimento)
-                          }
-                        }),
-                        _vm._v(" "),
-                        _c("td", {
-                          domProps: { textContent: _vm._s(le.costo_tot) }
-                        }),
-                        _vm._v(" "),
-                        _c("td", {
-                          domProps: {
-                            textContent: _vm._s(le.costo_produccion_final)
-                          }
-                        }),
-                        _vm._v(" "),
-                        _c("td", {
-                          domProps: {
-                            textContent: _vm._s(
-                              le.conversion_alimenticia_parcial
-                            )
-                          }
-                        }),
-                        _vm._v(" "),
-                        _c("td", {
-                          domProps: { textContent: _vm._s(le.conversion_final) }
-                        })
-                      ])
-                    }),
-                    0
-                  )
-                ]
-              )
-            ])
+            _c(
+              "div",
+              {
+                staticClass: "table-container",
+                attrs: { id: "table-container2" }
+              },
+              [
+                _c(
+                  "table",
+                  {
+                    staticClass:
+                      "table-sticky table table-sm table-hover table-bordered"
+                  },
+                  [
+                    _vm._m(1),
+                    _vm._v(" "),
+                    _c(
+                      "tbody",
+                      _vm._l(_vm.listadoExistencias, function(le, index) {
+                        return _c("tr", { key: index }, [
+                          _c("th", [_vm._v("#")]),
+                          _vm._v(" "),
+                          _c("td", {
+                            domProps: { textContent: _vm._s(index + 1) }
+                          }),
+                          _vm._v(" "),
+                          _c("td", {
+                            staticClass: "fixed-column",
+                            domProps: { textContent: _vm._s(le.nombre_siembra) }
+                          }),
+                          _vm._v(" "),
+                          _c("td", {
+                            domProps: { textContent: _vm._s(le.capacidad) }
+                          }),
+                          _vm._v(" "),
+                          _c("td", {
+                            domProps: { textContent: _vm._s(le.fecha_inicio) }
+                          }),
+                          _vm._v(" "),
+                          _c("td", {
+                            domProps: {
+                              textContent: _vm._s(le.intervalo_tiempo)
+                            }
+                          }),
+                          _vm._v(" "),
+                          _c("td", {
+                            domProps: {
+                              textContent: _vm._s(le.cantidad_inicial)
+                            }
+                          }),
+                          _vm._v(" "),
+                          _c("td", {
+                            domProps: {
+                              textContent: _vm._s(le.biomasa_inicial)
+                            }
+                          }),
+                          _vm._v(" "),
+                          _c("td", {
+                            domProps: {
+                              textContent: _vm._s(le.peso_inicial + " gr")
+                            }
+                          }),
+                          _vm._v(" "),
+                          _c("td", {
+                            domProps: { textContent: _vm._s(le.carga_inicial) }
+                          }),
+                          _vm._v(" "),
+                          _c("td", {
+                            domProps: { textContent: _vm._s(le.cant_actual) }
+                          }),
+                          _vm._v(" "),
+                          _c("td", {
+                            domProps: {
+                              textContent: _vm._s(le.peso_actual + " gr")
+                            }
+                          }),
+                          _vm._v(" "),
+                          _c("td", {
+                            domProps: {
+                              textContent: _vm._s(le.biomasa_disponible + " kg")
+                            }
+                          }),
+                          _vm._v(" "),
+                          le.salida_biomasa
+                            ? _c("td", [
+                                _vm._v(_vm._s(le.salida_biomasa) + " kg")
+                              ])
+                            : _c("td", [_vm._v("0")]),
+                          _vm._v(" "),
+                          _c("td", {
+                            domProps: {
+                              textContent: _vm._s(
+                                le.mortalidad_kg
+                                  ? le.mortalidad_kg + " kg"
+                                  : "0"
+                              )
+                            }
+                          }),
+                          _vm._v(" "),
+                          le.mortalidad_porcentaje
+                            ? _c("td", [
+                                _vm._v(_vm._s(le.mortalidad_porcentaje))
+                              ])
+                            : _c("td", [_vm._v("0")]),
+                          _vm._v(" "),
+                          le.salida_animales
+                            ? _c("td", [_vm._v(_vm._s(le.salida_animales))])
+                            : _c("td", [_vm._v("0")]),
+                          _vm._v(" "),
+                          _c("td", {
+                            domProps: {
+                              textContent: _vm._s(le.densidad_inicial)
+                            }
+                          }),
+                          _vm._v(" "),
+                          _c("td", {
+                            domProps: { textContent: _vm._s(le.densidad_final) }
+                          }),
+                          _vm._v(" "),
+                          _c("td", {
+                            domProps: { textContent: _vm._s(le.carga_final) }
+                          }),
+                          _vm._v(" "),
+                          _c("td", {
+                            domProps: { textContent: _vm._s(le.horas_hombre) }
+                          }),
+                          _vm._v(" "),
+                          _c("td", {
+                            domProps: { textContent: _vm._s(le.costo_minutosh) }
+                          }),
+                          _vm._v(" "),
+                          _c("td", {
+                            domProps: {
+                              textContent: _vm._s(le.costo_total_recurso)
+                            }
+                          }),
+                          _vm._v(" "),
+                          _c("td", {
+                            domProps: {
+                              textContent: _vm._s(le.costo_total_alimento)
+                            }
+                          }),
+                          _vm._v(" "),
+                          _c("td", {
+                            domProps: {
+                              textContent: _vm._s(le.cantidad_total_alimento)
+                            }
+                          }),
+                          _vm._v(" "),
+                          _c("td", {
+                            domProps: { textContent: _vm._s(le.costo_tot) }
+                          }),
+                          _vm._v(" "),
+                          _c("td", {
+                            domProps: {
+                              textContent: _vm._s(le.costo_produccion_final)
+                            }
+                          }),
+                          _vm._v(" "),
+                          _c("td", {
+                            domProps: {
+                              textContent: _vm._s(
+                                le.conversion_alimenticia_parcial
+                              )
+                            }
+                          }),
+                          _vm._v(" "),
+                          _c("td", {
+                            domProps: {
+                              textContent: _vm._s(le.conversion_final)
+                            }
+                          }),
+                          _vm._v(" "),
+                          _c("td", {
+                            domProps: {
+                              textContent: _vm._s(le.ganancia_peso_dia)
+                            }
+                          }),
+                          _vm._v(" "),
+                          _c("td", {
+                            domProps: {
+                              textContent: _vm._s(le.porc_supervivencia_final)
+                            }
+                          })
+                        ])
+                      }),
+                      0
+                    )
+                  ]
+                )
+              ]
+            )
           ])
         ])
       ])
@@ -50972,11 +52046,11 @@ var staticRenderFns = [
     var _vm = this
     var _h = _vm.$createElement
     var _c = _vm._self._c || _h
-    return _c("thead", [
+    return _c("thead", { staticClass: "thead-primary" }, [
       _c("tr", [
         _c("th", [_vm._v("#")]),
         _vm._v(" "),
-        _c("th", [_vm._v("Siembra")]),
+        _c("th", { staticClass: "fixed-column" }, [_vm._v("Siembra")]),
         _vm._v(" "),
         _c("th", [_vm._v("Area")]),
         _vm._v(" "),
@@ -50989,6 +52063,8 @@ var staticRenderFns = [
         _c("th", [_vm._v("Biomasa Inicial")]),
         _vm._v(" "),
         _c("th", [_vm._v("Peso Inicial")]),
+        _vm._v(" "),
+        _c("th", [_vm._v("Carga inicial")]),
         _vm._v(" "),
         _c("th", [_vm._v("Animales final")]),
         _vm._v(" "),
@@ -51003,6 +52079,12 @@ var staticRenderFns = [
         _c("th", [_vm._v("% Mortalidad")]),
         _vm._v(" "),
         _c("th", [_vm._v("Salida animales")]),
+        _vm._v(" "),
+        _c("th", [
+          _vm._v("Densidad Inicial (Animales/m"),
+          _c("sup", [_vm._v("2")]),
+          _vm._v(")")
+        ]),
         _vm._v(" "),
         _c("th", [
           _vm._v("Densidad Final (Animales/m"),
@@ -51032,7 +52114,11 @@ var staticRenderFns = [
         _vm._v(" "),
         _c("th", [_vm._v("Conversion alimenticia parcial")]),
         _vm._v(" "),
-        _c("th", [_vm._v("Conversion final")])
+        _c("th", [_vm._v("Conversion final")]),
+        _vm._v(" "),
+        _c("th", [_vm._v("Ganancia peso día")]),
+        _vm._v(" "),
+        _c("th", [_c("b", [_vm._v("%")]), _vm._v(" Supervivencia final ")])
       ])
     ])
   }
@@ -51229,164 +52315,175 @@ var render = function() {
               ])
             ]),
             _vm._v(" "),
-            _c("div", [
-              _c(
-                "table",
-                {
-                  staticClass:
-                    "table table-striped table-hover table-sm table-responsive-sm"
-                },
-                [
-                  _vm._m(0),
-                  _vm._v(" "),
-                  _c(
-                    "tbody",
-                    [
-                      _vm._l(_vm.listadoParametros, function(lp, index) {
-                        return _c("tr", { key: index }, [
-                          _c("th", {
-                            domProps: { textContent: _vm._s(index + 1) }
-                          }),
-                          _vm._v(" "),
-                          _c("th", {
-                            domProps: { textContent: _vm._s(lp.id) }
-                          }),
-                          _vm._v(" "),
-                          _c("td", {
-                            domProps: { textContent: _vm._s(lp.contenedor) }
-                          }),
+            _c(
+              "div",
+              {
+                staticClass: "table-container",
+                attrs: { id: "table-container2" }
+              },
+              [
+                _c(
+                  "table",
+                  {
+                    staticClass:
+                      "table-sticky table table-sm table-hover table-bordered"
+                  },
+                  [
+                    _vm._m(0),
+                    _vm._v(" "),
+                    _c(
+                      "tbody",
+                      [
+                        _vm._l(_vm.listadoParametros, function(lp, index) {
+                          return _c("tr", { key: index }, [
+                            _c("th", {
+                              domProps: { textContent: _vm._s(index + 1) }
+                            }),
+                            _vm._v(" "),
+                            _c("th", {
+                              domProps: { textContent: _vm._s(lp.id) }
+                            }),
+                            _vm._v(" "),
+                            _c("td", {
+                              domProps: { textContent: _vm._s(lp.contenedor) }
+                            }),
+                            _vm._v(" "),
+                            _c("td", {
+                              domProps: {
+                                textContent: _vm._s(lp.fecha_parametro)
+                              }
+                            }),
+                            _vm._v(" "),
+                            _c("td", {
+                              domProps: { textContent: _vm._s(lp["12_am"]) }
+                            }),
+                            _vm._v(" "),
+                            _c("td", {
+                              domProps: { textContent: _vm._s(lp["4_am"]) }
+                            }),
+                            _vm._v(" "),
+                            _c("td", {
+                              domProps: { textContent: _vm._s(lp["7_am"]) }
+                            }),
+                            _vm._v(" "),
+                            _c("td", {
+                              domProps: { textContent: _vm._s(lp["4_pm"]) }
+                            }),
+                            _vm._v(" "),
+                            _c("td", {
+                              domProps: { textContent: _vm._s(lp["8_pm"]) }
+                            }),
+                            _vm._v(" "),
+                            _c("td", {
+                              domProps: { textContent: _vm._s(lp.temperatura) }
+                            }),
+                            _vm._v(" "),
+                            _c("td", {
+                              domProps: { textContent: _vm._s(lp.ph) }
+                            }),
+                            _vm._v(" "),
+                            _c("td", {
+                              domProps: { textContent: _vm._s(lp.amonio) }
+                            }),
+                            _vm._v(" "),
+                            _c("td", {
+                              domProps: { textContent: _vm._s(lp.nitrito) }
+                            }),
+                            _vm._v(" "),
+                            _c("td", {
+                              domProps: { textContent: _vm._s(lp.nitrato) }
+                            }),
+                            _vm._v(" "),
+                            _c("td", {
+                              domProps: { textContent: _vm._s(lp.otros) }
+                            })
+                          ])
+                        }),
+                        _vm._v(" "),
+                        _c("tr", { staticClass: "bg-secondary text-white" }, [
+                          _c("th", { attrs: { colspan: "4" } }, [
+                            _vm._v("PROMEDIO:")
+                          ]),
                           _vm._v(" "),
                           _c("td", {
                             domProps: {
-                              textContent: _vm._s(lp.fecha_parametro)
+                              textContent: _vm._s(_vm.promedios.promedio_12_am)
                             }
                           }),
                           _vm._v(" "),
                           _c("td", {
-                            domProps: { textContent: _vm._s(lp["12_am"]) }
+                            domProps: {
+                              textContent: _vm._s(_vm.promedios.promedio_4_am)
+                            }
                           }),
                           _vm._v(" "),
                           _c("td", {
-                            domProps: { textContent: _vm._s(lp["4_am"]) }
+                            domProps: {
+                              textContent: _vm._s(_vm.promedios.promedio_7_am)
+                            }
                           }),
                           _vm._v(" "),
                           _c("td", {
-                            domProps: { textContent: _vm._s(lp["7_am"]) }
+                            domProps: {
+                              textContent: _vm._s(_vm.promedios.promedio_4_pm)
+                            }
                           }),
                           _vm._v(" "),
                           _c("td", {
-                            domProps: { textContent: _vm._s(lp["4_pm"]) }
+                            domProps: {
+                              textContent: _vm._s(_vm.promedios.promedio_8_pm)
+                            }
                           }),
                           _vm._v(" "),
                           _c("td", {
-                            domProps: { textContent: _vm._s(lp["8_pm"]) }
+                            domProps: {
+                              textContent: _vm._s(
+                                _vm.promedios.promedio_temperatura
+                              )
+                            }
                           }),
                           _vm._v(" "),
                           _c("td", {
-                            domProps: { textContent: _vm._s(lp.temperatura) }
+                            domProps: {
+                              textContent: _vm._s(_vm.promedios.promedio_ph)
+                            }
                           }),
                           _vm._v(" "),
                           _c("td", {
-                            domProps: { textContent: _vm._s(lp.ph) }
+                            domProps: {
+                              textContent: _vm._s(_vm.promedios.promedio_amonio)
+                            }
                           }),
                           _vm._v(" "),
                           _c("td", {
-                            domProps: { textContent: _vm._s(lp.amonio) }
+                            domProps: {
+                              textContent: _vm._s(
+                                _vm.promedios.promedio_nitrito
+                              )
+                            }
                           }),
                           _vm._v(" "),
                           _c("td", {
-                            domProps: { textContent: _vm._s(lp.nitrito) }
+                            domProps: {
+                              textContent: _vm._s(
+                                _vm.promedios.promedio_nitrato
+                              )
+                            }
                           }),
                           _vm._v(" "),
                           _c("td", {
-                            domProps: { textContent: _vm._s(lp.nitrato) }
-                          }),
-                          _vm._v(" "),
-                          _c("td", {
-                            domProps: { textContent: _vm._s(lp.otros) }
+                            domProps: {
+                              textContent: _vm._s(_vm.promedios.promedio_otros)
+                            }
                           })
                         ])
-                      }),
-                      _vm._v(" "),
-                      _c("tr", { staticClass: "bg-secondary text-white" }, [
-                        _c("th", { attrs: { colspan: "4" } }, [
-                          _vm._v("PROMEDIO:")
-                        ]),
-                        _vm._v(" "),
-                        _c("td", {
-                          domProps: {
-                            textContent: _vm._s(_vm.promedios.promedio_12_am)
-                          }
-                        }),
-                        _vm._v(" "),
-                        _c("td", {
-                          domProps: {
-                            textContent: _vm._s(_vm.promedios.promedio_4_am)
-                          }
-                        }),
-                        _vm._v(" "),
-                        _c("td", {
-                          domProps: {
-                            textContent: _vm._s(_vm.promedios.promedio_7_am)
-                          }
-                        }),
-                        _vm._v(" "),
-                        _c("td", {
-                          domProps: {
-                            textContent: _vm._s(_vm.promedios.promedio_4_pm)
-                          }
-                        }),
-                        _vm._v(" "),
-                        _c("td", {
-                          domProps: {
-                            textContent: _vm._s(_vm.promedios.promedio_8_pm)
-                          }
-                        }),
-                        _vm._v(" "),
-                        _c("td", {
-                          domProps: {
-                            textContent: _vm._s(
-                              _vm.promedios.promedio_temperatura
-                            )
-                          }
-                        }),
-                        _vm._v(" "),
-                        _c("td", {
-                          domProps: {
-                            textContent: _vm._s(_vm.promedios.promedio_ph)
-                          }
-                        }),
-                        _vm._v(" "),
-                        _c("td", {
-                          domProps: {
-                            textContent: _vm._s(_vm.promedios.promedio_amonio)
-                          }
-                        }),
-                        _vm._v(" "),
-                        _c("td", {
-                          domProps: {
-                            textContent: _vm._s(_vm.promedios.promedio_nitrito)
-                          }
-                        }),
-                        _vm._v(" "),
-                        _c("td", {
-                          domProps: {
-                            textContent: _vm._s(_vm.promedios.promedio_nitrato)
-                          }
-                        }),
-                        _vm._v(" "),
-                        _c("td", {
-                          domProps: {
-                            textContent: _vm._s(_vm.promedios.promedio_otros)
-                          }
-                        })
-                      ])
-                    ],
-                    2
-                  )
-                ]
-              )
-            ])
+                      ],
+                      2
+                    )
+                  ]
+                )
+              ]
+            )
           ])
         ])
       ])
@@ -51398,7 +52495,7 @@ var staticRenderFns = [
     var _vm = this
     var _h = _vm.$createElement
     var _c = _vm._self._c || _h
-    return _c("thead", {}, [
+    return _c("thead", { staticClass: "thead-primary" }, [
       _c("tr", [
         _c("th", { attrs: { rowspan: "2", "data-field": "id" } }, [
           _vm._v("#")
@@ -51577,7 +52674,7 @@ var render = function() {
                       attrs: {
                         fetch: _vm.fetchData,
                         fields: _vm.json_fields,
-                        name: "informe-ciclo-productivo.xls",
+                        name: "informe-produccion.xls",
                         type: "xls"
                       }
                     },
@@ -51591,70 +52688,87 @@ var render = function() {
               )
             ]),
             _vm._v(" "),
-            _c("div", [
-              _c(
-                "table",
-                {
-                  staticClass:
-                    "table table-striped table-sm table-hover table-responsive"
-                },
-                [
-                  _vm._m(3),
-                  _vm._v(" "),
-                  _c(
-                    "tbody",
-                    _vm._l(_vm.listadoExistencias, function(le, index) {
-                      return _c(
-                        "tr",
-                        { key: index, staticClass: "text-right" },
-                        [
-                          _c("td", {
-                            domProps: { textContent: _vm._s(index + 1) }
-                          }),
-                          _vm._v(" "),
-                          _c("td", {
-                            domProps: { textContent: _vm._s(le.nombre_siembra) }
-                          }),
-                          _vm._v(" "),
-                          _c("td", {
-                            domProps: { textContent: _vm._s(le.costo_minutosh) }
-                          }),
-                          _vm._v(" "),
-                          _c("td", {
-                            domProps: {
-                              textContent: _vm._s(le.costo_total_recurso)
-                            }
-                          }),
-                          _vm._v(" "),
-                          _c("td", {
-                            domProps: {
-                              textContent: _vm._s(le.costo_total_alimento)
-                            }
-                          }),
-                          _vm._v(" "),
-                          _c("td", {
-                            domProps: {
-                              textContent: _vm._s(le.cantidad_total_alimento)
-                            }
-                          }),
-                          _vm._v(" "),
-                          _c("td", {
-                            domProps: { textContent: _vm._s(le.costo_tot) }
-                          }),
-                          _vm._v(" "),
-                          _c("td", {
-                            domProps: {
-                              textContent: _vm._s(le.costo_produccion)
-                            }
-                          })
-                        ]
-                      )
-                    }),
-                    0
-                  )
-                ]
-              )
-            ])
+            _c(
+              "div",
+              {
+                staticClass: "table-container",
+                attrs: { id: "table-container2" }
+              },
+              [
+                _c(
+                  "table",
+                  {
+                    staticClass:
+                      "table-sticky table table-sm table-hover table-bordered"
+                  },
+                  [
+                    _vm._m(3),
+                    _vm._v(" "),
+                    _c(
+                      "tbody",
+                      _vm._l(_vm.listadoExistencias, function(le, index) {
+                        return _c(
+                          "tr",
+                          { key: index, staticClass: "text-right" },
+                          [
+                            _c("td", {
+                              domProps: { textContent: _vm._s(index + 1) }
+                            }),
+                            _vm._v(" "),
+                            _c("td", {
+                              domProps: {
+                                textContent: _vm._s(le.nombre_siembra)
+                              }
+                            }),
+                            _vm._v(" "),
+                            _c("td", {
+                              domProps: {
+                                textContent: _vm._s(le.costo_minutosh)
+                              }
+                            }),
+                            _vm._v(" "),
+                            _c("td", {
+                              domProps: {
+                                textContent: _vm._s(le.costo_total_recurso)
+                              }
+                            }),
+                            _vm._v(" "),
+                            _c("td", {
+                              domProps: {
+                                textContent: _vm._s(le.costo_total_alimento)
+                              }
+                            }),
+                            _vm._v(" "),
+                            _c("td", {
+                              domProps: {
+                                textContent: _vm._s(le.cantidad_total_alimento)
+                              }
+                            }),
+                            _vm._v(" "),
+                            _c("td", {
+                              domProps: { textContent: _vm._s(le.costo_tot) }
+                            }),
+                            _vm._v(" "),
+                            _c("td", {
+                              domProps: {
+                                textContent: _vm._s(le.costo_produccion_parcial)
+                              }
+                            }),
+                            _vm._v(" "),
+                            _c("td", {
+                              domProps: {
+                                textContent: _vm._s(le.bio_dispo_alimen)
+                              }
+                            })
+                          ]
+                        )
+                      }),
+                      0
+                    )
+                  ]
+                )
+              ]
+            )
           ])
         ])
       ])
@@ -51704,8 +52818,8 @@ var staticRenderFns = [
     var _vm = this
     var _h = _vm.$createElement
     var _c = _vm._self._c || _h
-    return _c("thead", [
-      _c("tr", { staticClass: "text-right" }, [
+    return _c("thead", { staticClass: "thead-primary" }, [
+      _c("tr", [
         _c("th", [_vm._v("#")]),
         _vm._v(" "),
         _c("th", [_vm._v("Siembra")]),
@@ -51720,7 +52834,9 @@ var staticRenderFns = [
         _vm._v(" "),
         _c("th", [_vm._v("Costo total de siembra")]),
         _vm._v(" "),
-        _c("th", [_vm._v("Costo de producción")])
+        _c("th", [_vm._v("Costo de producción parcial")]),
+        _vm._v(" "),
+        _c("th", [_vm._v("Biomasa disponible por alimento")])
       ])
     ])
   }
@@ -51773,8 +52889,8 @@ var render = function() {
                           expression: "f_siembra"
                         }
                       ],
-                      staticClass: "form-control",
-                      attrs: { id: "f_siembra" },
+                      staticClass: "custom-select",
+                      attrs: { id: "Siembra" },
                       on: {
                         change: function($event) {
                           var $$selectedVal = Array.prototype.filter
@@ -51809,6 +52925,58 @@ var render = function() {
                 ]),
                 _vm._v(" "),
                 _c("div", { staticClass: "form-group col-md-2" }, [
+                  _c("label", { attrs: { for: "estado" } }, [
+                    _vm._v(
+                      "\n                          Estado:\n                        "
+                    )
+                  ]),
+                  _vm._v(" "),
+                  _c(
+                    "select",
+                    {
+                      directives: [
+                        {
+                          name: "model",
+                          rawName: "v-model",
+                          value: _vm.f_estado,
+                          expression: "f_estado"
+                        }
+                      ],
+                      staticClass: "custom-select",
+                      attrs: { name: "estado", id: "estado" },
+                      on: {
+                        change: function($event) {
+                          var $$selectedVal = Array.prototype.filter
+                            .call($event.target.options, function(o) {
+                              return o.selected
+                            })
+                            .map(function(o) {
+                              var val = "_value" in o ? o._value : o.value
+                              return val
+                            })
+                          _vm.f_estado = $event.target.multiple
+                            ? $$selectedVal
+                            : $$selectedVal[0]
+                        }
+                      }
+                    },
+                    [
+                      _c("option", { attrs: { value: "-1", disabled: "" } }, [
+                        _vm._v("--Seleccionar--")
+                      ]),
+                      _vm._v(" "),
+                      _c("option", { attrs: { value: "0" } }, [
+                        _vm._v("Inactiva")
+                      ]),
+                      _vm._v(" "),
+                      _c("option", { attrs: { value: "1" } }, [
+                        _vm._v("Activa")
+                      ])
+                    ]
+                  )
+                ]),
+                _vm._v(" "),
+                _c("div", { staticClass: "form-group col-md-2" }, [
                   _c("label", { attrs: { for: "f_actividad" } }, [
                     _vm._v("Tipo de Actividad: ")
                   ]),
@@ -51824,7 +52992,7 @@ var render = function() {
                           expression: "f_actividad"
                         }
                       ],
-                      staticClass: "form-control",
+                      staticClass: "custom-select",
                       attrs: { id: "f_actividad" },
                       on: {
                         change: function($event) {
@@ -51897,7 +53065,7 @@ var render = function() {
                         attrs: {
                           fetch: _vm.fetchData,
                           fields: _vm.json_fields,
-                          name: "informe-recursos-necesarios.xls",
+                          name: "informe-consolidado-recursos-necesarios.xls",
                           type: "xls"
                         }
                       },
@@ -51912,107 +53080,153 @@ var render = function() {
               ])
             ]),
             _vm._v(" "),
-            _c("div", [
-              _c("table", { staticClass: "table" }, [
-                _c("thead", [
-                  _c("tr", [
-                    _c("th", [_vm._v("#")]),
-                    _vm._v(" "),
-                    _c("th", [_vm._v("Siembra")]),
-                    _vm._v(" "),
-                    _c("th", [_vm._v("Tipo actividad")]),
-                    _vm._v(" "),
-                    _c("th", [_vm._v("Horas hombre")]),
-                    _vm._v(" "),
-                    _c("th", [_vm._v("Costo horas hombre")]),
-                    _vm._v(" "),
-                    _vm.tipoActividad != "Alimentación"
-                      ? _c("th", [_vm._v("Cantidad Recurso")])
-                      : _vm._e(),
-                    _vm._v(" "),
-                    _vm.tipoActividad != "Alimentación"
-                      ? _c("th", [_vm._v("Costo Recurso")])
-                      : _vm._e(),
-                    _vm._v(" "),
-                    _vm.tipoActividad == "Alimentación"
-                      ? _c("th", [_vm._v("Cantidad Alimento")])
-                      : _vm._e(),
-                    _vm._v(" "),
-                    _vm.tipoActividad == "Alimentación"
-                      ? _c("th", [_vm._v("Costo Alimento")])
-                      : _vm._e(),
-                    _vm._v(" "),
-                    _c("th", [_vm._v("Costo total actividad")])
-                  ])
-                ]),
-                _vm._v(" "),
+            _c(
+              "div",
+              {
+                staticClass: "table-container",
+                attrs: { id: "table-container2" }
+              },
+              [
                 _c(
-                  "tbody",
-                  _vm._l(_vm.listado, function(lrn, index) {
-                    return _c("tr", { key: index }, [
-                      _c("td", {
-                        domProps: { textContent: _vm._s(index + 1) }
-                      }),
-                      _vm._v(" "),
-                      _c("td", {
-                        domProps: { textContent: _vm._s(lrn.nombre_siembra) }
-                      }),
-                      _vm._v(" "),
-                      _c("td", {
-                        domProps: { textContent: _vm._s(lrn.actividad) }
-                      }),
-                      _vm._v(" "),
-                      _c("td", {
-                        domProps: {
-                          textContent: _vm._s(lrn.horas_hombre + " Hr")
-                        }
-                      }),
-                      _vm._v(" "),
-                      _c("td", {
-                        domProps: { textContent: _vm._s(lrn.costo_minutos) }
-                      }),
-                      _vm._v(" "),
-                      _vm.tipoActividad != "Alimentación"
-                        ? _c("td", {
+                  "table",
+                  {
+                    staticClass:
+                      "table-sticky table table-sm table-hover table-bordered"
+                  },
+                  [
+                    _c("thead", { staticClass: "thead-primary" }, [
+                      _c("tr", [
+                        _c("th", [_vm._v("#")]),
+                        _vm._v(" "),
+                        _c("th", [_vm._v("Siembra")]),
+                        _vm._v(" "),
+                        _c("th", [_vm._v("Estado")]),
+                        _vm._v(" "),
+                        _c("th", [_vm._v("Tipo actividad")]),
+                        _vm._v(" "),
+                        _c("th", [_vm._v("Horas hombre")]),
+                        _vm._v(" "),
+                        _c("th", [_vm._v("Costo horas hombre")]),
+                        _vm._v(" "),
+                        _vm.tipoActividad != "Alimentación"
+                          ? _c("th", [_vm._v("Cantidad Recurso")])
+                          : _vm._e(),
+                        _vm._v(" "),
+                        _vm.tipoActividad != "Alimentación"
+                          ? _c("th", [_vm._v("Costo Recurso")])
+                          : _vm._e(),
+                        _vm._v(" "),
+                        _vm.tipoActividad == "Alimentación"
+                          ? _c("th", [_vm._v("Cantidad Alimento")])
+                          : _vm._e(),
+                        _vm._v(" "),
+                        _vm.tipoActividad == "Alimentación"
+                          ? _c("th", [_vm._v("Costo Alimento")])
+                          : _vm._e(),
+                        _vm._v(" "),
+                        _vm.tipoActividad != "Alimentación"
+                          ? _c("th", [_vm._v("Costo total actividad")])
+                          : _vm._e(),
+                        _vm._v(" "),
+                        _c("th", [_vm._v("% Costo total de producción")])
+                      ])
+                    ]),
+                    _vm._v(" "),
+                    _c(
+                      "tbody",
+                      _vm._l(_vm.listado, function(lrn, index) {
+                        return _c("tr", { key: index }, [
+                          _c("td", {
+                            domProps: { textContent: _vm._s(index + 1) }
+                          }),
+                          _vm._v(" "),
+                          _c("td", {
                             domProps: {
-                              textContent: _vm._s(lrn.cantidad_recurso)
+                              textContent: _vm._s(lrn.nombre_siembra)
                             }
-                          })
-                        : _vm._e(),
-                      _vm._v(" "),
-                      _vm.tipoActividad != "Alimentación"
-                        ? _c("td", {
-                            domProps: { textContent: _vm._s(lrn.costo_recurso) }
-                          })
-                        : _vm._e(),
-                      _vm._v(" "),
-                      _vm.tipoActividad == "Alimentación"
-                        ? _c("td", {
+                          }),
+                          _vm._v(" "),
+                          lrn.estado == 1
+                            ? _c("td", [_vm._v("Activa")])
+                            : _c("td", [_vm._v("Inactiva")]),
+                          _vm._v(" "),
+                          _c("td", {
+                            domProps: { textContent: _vm._s(lrn.actividad) }
+                          }),
+                          _vm._v(" "),
+                          _c("td", {
                             domProps: {
-                              textContent: _vm._s(lrn.cantidad_alimento)
+                              textContent: _vm._s(lrn.horas_hombre + " Hr")
                             }
-                          })
-                        : _vm._e(),
-                      _vm._v(" "),
-                      _vm.tipoActividad == "Alimentación"
-                        ? _c("td", {
-                            domProps: {
-                              textContent: _vm._s(lrn.costo_alimento)
-                            }
-                          })
-                        : _vm._e(),
-                      _vm._v(" "),
-                      _c("td", {
-                        domProps: {
-                          textContent: _vm._s(lrn.costo_total_actividad)
-                        }
-                      })
-                    ])
-                  }),
-                  0
+                          }),
+                          _vm._v(" "),
+                          _c("td", {
+                            staticClass: "text-right",
+                            domProps: { textContent: _vm._s(lrn.costo_minutos) }
+                          }),
+                          _vm._v(" "),
+                          _vm.tipoActividad != "Alimentación"
+                            ? _c("td", {
+                                domProps: {
+                                  textContent: _vm._s(lrn.cantidad_recurso)
+                                }
+                              })
+                            : _vm._e(),
+                          _vm._v(" "),
+                          _vm.tipoActividad != "Alimentación"
+                            ? _c("td", {
+                                staticClass: "text-right",
+                                domProps: {
+                                  textContent: _vm._s(lrn.costo_recurso)
+                                }
+                              })
+                            : _vm._e(),
+                          _vm._v(" "),
+                          _vm.tipoActividad == "Alimentación"
+                            ? _c("td", {
+                                domProps: {
+                                  textContent: _vm._s(lrn.cantidad_alimento)
+                                }
+                              })
+                            : _vm._e(),
+                          _vm._v(" "),
+                          _vm.tipoActividad == "Alimentación"
+                            ? _c("td", {
+                                staticClass: "text-right",
+                                domProps: {
+                                  textContent: _vm._s(lrn.costo_alimento)
+                                }
+                              })
+                            : _vm._e(),
+                          _vm._v(" "),
+                          _vm.tipoActividad != "Alimentación"
+                            ? _c("td", {
+                                staticClass: "text-right",
+                                domProps: {
+                                  textContent: _vm._s(lrn.costo_total_actividad)
+                                }
+                              })
+                            : _vm._e(),
+                          _vm._v(" "),
+                          _c("td", { staticClass: "text-right" }, [
+                            lrn.porcentaje_total_produccion
+                              ? _c("span", [
+                                  _vm._v(
+                                    "\n                              " +
+                                      _vm._s(lrn.porcentaje_total_produccion) +
+                                      " %\n                            "
+                                  )
+                                ])
+                              : _vm._e()
+                          ])
+                        ])
+                      }),
+                      0
+                    )
+                  ]
                 )
-              ])
-            ])
+              ]
+            )
           ])
         ])
       ])
@@ -52346,106 +53560,119 @@ var render = function() {
               )
             ]),
             _vm._v(" "),
-            _c("div", { staticClass: "row" }, [
-              _c(
-                "table",
-                {
-                  staticClass:
-                    "table table-striped table-hover table-sm table-responsive-sm"
-                },
-                [
-                  _vm._m(0),
-                  _vm._v(" "),
-                  _c(
-                    "tbody",
-                    _vm._l(_vm.listado, function(siembra, index) {
-                      return _c("tr", { key: index }, [
-                        _c("th", {
-                          attrs: { scope: "row" },
-                          domProps: { textContent: _vm._s(index + 1) }
-                        }),
-                        _vm._v(" "),
-                        _c("td", {
-                          attrs: { scope: "row" },
-                          domProps: {
-                            textContent: _vm._s(siembra.nombre_siembra)
-                          }
-                        }),
-                        _vm._v(" "),
-                        _c("td", {
-                          domProps: {
-                            textContent: _vm._s(siembra.fecha_inicio)
-                          }
-                        }),
-                        _vm._v(" "),
-                        _c("td", {
-                          domProps: {
-                            textContent: _vm._s(_vm.estados[siembra.estado])
-                          }
-                        }),
-                        _vm._v(" "),
-                        _c("td", {
-                          domProps: { textContent: _vm._s(siembra.contenedor) }
-                        }),
-                        _vm._v(" "),
-                        _c("td", {
-                          domProps: { textContent: _vm._s(siembra.especie) }
-                        }),
-                        _vm._v(" "),
-                        _c("td", {
-                          domProps: { textContent: _vm._s(siembra.lote) }
-                        }),
-                        _vm._v(" "),
-                        _c("td", {
-                          domProps: { textContent: _vm._s(siembra.cant_actual) }
-                        }),
-                        _vm._v(" "),
-                        _c("td", {
-                          domProps: {
-                            textContent: _vm._s(siembra.peso_actual + "Gr")
-                          }
-                        }),
-                        _vm._v(" "),
-                        _c("td", [
-                          _vm.list_mortalidad[siembra.id]
-                            ? _c("div", [
-                                _vm._v(
-                                  "                                    \n                                  " +
-                                    _vm._s(
-                                      _vm.list_mortalidad[siembra.id][
-                                        siembra.id_esp
-                                      ]
-                                    ) +
-                                    "\n                                "
-                                )
-                              ])
-                            : _c("div", [
-                                _vm._v("0\n                                ")
-                              ])
-                        ]),
-                        _vm._v(" "),
-                        _c("td", [
-                          _vm.list_pesca[siembra.id]
-                            ? _c("div", [
-                                _vm._v(
-                                  "                                    \n                                  " +
-                                    _vm._s(
-                                      _vm.list_pesca[siembra.id][siembra.id_esp]
-                                    ) +
-                                    "\n                                "
-                                )
-                              ])
-                            : _c("div", [
-                                _vm._v("0\n                                ")
-                              ])
+            _c(
+              "div",
+              {
+                staticClass: "table-container",
+                attrs: { id: "table-container2" }
+              },
+              [
+                _c(
+                  "table",
+                  {
+                    staticClass:
+                      "table-sticky table table-sm table-hover table-bordered"
+                  },
+                  [
+                    _vm._m(0),
+                    _vm._v(" "),
+                    _c(
+                      "tbody",
+                      _vm._l(_vm.listado, function(siembra, index) {
+                        return _c("tr", { key: index }, [
+                          _c("th", {
+                            attrs: { scope: "row" },
+                            domProps: { textContent: _vm._s(index + 1) }
+                          }),
+                          _vm._v(" "),
+                          _c("td", {
+                            attrs: { scope: "row" },
+                            domProps: {
+                              textContent: _vm._s(siembra.nombre_siembra)
+                            }
+                          }),
+                          _vm._v(" "),
+                          _c("td", {
+                            domProps: {
+                              textContent: _vm._s(siembra.fecha_inicio)
+                            }
+                          }),
+                          _vm._v(" "),
+                          _c("td", {
+                            domProps: {
+                              textContent: _vm._s(_vm.estados[siembra.estado])
+                            }
+                          }),
+                          _vm._v(" "),
+                          _c("td", {
+                            domProps: {
+                              textContent: _vm._s(siembra.contenedor)
+                            }
+                          }),
+                          _vm._v(" "),
+                          _c("td", {
+                            domProps: { textContent: _vm._s(siembra.especie) }
+                          }),
+                          _vm._v(" "),
+                          _c("td", {
+                            domProps: { textContent: _vm._s(siembra.lote) }
+                          }),
+                          _vm._v(" "),
+                          _c("td", {
+                            domProps: {
+                              textContent: _vm._s(siembra.cant_actual)
+                            }
+                          }),
+                          _vm._v(" "),
+                          _c("td", {
+                            domProps: {
+                              textContent: _vm._s(siembra.peso_actual + "Gr")
+                            }
+                          }),
+                          _vm._v(" "),
+                          _c("td", [
+                            _vm.list_mortalidad[siembra.id]
+                              ? _c("div", [
+                                  _vm._v(
+                                    "                                    \n                                  " +
+                                      _vm._s(
+                                        _vm.list_mortalidad[siembra.id][
+                                          siembra.id_esp
+                                        ]
+                                      ) +
+                                      "\n                                "
+                                  )
+                                ])
+                              : _c("div", [
+                                  _vm._v("0\n                                ")
+                                ])
+                          ]),
+                          _vm._v(" "),
+                          _c("td", [
+                            _vm.list_pesca[siembra.id]
+                              ? _c("div", [
+                                  _vm._v(
+                                    "                                    \n                                  " +
+                                      _vm._s(
+                                        _vm.list_pesca[siembra.id][
+                                          siembra.id_esp
+                                        ]
+                                      ) +
+                                      "\n                                "
+                                  )
+                                ])
+                              : _c("div", [
+                                  _vm._v("0\n                                ")
+                                ])
+                          ])
                         ])
-                      ])
-                    }),
-                    0
-                  )
-                ]
-              )
-            ])
+                      }),
+                      0
+                    )
+                  ]
+                )
+              ]
+            )
           ])
         ])
       ])
@@ -52457,11 +53684,11 @@ var staticRenderFns = [
     var _vm = this
     var _h = _vm.$createElement
     var _c = _vm._self._c || _h
-    return _c("thead", [
+    return _c("thead", { staticClass: "thead-primary" }, [
       _c("tr", [
         _c("th", { attrs: { scope: "col" } }, [_vm._v("#")]),
         _vm._v(" "),
-        _c("th", [_vm._v("Nombre "), _c("br"), _vm._v(" siembra")]),
+        _c("th", [_vm._v("Nombre"), _c("br"), _vm._v("siembra")]),
         _vm._v(" "),
         _c("th", { attrs: { scope: "col" } }, [_vm._v("Inicio siembra")]),
         _vm._v(" "),
@@ -52510,7 +53737,7 @@ var render = function() {
       _c("div", { staticClass: "col-md-12" }, [
         _c("div", { staticClass: "card" }, [
           _c("div", { staticClass: "card-header" }, [
-            _vm._v("Informes Aquamazonia")
+            _vm._v("Informes recursos y actividades Aquamazonia")
           ]),
           _vm._v(" "),
           _c("div", { staticClass: "card-body" }, [
@@ -52679,7 +53906,15 @@ var render = function() {
                           ) {
                             return _c(
                               "option",
-                              { key: index, domProps: { value: actividad.id } },
+                              {
+                                key: index,
+                                domProps: { value: actividad.id },
+                                on: {
+                                  click: function($event) {
+                                    _vm.tipoActividad = actividad.actividad
+                                  }
+                                }
+                              },
                               [_vm._v(_vm._s(actividad.actividad))]
                             )
                           })
@@ -52882,7 +54117,7 @@ var render = function() {
                         _c(
                           "downloadexcel",
                           {
-                            staticClass: "btn btn-success",
+                            staticClass: "btn btn-success form-control",
                             attrs: {
                               fetch: _vm.fetchData,
                               fields: _vm.json_fields,
@@ -52906,83 +54141,246 @@ var render = function() {
             ]),
             _vm._v(" "),
             _c("div", [
-              _c("table", { staticClass: "table table-sm table-responsive" }, [
-                _vm._m(0),
-                _vm._v(" "),
-                _c(
-                  "tbody",
-                  _vm._l(_vm.listadorn, function(lrn, index) {
-                    return _c("tr", { key: index }, [
-                      _c("th", {
-                        domProps: { textContent: _vm._s(index + 1) }
-                      }),
+              _c(
+                "table",
+                {
+                  staticClass:
+                    "table table-bordered table-striped table-sticky table-sm"
+                },
+                [
+                  _c("thead", { staticClass: "thead-primary" }, [
+                    _c("tr", [
+                      _c("th", [_vm._v("#")]),
                       _vm._v(" "),
-                      _c("td", {
-                        domProps: { textContent: _vm._s(lrn.nombre_siembra) }
-                      }),
+                      _c("th", [_vm._v("Siembra")]),
                       _vm._v(" "),
-                      _c("td", {
-                        domProps: {
-                          textContent: _vm._s(_vm.estados[lrn.estado])
-                        }
-                      }),
+                      _c("th", [_vm._v("Estado siembras")]),
                       _vm._v(" "),
-                      _c("td", {
-                        domProps: { textContent: _vm._s(lrn.actividad) }
-                      }),
+                      _vm._m(0),
                       _vm._v(" "),
-                      _c("td", {
-                        domProps: { textContent: _vm._s(lrn.fecha_ra) }
-                      }),
+                      _c("th", [_vm._v("Fecha")]),
                       _vm._v(" "),
-                      _c("td", {
-                        domProps: {
-                          textContent: _vm._s(lrn.minutos_hombre + "min")
-                        }
-                      }),
+                      _vm._m(1),
                       _vm._v(" "),
-                      _c("td", {
-                        domProps: { textContent: _vm._s(lrn.costo_minutosh) }
-                      }),
+                      _c("th", [_vm._v("Costo minutos ")]),
                       _vm._v(" "),
-                      _c("th", {
-                        domProps: { textContent: _vm._s(lrn.costo_h_acum) }
-                      }),
+                      _c("th", [_vm._v("Costo Acumulado Minutos")]),
                       _vm._v(" "),
-                      _c("td", {
-                        domProps: { textContent: _vm._s(lrn.recurso) }
-                      }),
+                      _vm.tipoActividad != "Alimentación"
+                        ? _c("th", [_vm._v("Recursos")])
+                        : _vm._e(),
                       _vm._v(" "),
-                      _c("td", {
-                        domProps: { textContent: _vm._s(lrn.cantidad_recurso) }
-                      }),
+                      _vm.tipoActividad != "Alimentación"
+                        ? _c("th", [_vm._v("Cantidad")])
+                        : _vm._e(),
                       _vm._v(" "),
-                      _c("th", {
-                        domProps: { textContent: _vm._s(lrn.costo_r_acum) }
-                      }),
+                      _vm.tipoActividad != "Alimentación"
+                        ? _c("th", [_vm._v("Costo Recurso")])
+                        : _vm._e(),
                       _vm._v(" "),
-                      _c("td", {
-                        domProps: { textContent: _vm._s(lrn.fecha_ra) }
-                      }),
+                      _vm.tipoActividad != "Alimentación"
+                        ? _c("th", [_vm._v("Costo acumulado Recurso")])
+                        : _vm._e(),
                       _vm._v(" "),
-                      _c("td", {
-                        domProps: { textContent: _vm._s(lrn.alimento) }
-                      }),
+                      _vm.tipoActividad == "Alimentación"
+                        ? _c("th", [_vm._v("Alimentos")])
+                        : _vm._e(),
                       _vm._v(" "),
-                      _c("td", {
-                        domProps: {
-                          textContent: _vm._s(lrn.costo_total_alimento)
-                        }
-                      }),
+                      _vm.tipoActividad == "Alimentación"
+                        ? _c("th", [_vm._v("Cantidada Mañana (KG)")])
+                        : _vm._e(),
                       _vm._v(" "),
-                      _c("th", {
-                        domProps: { textContent: _vm._s(lrn.costo_a_acum) }
-                      })
+                      _vm.tipoActividad == "Alimentación"
+                        ? _c("th", [_vm._v("Cantidada Tarde (KG)")])
+                        : _vm._e(),
+                      _vm._v(" "),
+                      _vm.tipoActividad == "Alimentación"
+                        ? _c("th", [_vm._v("Costo Alimento")])
+                        : _vm._e(),
+                      _vm._v(" "),
+                      _vm.tipoActividad == "Alimentación"
+                        ? _c("th", [
+                            _vm._v("Costo "),
+                            _c("br"),
+                            _vm._v("Acumulado")
+                          ])
+                        : _vm._e(),
+                      _vm._v(" "),
+                      _c("th", [_vm._v("Costo actividad")])
                     ])
-                  }),
-                  0
-                )
-              ])
+                  ]),
+                  _vm._v(" "),
+                  _c(
+                    "tbody",
+                    _vm._l(_vm.listadorn, function(lrn, index) {
+                      return _c("tr", { key: index }, [
+                        _c("th", {
+                          domProps: { textContent: _vm._s(index + 1) }
+                        }),
+                        _vm._v(" "),
+                        _c("td", {
+                          domProps: { textContent: _vm._s(lrn.nombre_siembra) }
+                        }),
+                        _vm._v(" "),
+                        _c("td", {
+                          domProps: {
+                            textContent: _vm._s(_vm.estados[lrn.estado])
+                          }
+                        }),
+                        _vm._v(" "),
+                        _c("td", {
+                          domProps: { textContent: _vm._s(lrn.actividad) }
+                        }),
+                        _vm._v(" "),
+                        _c("td", {
+                          domProps: { textContent: _vm._s(lrn.fecha_ra) }
+                        }),
+                        _vm._v(" "),
+                        _c("td", {
+                          domProps: {
+                            textContent: _vm._s(lrn.minutos_hombre + "min")
+                          }
+                        }),
+                        _vm._v(" "),
+                        _c("td", {
+                          domProps: { textContent: _vm._s(lrn.costo_minutos) }
+                        }),
+                        _vm._v(" "),
+                        _c("th", {
+                          domProps: { textContent: _vm._s(lrn.costo_h_acum) }
+                        }),
+                        _vm._v(" "),
+                        _vm.tipoActividad != "Alimentación"
+                          ? _c("td", {
+                              domProps: { textContent: _vm._s(lrn.recurso) }
+                            })
+                          : _vm._e(),
+                        _vm._v(" "),
+                        _vm.tipoActividad != "Alimentación"
+                          ? _c("td", {
+                              domProps: {
+                                textContent: _vm._s(lrn.cantidad_recurso)
+                              }
+                            })
+                          : _vm._e(),
+                        _vm._v(" "),
+                        _vm.tipoActividad != "Alimentación"
+                          ? _c("td", {
+                              domProps: {
+                                textContent: _vm._s(lrn.costo_total_recurso)
+                              }
+                            })
+                          : _vm._e(),
+                        _vm._v(" "),
+                        _vm.tipoActividad != "Alimentación"
+                          ? _c("th", {
+                              domProps: {
+                                textContent: _vm._s(lrn.costo_r_acum)
+                              }
+                            })
+                          : _vm._e(),
+                        _vm._v(" "),
+                        _vm.tipoActividad == "Alimentación"
+                          ? _c("td", {
+                              domProps: { textContent: _vm._s(lrn.alimento) }
+                            })
+                          : _vm._e(),
+                        _vm._v(" "),
+                        _vm.tipoActividad == "Alimentación"
+                          ? _c("td", {
+                              domProps: { textContent: _vm._s(lrn.cant_manana) }
+                            })
+                          : _vm._e(),
+                        _vm._v(" "),
+                        _vm.tipoActividad == "Alimentación"
+                          ? _c("td", {
+                              domProps: { textContent: _vm._s(lrn.cant_tarde) }
+                            })
+                          : _vm._e(),
+                        _vm._v(" "),
+                        _vm.tipoActividad == "Alimentación"
+                          ? _c("td", {
+                              domProps: {
+                                textContent: _vm._s(lrn.costo_total_alimento)
+                              }
+                            })
+                          : _vm._e(),
+                        _vm._v(" "),
+                        _vm.tipoActividad == "Alimentación"
+                          ? _c("th", {
+                              domProps: {
+                                textContent: _vm._s(lrn.costo_a_acum)
+                              }
+                            })
+                          : _vm._e(),
+                        _vm._v(" "),
+                        _c("th", {
+                          domProps: {
+                            textContent: _vm._s(lrn.costo_total_actividad)
+                          }
+                        })
+                      ])
+                    }),
+                    0
+                  ),
+                  _vm._v(" "),
+                  _c("tfoot", [
+                    _c("tr", [
+                      _c(
+                        "th",
+                        { staticClass: "text-right", attrs: { colspan: "5" } },
+                        [_vm._v("PROMEDIOS")]
+                      ),
+                      _vm._v(" "),
+                      _c(
+                        "td",
+                        { staticClass: "text-right", attrs: { colspan: "2" } },
+                        [_vm._v("Costo minutos: ")]
+                      ),
+                      _vm._v(" "),
+                      _c("th", [
+                        _vm._v(_vm._s(_vm.listadoPromedios.total_minutos))
+                      ]),
+                      _vm._v(" "),
+                      _vm.tipoActividad != "Alimentación"
+                        ? _c(
+                            "td",
+                            {
+                              staticClass: "text-right",
+                              attrs: { colspan: "3" }
+                            },
+                            [_vm._v("Costo recursos: ")]
+                          )
+                        : _vm._e(),
+                      _vm._v(" "),
+                      _vm.tipoActividad != "Alimentación"
+                        ? _c("th", [
+                            _vm._v(_vm._s(_vm.listadoPromedios.total_recurso))
+                          ])
+                        : _vm._e(),
+                      _vm._v(" "),
+                      _vm.tipoActividad == "Alimentación"
+                        ? _c("td", { attrs: { colspan: "2" } }, [
+                            _vm._v("Costo alimentos: ")
+                          ])
+                        : _vm._e(),
+                      _vm._v(" "),
+                      _vm.tipoActividad == "Alimentación"
+                        ? _c("th", [
+                            _vm._v(_vm._s(_vm.listadoPromedios.total_alimento))
+                          ])
+                        : _vm._e(),
+                      _vm._v(" "),
+                      _c("th", [
+                        _vm._v(
+                          "Costo total actividades: " +
+                            _vm._s(_vm.listadoPromedios.total_actividad)
+                        )
+                      ])
+                    ])
+                  ])
+                ]
+              )
             ])
           ])
         ])
@@ -52995,39 +54393,13 @@ var staticRenderFns = [
     var _vm = this
     var _h = _vm.$createElement
     var _c = _vm._self._c || _h
-    return _c("thead", [
-      _c("tr", [
-        _c("th", [_vm._v("#")]),
-        _vm._v(" "),
-        _c("th", [_vm._v("Siembra")]),
-        _vm._v(" "),
-        _c("th", [_vm._v("Estado siembras")]),
-        _vm._v(" "),
-        _c("th", [_vm._v("Tipo "), _c("br"), _vm._v("actividad")]),
-        _vm._v(" "),
-        _c("th", [_vm._v("Fecha")]),
-        _vm._v(" "),
-        _c("th", [_vm._v("Minutos "), _c("br"), _vm._v("hombre")]),
-        _vm._v(" "),
-        _c("th", [_vm._v("Costo minutos ")]),
-        _vm._v(" "),
-        _c("th", [_vm._v("Costo Acumulado Minutos")]),
-        _vm._v(" "),
-        _c("th", [_vm._v("Recursos")]),
-        _vm._v(" "),
-        _c("th", [_vm._v("Cantidad")]),
-        _vm._v(" "),
-        _c("th", [_vm._v("Costo "), _c("br"), _vm._v("Acumulado")]),
-        _vm._v(" "),
-        _c("th", [_vm._v("Fecha")]),
-        _vm._v(" "),
-        _c("th", [_vm._v("Alimentos")]),
-        _vm._v(" "),
-        _c("th", [_vm._v("Costo")]),
-        _vm._v(" "),
-        _c("th", [_vm._v("Costo "), _c("br"), _vm._v("Acumulado")])
-      ])
-    ])
+    return _c("th", [_vm._v("Tipo "), _c("br"), _vm._v("actividad")])
+  },
+  function() {
+    var _vm = this
+    var _h = _vm.$createElement
+    var _c = _vm._self._c || _h
+    return _c("th", [_vm._v("Minutos "), _c("br"), _vm._v("hombre")])
   }
 ]
 render._withStripped = true
@@ -53078,64 +54450,71 @@ var render = function() {
             ]),
             _vm._v(" "),
             _c("div", { staticClass: "row" }, [
-              _c("table", { staticClass: "table table-striped table-sm" }, [
-                _vm._m(0),
-                _vm._v(" "),
-                _c(
-                  "tbody",
-                  _vm._l(_vm.listado, function(recurso, index) {
-                    return _c("tr", { key: recurso.id }, [
-                      _c("th", {
-                        attrs: { scope: "row" },
-                        domProps: { textContent: _vm._s(index + 1) }
-                      }),
-                      _vm._v(" "),
-                      _c("td", {
-                        domProps: { textContent: _vm._s(recurso.recurso) }
-                      }),
-                      _vm._v(" "),
-                      _c("td", {
-                        domProps: { textContent: _vm._s(recurso.unidad) }
-                      }),
-                      _vm._v(" "),
-                      _c("td", {
-                        domProps: { textContent: _vm._s(recurso.costo) }
-                      }),
-                      _vm._v(" "),
-                      _c("td", [
-                        _c(
-                          "button",
-                          {
-                            staticClass: "btn btn-success",
-                            attrs: { type: "button" },
-                            on: {
-                              click: function($event) {
-                                return _vm.cargaEditar(recurso)
-                              }
-                            }
-                          },
-                          [_c("i", { staticClass: "fas fa-edit" })]
-                        ),
+              _c(
+                "table",
+                {
+                  staticClass:
+                    "table table-cebra table-bordered table-striped table-sm"
+                },
+                [
+                  _vm._m(0),
+                  _vm._v(" "),
+                  _c(
+                    "tbody",
+                    _vm._l(_vm.listado, function(recurso, index) {
+                      return _c("tr", { key: recurso.id }, [
+                        _c("th", {
+                          attrs: { scope: "row" },
+                          domProps: { textContent: _vm._s(index + 1) }
+                        }),
                         _vm._v(" "),
-                        _c(
-                          "button",
-                          {
-                            staticClass: "btn btn-danger",
-                            attrs: { type: "button" },
-                            on: {
-                              click: function($event) {
-                                return _vm.eliminar(recurso.id)
+                        _c("td", {
+                          domProps: { textContent: _vm._s(recurso.recurso) }
+                        }),
+                        _vm._v(" "),
+                        _c("td", {
+                          domProps: { textContent: _vm._s(recurso.unidad) }
+                        }),
+                        _vm._v(" "),
+                        _c("td", {
+                          domProps: { textContent: _vm._s(recurso.costo) }
+                        }),
+                        _vm._v(" "),
+                        _c("td", [
+                          _c(
+                            "button",
+                            {
+                              staticClass: "btn btn-success",
+                              attrs: { type: "button" },
+                              on: {
+                                click: function($event) {
+                                  return _vm.cargaEditar(recurso)
+                                }
                               }
-                            }
-                          },
-                          [_c("i", { staticClass: "fas fa-trash" })]
-                        )
+                            },
+                            [_c("i", { staticClass: "fas fa-edit" })]
+                          ),
+                          _vm._v(" "),
+                          _c(
+                            "button",
+                            {
+                              staticClass: "btn btn-danger",
+                              attrs: { type: "button" },
+                              on: {
+                                click: function($event) {
+                                  return _vm.eliminar(recurso.id)
+                                }
+                              }
+                            },
+                            [_c("i", { staticClass: "fas fa-trash" })]
+                          )
+                        ])
                       ])
-                    ])
-                  }),
-                  0
-                )
-              ])
+                    }),
+                    0
+                  )
+                ]
+              )
             ])
           ])
         ])
@@ -53365,7 +54744,7 @@ var staticRenderFns = [
     var _vm = this
     var _h = _vm.$createElement
     var _c = _vm._self._c || _h
-    return _c("thead", [
+    return _c("thead", { staticClass: "thead-primary" }, [
       _c("tr", [
         _c("th", { attrs: { scope: "col" } }, [_vm._v("#")]),
         _vm._v(" "),
@@ -53669,11 +55048,54 @@ var render = function() {
                   ]),
                   _vm._v(" "),
                   _c("div", { staticClass: "form-group col-md-2" }, [
+                    _c("input", {
+                      directives: [
+                        {
+                          name: "model",
+                          rawName: "v-model",
+                          value: _vm.see_all,
+                          expression: "see_all"
+                        }
+                      ],
+                      staticClass: "form-check-input",
+                      attrs: { type: "checkbox", value: "1", id: "see_all" },
+                      domProps: {
+                        checked: Array.isArray(_vm.see_all)
+                          ? _vm._i(_vm.see_all, "1") > -1
+                          : _vm.see_all
+                      },
+                      on: {
+                        change: function($event) {
+                          var $$a = _vm.see_all,
+                            $$el = $event.target,
+                            $$c = $$el.checked ? true : false
+                          if (Array.isArray($$a)) {
+                            var $$v = "1",
+                              $$i = _vm._i($$a, $$v)
+                            if ($$el.checked) {
+                              $$i < 0 && (_vm.see_all = $$a.concat([$$v]))
+                            } else {
+                              $$i > -1 &&
+                                (_vm.see_all = $$a
+                                  .slice(0, $$i)
+                                  .concat($$a.slice($$i + 1)))
+                            }
+                          } else {
+                            _vm.see_all = $$c
+                          }
+                        }
+                      }
+                    }),
+                    _vm._v(" "),
+                    _vm._m(0)
+                  ]),
+                  _vm._v(" "),
+                  _c("div", { staticClass: "form-group col-md-2" }, [
                     _c(
                       "button",
                       {
                         staticClass: "btn btn-primary rounded-circle mt-4",
-                        attrs: { type: "submit" },
+                        attrs: { type: "button" },
                         on: {
                           click: function($event) {
                             return _vm.buscarResultados()
@@ -53695,7 +55117,7 @@ var render = function() {
                           attrs: {
                             fetch: _vm.fetchData,
                             fields: _vm.json_fields,
-                            name: "informe-recursos.xls",
+                            name: "recursos-necesarios.xls",
                             type: "xls"
                           }
                         },
@@ -53712,119 +55134,224 @@ var render = function() {
             ]),
             _vm._v(" "),
             _c("div", [
-              _c("table", { staticClass: "table table-sm table-hover" }, [
-                _vm._m(0),
-                _vm._v(" "),
+              _c(
+                "table",
+                {
+                  staticClass:
+                    "table table-bordered table-striped table-sticky table-sm"
+                },
+                [
+                  _vm._m(1),
+                  _vm._v(" "),
+                  _c(
+                    "tbody",
+                    [
+                      _vm._l(_vm.listado, function(item, index) {
+                        return _c("tr", { key: index }, [
+                          _c("td", {
+                            domProps: { textContent: _vm._s(index + 1) }
+                          }),
+                          _vm._v(" "),
+                          _c("td", {
+                            domProps: { textContent: _vm._s(item.actividad) }
+                          }),
+                          _vm._v(" "),
+                          _c("td", {
+                            domProps: {
+                              textContent: _vm._s(item.nombre_siembra)
+                            }
+                          }),
+                          _vm._v(" "),
+                          _c("td", {
+                            domProps: { textContent: _vm._s(item.fecha_ra) }
+                          }),
+                          _vm._v(" "),
+                          _c("td", {
+                            domProps: {
+                              textContent: _vm._s(item.minutos_hombre)
+                            }
+                          }),
+                          _vm._v(" "),
+                          _c("td", {
+                            domProps: {
+                              textContent: _vm._s(item.total_minutos_hombre)
+                            }
+                          }),
+                          _vm._v(" "),
+                          _c("td", {
+                            domProps: { textContent: _vm._s(item.recurso) }
+                          }),
+                          _vm._v(" "),
+                          _c("td", {
+                            domProps: {
+                              textContent: _vm._s(item.cantidad_recurso)
+                            }
+                          }),
+                          _vm._v(" "),
+                          _c("td", {
+                            domProps: { textContent: _vm._s(item.costo) }
+                          }),
+                          _vm._v(" "),
+                          _c("td", {
+                            domProps: {
+                              textContent: _vm._s(item.costo_total_recurso)
+                            }
+                          }),
+                          _vm._v(" "),
+                          _c("td", {
+                            domProps: { textContent: _vm._s(item.detalles) }
+                          }),
+                          _vm._v(" "),
+                          _c("td", [
+                            _c(
+                              "button",
+                              {
+                                staticClass: "btn btn-danger",
+                                on: {
+                                  click: function($event) {
+                                    return _vm.eliminarRegistro(
+                                      item.id_registro
+                                    )
+                                  }
+                                }
+                              },
+                              [_c("i", { staticClass: "fas fa-trash" })]
+                            )
+                          ])
+                        ])
+                      }),
+                      _vm._v(" "),
+                      _c("tr", [
+                        _c(
+                          "th",
+                          {
+                            staticClass: "text-right",
+                            attrs: { colspan: "4" }
+                          },
+                          [_vm._v("TOTAL:")]
+                        ),
+                        _vm._v(" "),
+                        _c("th", {
+                          domProps: { textContent: _vm._s(_vm.promedios.tmh) }
+                        }),
+                        _vm._v(" "),
+                        _c("th", {
+                          domProps: { textContent: _vm._s(_vm.promedios.ttmh) }
+                        }),
+                        _vm._v(" "),
+                        _c("th"),
+                        _vm._v(" "),
+                        _c("th", {
+                          domProps: { textContent: _vm._s(_vm.promedios.tcr) }
+                        }),
+                        _vm._v(" "),
+                        _c("th", {
+                          domProps: { textContent: _vm._s(_vm.promedios.tc) }
+                        }),
+                        _vm._v(" "),
+                        _c("th", {
+                          domProps: { textContent: _vm._s(_vm.promedios.ctr) }
+                        }),
+                        _vm._v(" "),
+                        _c("th"),
+                        _vm._v(" "),
+                        _c("th")
+                      ])
+                    ],
+                    2
+                  )
+                ]
+              )
+            ]),
+            _vm._v(" "),
+            _c(
+              "nav",
+              {
+                directives: [
+                  {
+                    name: "show",
+                    rawName: "v-show",
+                    value: _vm.showPagination,
+                    expression: "showPagination"
+                  }
+                ],
+                staticClass: "mt-5 navigation "
+              },
+              [
                 _c(
-                  "tbody",
+                  "ul",
+                  { staticClass: "pagination justify-content-center" },
                   [
-                    _vm._l(_vm.listado, function(item, index) {
-                      return _c("tr", { key: index }, [
-                        _c("td", {
-                          domProps: { textContent: _vm._s(index + 1) }
-                        }),
-                        _vm._v(" "),
-                        _c("td", {
-                          domProps: { textContent: _vm._s(item.actividad) }
-                        }),
-                        _vm._v(" "),
-                        _c("td", {
-                          domProps: { textContent: _vm._s(item.nombre_siembra) }
-                        }),
-                        _vm._v(" "),
-                        _c("td", {
-                          domProps: { textContent: _vm._s(item.fecha_ra) }
-                        }),
-                        _vm._v(" "),
-                        _c("td", {
-                          domProps: { textContent: _vm._s(item.minutos_hombre) }
-                        }),
-                        _vm._v(" "),
-                        _c("td", {
-                          domProps: {
-                            textContent: _vm._s(item.total_minutos_hombre)
-                          }
-                        }),
-                        _vm._v(" "),
-                        _c("td", {
-                          domProps: { textContent: _vm._s(item.recurso) }
-                        }),
-                        _vm._v(" "),
-                        _c("td", {
-                          domProps: {
-                            textContent: _vm._s(item.cantidad_recurso)
-                          }
-                        }),
-                        _vm._v(" "),
-                        _c("td", {
-                          domProps: { textContent: _vm._s(item.costo) }
-                        }),
-                        _vm._v(" "),
-                        _c("td", {
-                          domProps: {
-                            textContent: _vm._s(item.costo_total_recurso)
-                          }
-                        }),
-                        _vm._v(" "),
-                        _c("td", {
-                          domProps: { textContent: _vm._s(item.detalles) }
-                        }),
-                        _vm._v(" "),
-                        _c("td", [
+                    _vm.pagination.current_page > 1
+                      ? _c("li", { staticClass: "page-item" }, [
                           _c(
-                            "button",
+                            "a",
                             {
-                              staticClass: "btn btn-danger",
+                              staticClass: "page-link",
+                              attrs: { href: "#" },
                               on: {
                                 click: function($event) {
-                                  return _vm.eliminarRegistro(item.id_registro)
+                                  $event.preventDefault()
+                                  return _vm.cambiarPagina(
+                                    _vm.pagination.current_page - 1
+                                  )
                                 }
                               }
                             },
-                            [_c("i", { staticClass: "fas fa-trash" })]
+                            [_vm._v("Ant")]
                           )
                         ])
-                      ])
+                      : _vm._e(),
+                    _vm._v(" "),
+                    _vm._l(_vm.pagesNumber, function(page) {
+                      return _c(
+                        "li",
+                        {
+                          key: page,
+                          staticClass: "page-item",
+                          class: [page == _vm.isActived ? "active" : ""]
+                        },
+                        [
+                          _c("a", {
+                            staticClass: "page-link",
+                            attrs: { href: "#" },
+                            domProps: { textContent: _vm._s(page) },
+                            on: {
+                              click: function($event) {
+                                $event.preventDefault()
+                                return _vm.cambiarPagina(page)
+                              }
+                            }
+                          })
+                        ]
+                      )
                     }),
                     _vm._v(" "),
-                    _c("tr", [
-                      _c(
-                        "th",
-                        { staticClass: "text-right", attrs: { colspan: "4" } },
-                        [_vm._v("TOTAL:")]
-                      ),
-                      _vm._v(" "),
-                      _c("th", {
-                        domProps: { textContent: _vm._s(_vm.promedios.tmh) }
-                      }),
-                      _vm._v(" "),
-                      _c("th", {
-                        domProps: { textContent: _vm._s(_vm.promedios.ttmh) }
-                      }),
-                      _vm._v(" "),
-                      _c("th"),
-                      _vm._v(" "),
-                      _c("th", {
-                        domProps: { textContent: _vm._s(_vm.promedios.tcr) }
-                      }),
-                      _vm._v(" "),
-                      _c("th", {
-                        domProps: { textContent: _vm._s(_vm.promedios.tc) }
-                      }),
-                      _vm._v(" "),
-                      _c("th", {
-                        domProps: { textContent: _vm._s(_vm.promedios.ctr) }
-                      }),
-                      _vm._v(" "),
-                      _c("th"),
-                      _vm._v(" "),
-                      _c("th")
-                    ])
+                    _vm.pagination.current_page < _vm.pagination.last_page
+                      ? _c("li", { staticClass: "page-item" }, [
+                          _c(
+                            "a",
+                            {
+                              staticClass: "page-link",
+                              attrs: { href: "#" },
+                              on: {
+                                click: function($event) {
+                                  $event.preventDefault()
+                                  return _vm.cambiarPagina(
+                                    _vm.pagination.current_page + 1
+                                  )
+                                }
+                              }
+                            },
+                            [_vm._v("Sig")]
+                          )
+                        ])
+                      : _vm._e()
                   ],
                   2
                 )
-              ])
-            ])
+              ]
+            )
           ])
         ])
       ])
@@ -53848,7 +55375,7 @@ var render = function() {
           { staticClass: "modal-dialog modal-lg", attrs: { role: "document" } },
           [
             _c("div", { staticClass: "modal-content" }, [
-              _vm._m(1),
+              _vm._m(2),
               _vm._v(" "),
               _c("div", { staticClass: "modal-body" }, [
                 _c("form", { staticClass: "row" }, [
@@ -53964,7 +55491,9 @@ var render = function() {
                           id: "minutos_hombre",
                           step: "any",
                           "aria-describedby": "minutos_hombre",
-                          placeholder: "Minutos hombre"
+                          placeholder: "Minutos hombre",
+                          min: "0",
+                          value: "0"
                         },
                         domProps: { value: _vm.form.minutos_hombre },
                         on: {
@@ -54037,6 +55566,172 @@ var render = function() {
                       )
                     ]),
                     _vm._v(" "),
+                    _c(
+                      "div",
+                      {
+                        directives: [
+                          {
+                            name: "show",
+                            rawName: "v-show",
+                            value: _vm.form.tipo_actividad == 12,
+                            expression: "form.tipo_actividad == 12"
+                          }
+                        ],
+                        staticClass: "form-row my-2",
+                        staticStyle: { background: "#f0ffff" }
+                      },
+                      [
+                        _c("h5", { staticClass: "col-12" }, [
+                          _vm._v("Calcular tiempo")
+                        ]),
+                        _vm._v(" "),
+                        _c("div", { staticClass: "form-group col-6" }, [
+                          _c("label", { attrs: { for: "fecha_inicio" } }, [
+                            _vm._v("Fecha de inicio:")
+                          ]),
+                          _vm._v(" "),
+                          _c("input", {
+                            directives: [
+                              {
+                                name: "model",
+                                rawName: "v-model",
+                                value: _vm.fecha_inicio,
+                                expression: "fecha_inicio"
+                              }
+                            ],
+                            staticClass: "form-control",
+                            attrs: {
+                              type: "date",
+                              name: "fecha_inicio",
+                              id: "fecha_inicio",
+                              value: "01-01-2021"
+                            },
+                            domProps: { value: _vm.fecha_inicio },
+                            on: {
+                              input: function($event) {
+                                if ($event.target.composing) {
+                                  return
+                                }
+                                _vm.fecha_inicio = $event.target.value
+                              }
+                            }
+                          })
+                        ]),
+                        _vm._v(" "),
+                        _c("div", { staticClass: "form-group col-6" }, [
+                          _c("label", { attrs: { for: "hora_inicio" } }, [
+                            _vm._v("Hora de inicio:")
+                          ]),
+                          _vm._v(" "),
+                          _c("input", {
+                            directives: [
+                              {
+                                name: "model",
+                                rawName: "v-model",
+                                value: _vm.hora_inicio,
+                                expression: "hora_inicio"
+                              }
+                            ],
+                            staticClass: "form-control",
+                            attrs: {
+                              type: "time",
+                              name: "hora_inicio",
+                              id: "hora_inicio",
+                              value: "12:00"
+                            },
+                            domProps: { value: _vm.hora_inicio },
+                            on: {
+                              input: function($event) {
+                                if ($event.target.composing) {
+                                  return
+                                }
+                                _vm.hora_inicio = $event.target.value
+                              }
+                            }
+                          })
+                        ]),
+                        _vm._v(" "),
+                        _c("div", { staticClass: "form-group col-6" }, [
+                          _c("label", { attrs: { for: "fecha_fin" } }, [
+                            _vm._v("Fecha de fin:")
+                          ]),
+                          _vm._v(" "),
+                          _c("input", {
+                            directives: [
+                              {
+                                name: "model",
+                                rawName: "v-model",
+                                value: _vm.fecha_fin,
+                                expression: "fecha_fin"
+                              }
+                            ],
+                            staticClass: "form-control",
+                            attrs: {
+                              type: "date",
+                              name: "fecha_fin",
+                              id: "fecha_fin"
+                            },
+                            domProps: { value: _vm.fecha_fin },
+                            on: {
+                              input: function($event) {
+                                if ($event.target.composing) {
+                                  return
+                                }
+                                _vm.fecha_fin = $event.target.value
+                              }
+                            }
+                          })
+                        ]),
+                        _vm._v(" "),
+                        _c("div", { staticClass: "form-group col-6" }, [
+                          _c("label", { attrs: { for: "hora_fin" } }, [
+                            _vm._v("Hora de fin:")
+                          ]),
+                          _vm._v(" "),
+                          _c("input", {
+                            directives: [
+                              {
+                                name: "model",
+                                rawName: "v-model",
+                                value: _vm.hora_fin,
+                                expression: "hora_fin"
+                              }
+                            ],
+                            staticClass: "form-control",
+                            attrs: {
+                              type: "time",
+                              name: "hora_fin",
+                              id: "hora_fin",
+                              value: "12:00"
+                            },
+                            domProps: { value: _vm.hora_fin },
+                            on: {
+                              input: function($event) {
+                                if ($event.target.composing) {
+                                  return
+                                }
+                                _vm.hora_fin = $event.target.value
+                              }
+                            }
+                          })
+                        ]),
+                        _vm._v(" "),
+                        _c(
+                          "button",
+                          {
+                            staticClass: "btn btn-primary",
+                            attrs: { type: "button" },
+                            on: {
+                              click: function($event) {
+                                return _vm.calcularDiferenciaTiempo()
+                              }
+                            }
+                          },
+                          [_vm._v("Calcular tiempo")]
+                        )
+                      ]
+                    ),
+                    _vm._v(" "),
                     _c("div", { staticClass: "form-group" }, [
                       _c("label", { attrs: { for: "cantidad_recurso" } }, [
                         _vm._v("Cantidad")
@@ -54072,6 +55767,38 @@ var render = function() {
                           }
                         }
                       })
+                    ]),
+                    _vm._v(" "),
+                    _c("div", { staticClass: "form-group" }, [
+                      _c("label", { attrs: { for: "detalles" } }, [
+                        _vm._v("Detalles")
+                      ]),
+                      _vm._v(" "),
+                      _c("textarea", {
+                        directives: [
+                          {
+                            name: "model",
+                            rawName: "v-model",
+                            value: _vm.form.detalles,
+                            expression: "form.detalles"
+                          }
+                        ],
+                        staticClass: "form-control",
+                        attrs: {
+                          id: "detalles",
+                          "aria-describedby": "detalles",
+                          placeholder: "Detalles"
+                        },
+                        domProps: { value: _vm.form.detalles },
+                        on: {
+                          input: function($event) {
+                            if ($event.target.composing) {
+                              return
+                            }
+                            _vm.$set(_vm.form, "detalles", $event.target.value)
+                          }
+                        }
+                      })
                     ])
                   ]),
                   _vm._v(" "),
@@ -54079,42 +55806,6 @@ var render = function() {
                     "div",
                     { staticClass: "col-md-6" },
                     [
-                      _c("div", { staticClass: "form-group" }, [
-                        _c("label", { attrs: { for: "detalles" } }, [
-                          _vm._v("Detalles")
-                        ]),
-                        _vm._v(" "),
-                        _c("textarea", {
-                          directives: [
-                            {
-                              name: "model",
-                              rawName: "v-model",
-                              value: _vm.form.detalles,
-                              expression: "form.detalles"
-                            }
-                          ],
-                          staticClass: "form-control",
-                          attrs: {
-                            id: "detalles",
-                            "aria-describedby": "detalles",
-                            placeholder: "Detalles"
-                          },
-                          domProps: { value: _vm.form.detalles },
-                          on: {
-                            input: function($event) {
-                              if ($event.target.composing) {
-                                return
-                              }
-                              _vm.$set(
-                                _vm.form,
-                                "detalles",
-                                $event.target.value
-                              )
-                            }
-                          }
-                        })
-                      ]),
-                      _vm._v(" "),
                       _c("h5", [_vm._v(" Seleccionar siembras")]),
                       _vm._v(" "),
                       _vm._l(_vm.listadoSiembras, function(item, index) {
@@ -54128,7 +55819,11 @@ var render = function() {
                                 expression: "form.id_siembra"
                               }
                             ],
-                            attrs: { type: "checkbox" },
+                            staticClass: "form-check-input",
+                            attrs: {
+                              type: "checkbox",
+                              id: "siembra-" + item.id
+                            },
                             domProps: {
                               value: item.id,
                               checked: Array.isArray(_vm.form.id_siembra)
@@ -54167,9 +55862,21 @@ var render = function() {
                             }
                           }),
                           _vm._v(" "),
-                          _c("label", { attrs: { for: "siembra" } }, [
-                            _vm._v(_vm._s(item.nombre_siembra))
-                          ]),
+                          _c(
+                            "label",
+                            {
+                              staticClass: "form-check-label",
+                              attrs: { for: "siembra-" + item.id }
+                            },
+                            [
+                              _c("span"),
+                              _vm._v(
+                                "\n                  " +
+                                  _vm._s(item.nombre_siembra) +
+                                  "\n                "
+                              )
+                            ]
+                          ),
                           _vm._v(" "),
                           _c("br")
                         ])
@@ -54187,7 +55894,7 @@ var render = function() {
                     staticClass: "btn btn-secondary",
                     attrs: { type: "button", "data-dismiss": "modal" }
                   },
-                  [_vm._v("Close")]
+                  [_vm._v("Cerrar")]
                 ),
                 _vm._v(" "),
                 _c(
@@ -54216,7 +55923,22 @@ var staticRenderFns = [
     var _vm = this
     var _h = _vm.$createElement
     var _c = _vm._self._c || _h
-    return _c("thead", [
+    return _c(
+      "label",
+      { staticClass: "form-check-label", attrs: { for: "see_all" } },
+      [
+        _c("span"),
+        _vm._v(
+          "\n                    Ver todos los registros\n                  "
+        )
+      ]
+    )
+  },
+  function() {
+    var _vm = this
+    var _h = _vm.$createElement
+    var _c = _vm._self._c || _h
+    return _c("thead", { staticClass: "thead-primary" }, [
       _c("tr", [
         _c("th", [_vm._v("#")]),
         _vm._v(" "),
@@ -54238,7 +55960,7 @@ var staticRenderFns = [
         _vm._v(" "),
         _c("th", [_vm._v("Costo Total")]),
         _vm._v(" "),
-        _c("th", { attrs: { width: "15%" } }, [_vm._v("Detalles")]),
+        _c("th", [_vm._v("Detalles")]),
         _vm._v(" "),
         _c("th", [_vm._v("Eliminar")])
       ])
@@ -54262,7 +55984,7 @@ var staticRenderFns = [
           attrs: {
             type: "button",
             "data-dismiss": "modal",
-            "aria-label": "Close"
+            "aria-label": "Cerrar"
           }
         },
         [_c("span", { attrs: { "aria-hidden": "true" } }, [_vm._v("×")])]
@@ -54317,12 +56039,12 @@ var render = function() {
               ])
             ]),
             _vm._v(" "),
-            _c("div", { staticClass: "row" }, [
+            _c("div", [
               _c(
                 "table",
                 {
                   staticClass:
-                    "table table-striped table-hover table-sm table-responsive"
+                    "table table-bordered table-striped table-sm table-sticky"
                 },
                 [
                   _vm._m(0),
@@ -54350,66 +56072,72 @@ var render = function() {
                         _c(
                           "td",
                           { staticClass: "d-sm-none d-none d-md-block" },
-                          _vm._l(_vm.pecesxSiembra, function(pez) {
-                            return _c("div", { key: pez.id }, [
-                              pez.id_siembra == siembra.id
-                                ? _c(
-                                    "div",
-                                    { staticClass: "nav text-center" },
-                                    [
-                                      _c(
-                                        "li",
-                                        {
-                                          staticClass: "nav-item border-bottom",
-                                          staticStyle: { width: "80px" },
-                                          domProps: {
-                                            textContent: _vm._s(pez.especie)
-                                          }
-                                        },
-                                        [_vm._v("Especie")]
-                                      ),
-                                      _vm._v(" "),
-                                      _c(
-                                        "li",
-                                        {
-                                          staticClass: "nav-item border-bottom",
-                                          staticStyle: { width: "80px" },
-                                          domProps: {
-                                            textContent: _vm._s(pez.lote)
-                                          }
-                                        },
-                                        [_vm._v("Lote")]
-                                      ),
-                                      _vm._v(" "),
-                                      _c(
-                                        "li",
-                                        {
-                                          staticClass: "nav-item border-bottom",
-                                          staticStyle: { width: "80px" },
-                                          domProps: {
-                                            textContent: _vm._s(pez.cant_actual)
-                                          }
-                                        },
-                                        [_vm._v("Cantidad")]
-                                      ),
-                                      _vm._v(" "),
-                                      _c(
-                                        "li",
-                                        {
-                                          staticClass: "nav-item border-bottom",
-                                          staticStyle: { width: "60px" },
-                                          domProps: {
-                                            textContent: _vm._s(
-                                              pez.peso_actual + "Gr"
-                                            )
-                                          }
-                                        },
-                                        [_vm._v("Peso")]
+                          _vm._l(siembra.peces, function(pez) {
+                            return _c(
+                              "ul",
+                              { key: pez.id, staticClass: "nav border-0" },
+                              [
+                                _c(
+                                  "li",
+                                  {
+                                    staticClass: "nav-item border-bottom",
+                                    staticStyle: {
+                                      width: "80px",
+                                      display: "inline-block"
+                                    },
+                                    domProps: {
+                                      textContent: _vm._s(pez.especie)
+                                    }
+                                  },
+                                  [_vm._v("Especie")]
+                                ),
+                                _vm._v(" "),
+                                _c(
+                                  "li",
+                                  {
+                                    staticClass: "nav-item border-bottom",
+                                    staticStyle: {
+                                      width: "80px",
+                                      display: "inline-block"
+                                    },
+                                    domProps: { textContent: _vm._s(pez.lote) }
+                                  },
+                                  [_vm._v("Lote")]
+                                ),
+                                _vm._v(" "),
+                                _c(
+                                  "li",
+                                  {
+                                    staticClass: "nav-item border-bottom",
+                                    staticStyle: {
+                                      width: "80px",
+                                      display: "inline-block"
+                                    },
+                                    domProps: {
+                                      textContent: _vm._s(pez.cant_actual)
+                                    }
+                                  },
+                                  [_vm._v("Cantidad")]
+                                ),
+                                _vm._v(" "),
+                                _c(
+                                  "li",
+                                  {
+                                    staticClass: "nav-item border-bottom",
+                                    staticStyle: {
+                                      width: "60px",
+                                      display: "inline-block"
+                                    },
+                                    domProps: {
+                                      textContent: _vm._s(
+                                        pez.peso_actual + "Gr"
                                       )
-                                    ]
-                                  )
-                                : _vm._e()
-                            ])
+                                    }
+                                  },
+                                  [_vm._v("Peso")]
+                                )
+                              ]
+                            )
                           }),
                           0
                         ),
@@ -54426,36 +56154,39 @@ var render = function() {
                           _vm._v(" " + _vm._s(siembra.fin_descanso))
                         ]),
                         _vm._v(" "),
-                        _c(
-                          "td",
-                          {
-                            class: [
-                              _vm.fechaActual <= siembra.fecha_alimento
-                                ? ""
-                                : "bg-warning"
+                        _c("td", [
+                          _c(
+                            "span",
+                            {
+                              class: [
+                                _vm.fechaActual <= siembra.fecha_alimento
+                                  ? ""
+                                  : "badge badge-warning"
+                              ]
+                            },
+                            [
+                              _vm._v(
+                                "\n                      " +
+                                  _vm._s(siembra.fecha_alimento) +
+                                  "\n                    "
+                              )
                             ]
-                          },
-                          [
-                            _vm._v(
-                              "\n                              " +
-                                _vm._s(siembra.fecha_alimento) +
-                                "\n                              \n                              "
-                            ),
-                            _c(
-                              "button",
-                              {
-                                staticClass: "btn btn-success btn-sm",
-                                attrs: { type: "button" },
-                                on: {
-                                  click: function($event) {
-                                    return _vm.abrirCrear(siembra.id)
-                                  }
+                          ),
+                          _vm._v(" "),
+                          _c(
+                            "button",
+                            {
+                              staticClass: "btn btn-success btn-sm",
+                              attrs: { type: "button" },
+                              on: {
+                                click: function($event) {
+                                  return _vm.abrirCrear(siembra.id)
                                 }
-                              },
-                              [_vm._v("Añadir Alimentos")]
-                            )
-                          ]
-                        ),
+                              }
+                            },
+                            [_vm._v("Añadir Alimentos")]
+                          )
+                        ]),
                         _vm._v(" "),
                         _c("td", [
                           _c(
@@ -54998,7 +56729,7 @@ var render = function() {
                                   bottom: "30px"
                                 }
                               },
-                              [_vm._v("Gr")]
+                              [_vm._v("Gr\n                    ")]
                             )
                           ]),
                           _vm._v(" "),
@@ -55050,6 +56781,7 @@ var render = function() {
                                         expression: "aux_lote"
                                       }
                                     ],
+                                    staticClass: "form-control",
                                     attrs: {
                                       type: "text",
                                       name: "aux_lote",
@@ -55087,8 +56819,9 @@ var render = function() {
                                         expression: "aux_cantidad"
                                       }
                                     ],
+                                    staticClass: "form-control",
                                     attrs: {
-                                      type: "text",
+                                      type: "number",
                                       name: "aux_cantidad",
                                       id: "aux_cantidad"
                                     },
@@ -55124,8 +56857,9 @@ var render = function() {
                                         expression: "aux_peso_inicial"
                                       }
                                     ],
+                                    staticClass: "form-control",
                                     attrs: {
-                                      type: "text",
+                                      type: "number",
                                       name: "aux_peso_inicial",
                                       id: "aux_peso_inicial"
                                     },
@@ -55275,266 +57009,281 @@ var render = function() {
               _vm._m(3),
               _vm._v(" "),
               _c("div", { staticClass: "modal-body" }, [
-                _c("form", { staticClass: "row" }, [
-                  _c("div", { staticClass: "form-group col-md-3 " }, [
-                    _c("label", { attrs: { for: "minutos hombre" } }, [
-                      _vm._v("Fecha")
-                    ]),
-                    _vm._v(" "),
-                    _c("input", {
-                      directives: [
-                        {
-                          name: "model",
-                          rawName: "v-model",
-                          value: _vm.form.fecha_ra,
-                          expression: "form.fecha_ra"
-                        }
-                      ],
-                      staticClass: "form-control",
-                      attrs: {
-                        type: "date",
-                        id: "fecha_ra",
-                        "aria-describedby": "fecha_ra",
-                        placeholder: "Minutos hombre"
-                      },
-                      domProps: { value: _vm.form.fecha_ra },
-                      on: {
-                        input: function($event) {
-                          if ($event.target.composing) {
-                            return
-                          }
-                          _vm.$set(_vm.form, "fecha_ra", $event.target.value)
-                        }
-                      }
-                    })
-                  ]),
-                  _vm._v(" "),
-                  _c("div", { staticClass: "form-group col-md-3" }, [
-                    _c("label", { attrs: { for: "Alimento" } }, [
-                      _vm._v("Alimento")
-                    ]),
-                    _vm._v(" "),
-                    _c(
-                      "select",
-                      {
+                _c(
+                  "form",
+                  { staticClass: "row", attrs: { id: "editarAlimentacion" } },
+                  [
+                    _c("div", { staticClass: "form-group col-md-3 " }, [
+                      _c("label", { attrs: { for: "minutos hombre" } }, [
+                        _vm._v("Fecha")
+                      ]),
+                      _vm._v(" "),
+                      _c("input", {
                         directives: [
                           {
                             name: "model",
                             rawName: "v-model",
-                            value: _vm.form.id_alimento,
-                            expression: "form.id_alimento"
+                            value: _vm.form.fecha_ra,
+                            expression: "form.fecha_ra"
                           }
                         ],
                         staticClass: "form-control",
-                        attrs: { id: "alimento" },
+                        attrs: {
+                          type: "date",
+                          id: "fecha_ra",
+                          "aria-describedby": "fecha_ra",
+                          placeholder: "Minutos hombre"
+                        },
+                        domProps: { value: _vm.form.fecha_ra },
                         on: {
-                          change: function($event) {
-                            var $$selectedVal = Array.prototype.filter
-                              .call($event.target.options, function(o) {
-                                return o.selected
-                              })
-                              .map(function(o) {
-                                var val = "_value" in o ? o._value : o.value
-                                return val
-                              })
+                          input: function($event) {
+                            if ($event.target.composing) {
+                              return
+                            }
+                            _vm.$set(_vm.form, "fecha_ra", $event.target.value)
+                          }
+                        }
+                      })
+                    ]),
+                    _vm._v(" "),
+                    _c("div", { staticClass: "form-group col-md-3" }, [
+                      _c("label", { attrs: { for: "alimento" } }, [
+                        _vm._v("Alimento")
+                      ]),
+                      _vm._v(" "),
+                      _c(
+                        "select",
+                        {
+                          directives: [
+                            {
+                              name: "model",
+                              rawName: "v-model",
+                              value: _vm.form.id_alimento,
+                              expression: "form.id_alimento"
+                            }
+                          ],
+                          staticClass: "form-control custom-select",
+                          attrs: { id: "alimento" },
+                          on: {
+                            change: function($event) {
+                              var $$selectedVal = Array.prototype.filter
+                                .call($event.target.options, function(o) {
+                                  return o.selected
+                                })
+                                .map(function(o) {
+                                  var val = "_value" in o ? o._value : o.value
+                                  return val
+                                })
+                              _vm.$set(
+                                _vm.form,
+                                "id_alimento",
+                                $event.target.multiple
+                                  ? $$selectedVal
+                                  : $$selectedVal[0]
+                              )
+                            }
+                          }
+                        },
+                        [
+                          _c("option", [_vm._v("--Seleccionar--")]),
+                          _vm._v(" "),
+                          _vm._l(_vm.listadoAlimentos, function(
+                            alimento,
+                            index
+                          ) {
+                            return _c(
+                              "option",
+                              { key: index, domProps: { value: alimento.id } },
+                              [_vm._v(_vm._s(alimento.alimento))]
+                            )
+                          })
+                        ],
+                        2
+                      )
+                    ]),
+                    _vm._v(" "),
+                    _c("div", { staticClass: "form-group col-md-6" }, [
+                      _c("label", { attrs: { for: "detalles" } }, [
+                        _vm._v("Detalles")
+                      ]),
+                      _vm._v(" "),
+                      _c("textarea", {
+                        directives: [
+                          {
+                            name: "model",
+                            rawName: "v-model",
+                            value: _vm.form.detalles,
+                            expression: "form.detalles"
+                          }
+                        ],
+                        staticClass: "form-control",
+                        attrs: {
+                          id: "detalles",
+                          "aria-describedby": "detalles",
+                          placeholder: "Detalles"
+                        },
+                        domProps: { value: _vm.form.detalles },
+                        on: {
+                          input: function($event) {
+                            if ($event.target.composing) {
+                              return
+                            }
+                            _vm.$set(_vm.form, "detalles", $event.target.value)
+                          }
+                        }
+                      })
+                    ]),
+                    _vm._v(" "),
+                    _c("div", { staticClass: "form-group col-md-3" }, [
+                      _c("label", { attrs: { for: "minutos hombre" } }, [
+                        _vm._v("Minutos hombre")
+                      ]),
+                      _vm._v(" "),
+                      _c("input", {
+                        directives: [
+                          {
+                            name: "model",
+                            rawName: "v-model",
+                            value: _vm.form.minutos_hombre,
+                            expression: "form.minutos_hombre"
+                          }
+                        ],
+                        staticClass: "form-control",
+                        attrs: {
+                          type: "number",
+                          step: "any",
+                          id: "minutos_hombre",
+                          "aria-describedby": "minutos_hombre",
+                          placeholder: "Minutos hombre"
+                        },
+                        domProps: { value: _vm.form.minutos_hombre },
+                        on: {
+                          input: function($event) {
+                            if ($event.target.composing) {
+                              return
+                            }
                             _vm.$set(
                               _vm.form,
-                              "id_alimento",
-                              $event.target.multiple
-                                ? $$selectedVal
-                                : $$selectedVal[0]
+                              "minutos_hombre",
+                              $event.target.value
                             )
                           }
                         }
-                      },
-                      [
-                        _c("option", [_vm._v("--Seleccionar--")]),
-                        _vm._v(" "),
-                        _vm._l(_vm.listadoAlimentos, function(alimento, index) {
-                          return _c(
-                            "option",
-                            { key: index, domProps: { value: alimento.id } },
-                            [_vm._v(_vm._s(alimento.alimento))]
-                          )
-                        })
-                      ],
-                      2
-                    )
-                  ]),
-                  _vm._v(" "),
-                  _c("div", { staticClass: "form-group col-md-6" }, [
-                    _c("label", { attrs: { for: "detalles" } }, [
-                      _vm._v("Detalles")
+                      })
                     ]),
                     _vm._v(" "),
-                    _c("textarea", {
-                      directives: [
-                        {
-                          name: "model",
-                          rawName: "v-model",
-                          value: _vm.form.detalles,
-                          expression: "form.detalles"
-                        }
-                      ],
-                      staticClass: "form-control",
-                      attrs: {
-                        id: "detalles",
-                        "aria-describedby": "detalles",
-                        placeholder: "Detalles"
-                      },
-                      domProps: { value: _vm.form.detalles },
-                      on: {
-                        input: function($event) {
-                          if ($event.target.composing) {
-                            return
+                    _c("div", { staticClass: "form-group col-md-3" }, [
+                      _c("label", { attrs: { for: "cant_manana" } }, [
+                        _vm._v("Kg Mañana")
+                      ]),
+                      _vm._v(" "),
+                      _c("input", {
+                        directives: [
+                          {
+                            name: "model",
+                            rawName: "v-model",
+                            value: _vm.form.cant_manana,
+                            expression: "form.cant_manana"
                           }
-                          _vm.$set(_vm.form, "detalles", $event.target.value)
+                        ],
+                        staticClass: "form-control",
+                        attrs: {
+                          type: "number",
+                          id: "kg_manana",
+                          "aria-describedby": "cant_manana",
+                          placeholder: "Kg Mañana"
+                        },
+                        domProps: { value: _vm.form.cant_manana },
+                        on: {
+                          input: function($event) {
+                            if ($event.target.composing) {
+                              return
+                            }
+                            _vm.$set(
+                              _vm.form,
+                              "cant_manana",
+                              $event.target.value
+                            )
+                          }
                         }
-                      }
-                    })
-                  ]),
-                  _vm._v(" "),
-                  _c("div", { staticClass: "form-group col-md-3" }, [
-                    _c("label", { attrs: { for: "minutos hombre" } }, [
-                      _vm._v("Minutos hombre")
+                      })
                     ]),
                     _vm._v(" "),
-                    _c("input", {
-                      directives: [
-                        {
-                          name: "model",
-                          rawName: "v-model",
-                          value: _vm.form.minutos_hombre,
-                          expression: "form.minutos_hombre"
-                        }
-                      ],
-                      staticClass: "form-control",
-                      attrs: {
-                        type: "number",
-                        step: "any",
-                        id: "minutos_hombre",
-                        "aria-describedby": "minutos_hombre",
-                        placeholder: "Minutos hombre"
-                      },
-                      domProps: { value: _vm.form.minutos_hombre },
-                      on: {
-                        input: function($event) {
-                          if ($event.target.composing) {
-                            return
+                    _c("div", { staticClass: "form-group col-md-3" }, [
+                      _c("label", { attrs: { for: "cant_tarde" } }, [
+                        _vm._v("Kg tarde")
+                      ]),
+                      _vm._v(" "),
+                      _c("input", {
+                        directives: [
+                          {
+                            name: "model",
+                            rawName: "v-model",
+                            value: _vm.form.cant_tarde,
+                            expression: "form.cant_tarde"
                           }
-                          _vm.$set(
-                            _vm.form,
-                            "minutos_hombre",
-                            $event.target.value
-                          )
+                        ],
+                        staticClass: "form-control",
+                        attrs: {
+                          type: "number",
+                          id: "cant_tarde",
+                          "aria-describedby": "cant_tarde",
+                          placeholder: "Kg tarde"
+                        },
+                        domProps: { value: _vm.form.cant_tarde },
+                        on: {
+                          input: function($event) {
+                            if ($event.target.composing) {
+                              return
+                            }
+                            _vm.$set(
+                              _vm.form,
+                              "cant_tarde",
+                              $event.target.value
+                            )
+                          }
                         }
-                      }
-                    })
-                  ]),
-                  _vm._v(" "),
-                  _c("div", { staticClass: "form-group col-md-3" }, [
-                    _c("label", { attrs: { for: "cant_manana" } }, [
-                      _vm._v("Kg Mañana")
+                      })
                     ]),
                     _vm._v(" "),
-                    _c("input", {
-                      directives: [
-                        {
-                          name: "model",
-                          rawName: "v-model",
-                          value: _vm.form.cant_manana,
-                          expression: "form.cant_manana"
-                        }
-                      ],
-                      staticClass: "form-control",
-                      attrs: {
-                        type: "number",
-                        id: "kg_manana",
-                        "aria-describedby": "cant_manana",
-                        placeholder: "Kg Mañana"
-                      },
-                      domProps: { value: _vm.form.cant_manana },
-                      on: {
-                        input: function($event) {
-                          if ($event.target.composing) {
-                            return
+                    _c("div", { staticClass: "form-group col-md-4" }, [
+                      _c("label", { attrs: { for: "conv_alimenticia" } }, [
+                        _vm._v("Conversión alimenticia teórica")
+                      ]),
+                      _vm._v(" "),
+                      _c("input", {
+                        directives: [
+                          {
+                            name: "model",
+                            rawName: "v-model",
+                            value: _vm.form.conv_alimenticia,
+                            expression: "form.conv_alimenticia"
                           }
-                          _vm.$set(_vm.form, "cant_manana", $event.target.value)
-                        }
-                      }
-                    })
-                  ]),
-                  _vm._v(" "),
-                  _c("div", { staticClass: "form-group col-md-3" }, [
-                    _c("label", { attrs: { for: "cant_tarde" } }, [
-                      _vm._v("Kg tarde")
-                    ]),
-                    _vm._v(" "),
-                    _c("input", {
-                      directives: [
-                        {
-                          name: "model",
-                          rawName: "v-model",
-                          value: _vm.form.cant_tarde,
-                          expression: "form.cant_tarde"
-                        }
-                      ],
-                      staticClass: "form-control",
-                      attrs: {
-                        type: "number",
-                        id: "cant_tarde",
-                        "aria-describedby": "cant_tarde",
-                        placeholder: "Kg tarde"
-                      },
-                      domProps: { value: _vm.form.cant_tarde },
-                      on: {
-                        input: function($event) {
-                          if ($event.target.composing) {
-                            return
+                        ],
+                        staticClass: "form-control",
+                        attrs: {
+                          type: "number",
+                          step: "any",
+                          id: "conv_alimenticia",
+                          placeholder: "Conversión alimenticia teórica"
+                        },
+                        domProps: { value: _vm.form.conv_alimenticia },
+                        on: {
+                          input: function($event) {
+                            if ($event.target.composing) {
+                              return
+                            }
+                            _vm.$set(
+                              _vm.form,
+                              "conv_alimenticia",
+                              $event.target.value
+                            )
                           }
-                          _vm.$set(_vm.form, "cant_tarde", $event.target.value)
                         }
-                      }
-                    })
-                  ]),
-                  _vm._v(" "),
-                  _c("div", { staticClass: "form-group col-md-4" }, [
-                    _c("label", { attrs: { for: "conv_alimenticia" } }, [
-                      _vm._v("Conversión alimenticia teórica")
-                    ]),
-                    _vm._v(" "),
-                    _c("input", {
-                      directives: [
-                        {
-                          name: "model",
-                          rawName: "v-model",
-                          value: _vm.form.conv_alimenticia,
-                          expression: "form.conv_alimenticia"
-                        }
-                      ],
-                      staticClass: "form-control",
-                      attrs: {
-                        type: "number",
-                        step: "any",
-                        id: "conv_alimenticia",
-                        placeholder: "Conversión alimenticia teórica"
-                      },
-                      domProps: { value: _vm.form.conv_alimenticia },
-                      on: {
-                        input: function($event) {
-                          if ($event.target.composing) {
-                            return
-                          }
-                          _vm.$set(
-                            _vm.form,
-                            "conv_alimenticia",
-                            $event.target.value
-                          )
-                        }
-                      }
-                    })
-                  ])
-                ]),
+                      })
+                    ])
+                  ]
+                ),
                 _vm._v(" "),
                 _c("div", { staticClass: "modal-footer" }, [
                   _c(
@@ -55564,7 +57313,8 @@ var render = function() {
                   _c(
                     "table",
                     {
-                      staticClass: "table table-sm table-hover table-responsive"
+                      staticClass:
+                        "table table-sm table-hover table-responsive table-bordered"
                     },
                     [
                       _vm._m(4),
@@ -55613,9 +57363,10 @@ var render = function() {
                             _vm._v(" "),
                             _c("td", [
                               _c(
-                                "button",
+                                "a",
                                 {
                                   staticClass: "btn btn-success",
+                                  attrs: { href: "#editarAlimentacion" },
                                   on: {
                                     click: function($event) {
                                       return _vm.editarAlimento(item)
@@ -55628,7 +57379,7 @@ var render = function() {
                             _vm._v(" "),
                             _c("td", [
                               _c(
-                                "button",
+                                "a",
                                 {
                                   staticClass: "btn btn-danger",
                                   on: {
@@ -56390,71 +58141,62 @@ var staticRenderFns = [
     var _vm = this
     var _h = _vm.$createElement
     var _c = _vm._self._c || _h
-    return _c("thead", [
+    return _c("thead", { staticClass: "thead-primary" }, [
       _c("tr", [
-        _c("th", { attrs: { scope: "col" } }, [_vm._v("#")]),
+        _c("th", [_vm._v("#")]),
         _vm._v(" "),
         _c("th", [_vm._v("Nombre "), _c("br"), _vm._v(" siembra")]),
         _vm._v(" "),
-        _c("th", { attrs: { scope: "col" } }, [_vm._v("Contenedor")]),
+        _c("th", [_vm._v("Contenedor")]),
         _vm._v(" "),
         _c(
           "th",
           {
             staticClass: "text-center d-sm-none d-none d-md-block",
-            staticStyle: { width: "340px" },
-            attrs: { scope: "col" }
+            staticStyle: { width: "340px" }
           },
           [
             _c("h5", [_vm._v(" Especie")]),
             _vm._v(" "),
-            _c("div", { staticClass: "nav" }, [
+            _c("div", { staticClass: "py-3" }, [
               _c(
                 "li",
-                { staticClass: "nav-item", staticStyle: { width: "80px" } },
+                { staticStyle: { width: "80px", display: "inline-block" } },
                 [_vm._v("Especie")]
               ),
               _vm._v(" "),
               _c(
                 "li",
-                { staticClass: "nav-item", staticStyle: { width: "80px" } },
+                { staticStyle: { width: "80px", display: "inline-block" } },
                 [_vm._v("Lote")]
               ),
               _vm._v(" "),
               _c(
                 "li",
-                { staticClass: "nav-item", staticStyle: { width: "80px" } },
+                { staticStyle: { width: "80px", display: "inline-block" } },
                 [_vm._v("Cantidad")]
               ),
               _vm._v(" "),
               _c(
                 "li",
-                { staticClass: "nav-item", staticStyle: { width: "60px" } },
+                { staticStyle: { width: "60px", display: "inline-block" } },
                 [_vm._v("Peso gr")]
               )
             ])
           ]
         ),
         _vm._v(" "),
-        _c("th", { attrs: { scope: "col" } }, [_vm._v("Inicio siembra")]),
+        _c("th", [_vm._v("Inicio siembra")]),
         _vm._v(" "),
-        _c("th", { attrs: { scope: "col" } }, [
-          _vm._v("Inicio - fin de "),
-          _c("br"),
-          _vm._v(" descanso estanque")
-        ]),
+        _c("th", [_vm._v("Inicio - fin de  descanso estanque")]),
         _vm._v(" "),
-        _c("th", { attrs: { scope: "col" } }, [
-          _vm._v("Fecha "),
-          _c("br"),
-          _vm._v("Alimentación")
-        ]),
+        _c("th", [_vm._v("Fecha Alimentación")]),
         _vm._v(" "),
-        _c("th", { attrs: { scope: "col" } }, [_vm._v("Ingreso")]),
+        _c("th", [_vm._v("Ingreso")]),
         _vm._v(" "),
-        _c("th", { attrs: { scope: "col" } }, [_vm._v("Finalizar")]),
+        _c("th", [_vm._v("Finalizar")]),
         _vm._v(" "),
-        _c("th", { attrs: { scope: "col" } }, [_vm._v("Editar")]),
+        _c("th", [_vm._v("Editar")]),
         _vm._v(" "),
         _c("th", [_vm._v("Eliminar")])
       ])
@@ -56569,7 +58311,7 @@ var staticRenderFns = [
           staticClass: "btn btn-secondary",
           attrs: { type: "button", "data-dismiss": "modal" }
         },
-        [_vm._v("Close")]
+        [_vm._v("Cerrar")]
       )
     ])
   },
@@ -75337,6 +77079,9 @@ window.Vue = __webpack_require__(/*! vue */ "./node_modules/vue/dist/vue.common.
 vue__WEBPACK_IMPORTED_MODULE_2___default.a.component('downloadExcel', vue_json_excel__WEBPACK_IMPORTED_MODULE_4__["default"]);
 vue__WEBPACK_IMPORTED_MODULE_2___default.a.use(vue_router__WEBPACK_IMPORTED_MODULE_0__["default"]);
 var routes = [{
+  path: '/',
+  component: __webpack_require__(/*! ./components/Dashboard.vue */ "./resources/js/components/Dashboard.vue")["default"]
+}, {
   path: '/dashboard',
   component: __webpack_require__(/*! ./components/Dashboard.vue */ "./resources/js/components/Dashboard.vue")["default"]
 }, {

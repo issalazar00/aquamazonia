@@ -1,0 +1,38 @@
+.thead-primary th {
+    background: $primary;
+    color: $white;
+}
+
+
+.table-sticky {
+
+  td.fixed-column  {
+    background-color: $white;
+    color: $primary;
+  }
+
+  .fixed-column {
+    position: -webkit-sticky;
+    position: sticky;
+    left: 50px;
+    z-index: 2;
+    
+  }
+
+  thead {
+    color: $primary;
+    position: sticky;
+    top: 0;
+  
+    tr {
+      background-color: $white;
+      box-shadow: 0 2px 2px -1px $light-gray;
+
+      th {
+        position: sticky;
+        top: 0;
+      }
+    }
+  }
+
+}

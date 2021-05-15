@@ -23,45 +23,56 @@ class InformeController extends Controller
     public function index()
     {
     
-        $minutos_hombre = Recursos::select()->where('recurso','Minutos hombre')->orWhere('recurso','Minuto hombre')->orWhere('recurso','Minutos')->first();
-        
-        $recursosNecesarios = RecursoNecesario::orderBy('fecha_ra', 'desc')
-        ->leftJoin('recursos', 'recursos_necesarios.id_recurso', 'recursos.id')
-        ->leftJoin('alimentos', 'recursos_necesarios.id_alimento','alimentos.id')
-        ->join('recursos_siembras', 'recursos_necesarios.id', 'recursos_siembras.id_registro')
-        ->join('siembras', 'recursos_siembras.id_siembra', 'siembras.id')
-        ->join('actividades','recursos_necesarios.tipo_actividad','actividades.id')
-        ->select('recursos.id as idr', 'alimentos.id as ida', 'recursos_necesarios.id as id','actividad', 'id_recurso', 'id_alimento', 'fecha_ra', 'minutos_hombre', 'cant_manana', 'cant_tarde', 'detalles', 'tipo_actividad', 'recurso', 'alimento', 'recursos.costo as costo_r', 'alimentos.costo_kg as costo_a', 'nombre_siembra', 'estado', 'cantidad_recurso')
-        ->get();
-            
-        $acumula=0;
-        $acumula2=0;
-        $acumula3=0;
-        
-        if(count($recursosNecesarios)>0){
-            for($i=0;$i<count($recursosNecesarios); $i++){
-                
-                $acumula+=($recursosNecesarios[$i]->cantidad_recurso * $recursosNecesarios[$i]->costo_r);
-                $recursosNecesarios[$i]->costo_r_acum = number_format($acumula, 2, ',', '');
-                
-                $recursosNecesarios[$i]->costo_total_alimento = ($recursosNecesarios[$i]->cant_tarde + $recursosNecesarios[$i]->cant_manana) * $recursosNecesarios[$i]->costo_a; 
-                
-                $acumula2+=(($recursosNecesarios[$i]->cant_tarde + $recursosNecesarios[$i]->cant_manana) * $recursosNecesarios[$i]->costo_a);
-                $recursosNecesarios[$i]->costo_a_acum = number_format($acumula2, 2, ',', '');
-    
-                $recursosNecesarios[$i]->costo_minutosh = $recursosNecesarios[$i]->minutos_hombre*$minutos_hombre->costo;
-                $acumula3+=$recursosNecesarios[$i]->costo_minutosh;
-                $recursosNecesarios[$i]->costo_h_acum = number_format($acumula3, 2, ',', '');
-            }
-        }
-        $recursosSiembras = RecursoSiembra::select('recursos_siembras.id as id', 'id_registro', 'id_siembra', 'id_recurso', 'id_alimento', 'fecha_ra', 'minutos_hombre', 'cant_manana', 'cant_tarde', 'detalles', 'tipo_actividad', 'recursos_necesarios.id as idrn', 'nombre_siembra', 'alimento', 'recurso', 'estado','cantidad_recurso')
-        ->join('recursos_necesarios', 'recursos_siembras.id_registro', 'recursos_necesarios.id')
-        ->join('siembras', 'recursos_siembras.id_siembra', 'siembras.id')
-        ->join('recursos', 'recursos_necesarios.id_recurso', 'recursos.id')
-        ->join('alimentos', 'recursos_necesarios.id_alimento','alimentos.id')
-        ->get();
-       
-        return ['recursosNecesarios' => $recursosNecesarios, 'recursosSiembras' => $recursosSiembras];
+			$minutos_hombre = Recursos::select()->where('recurso','Minutos hombre')->orWhere('recurso','Minuto hombre')->orWhere('recurso','Minutos')->first();
+			
+			$recursosNecesarios = RecursoNecesario::orderBy('fecha_ra', 'desc')
+			->leftJoin('recursos', 'recursos_necesarios.id_recurso', 'recursos.id')
+			->leftJoin('alimentos', 'recursos_necesarios.id_alimento','alimentos.id')
+			->join('recursos_siembras', 'recursos_necesarios.id', 'recursos_siembras.id_registro')
+			->join('siembras', 'recursos_siembras.id_siembra', 'siembras.id')
+			->join('actividades','recursos_necesarios.tipo_actividad','actividades.id')
+			->select('recursos.id as idr', 'alimentos.id as ida', 'recursos_necesarios.id as id','actividad', 'id_recurso', 'id_alimento', 'fecha_ra', 'minutos_hombre', 'cant_manana', 'cant_tarde', 'detalles', 'tipo_actividad', 'recurso', 'alimento', 'recursos.costo as costo_r', 'alimentos.costo_kg as costo_a', 'nombre_siembra', 'estado', 'cantidad_recurso')
+			->get();
+					
+			$acumula=0;
+			$acumula2=0;
+			$acumula3=0;
+
+
+			$promedioRecursos = array();
+			$sumac = 0;
+			
+			if(count($recursosNecesarios)>0) {
+				for($i=0;$i<count($recursosNecesarios); $i++ ){
+					
+					$recursosNecesarios[$i]->costo_total_recurso = ($recursosNecesarios[$i]->cantidad_recurso * $recursosNecesarios[$i]->costo_r);
+					$acumula+=($recursosNecesarios[$i]->cantidad_recurso * $recursosNecesarios[$i]->costo_r);
+					
+					$recursosNecesarios[$i]->costo_total_alimento = ($recursosNecesarios[$i]->cant_tarde + $recursosNecesarios[$i]->cant_manana) * $recursosNecesarios[$i]->costo_a; 
+					$acumula2+=(($recursosNecesarios[$i]->cant_tarde + $recursosNecesarios[$i]->cant_manana) * $recursosNecesarios[$i]->costo_a);
+
+					$recursosNecesarios[$i]->costo_minutosh = $recursosNecesarios[$i]->minutos_hombre*$minutos_hombre->costo;
+					$acumula3+=$recursosNecesarios[$i]->costo_minutosh;
+					$recursosNecesarios[$i]->costo_total_actividad = ($acumula + 	$acumula2 + 	$acumula3);
+
+					$sumac = $recursosNecesarios[$i]->costo_total_actividad;
+
+					$recursosNecesarios[$i]->costo_r_acum = number_format($acumula, 2, ',', '');
+					$recursosNecesarios[$i]->costo_a_acum = number_format($acumula2, 2, ',', '');
+					$recursosNecesarios[$i]->costo_h_acum = number_format($acumula3, 2, ',', '');
+					$recursosNecesarios[$i]->costo_total_recurso = number_format(	$recursosNecesarios[$i]->costo_total_recurso, 2, ',', '');
+					$recursosNecesarios[$i]->costo_total_alimento = number_format(	$recursosNecesarios[$i]->costo_total_alimento, 2, ',', '');
+					$recursosNecesarios[$i]->costo_total_actividad = number_format(	$recursosNecesarios[$i]->costo_total_actividad, 2, ',', '');
+				}
+
+				$promedioRecursos['total_recurso'] = number_format(	$acumula, 2, ',', '');
+				$promedioRecursos['total_alimento'] =  number_format(	$acumula2, 2, ',', '');
+				$promedioRecursos['total_minutos'] = number_format(	$acumula3, 2, ',', '');
+				$promedioRecursos['total_actividad'] =  number_format(	$sumac, 2, ',', '');
+
+			}
+
+			return ['recursosNecesarios' => $recursosNecesarios, 'promedioRecursos' => $promedioRecursos];
     }
 
 
@@ -107,18 +118,23 @@ class InformeController extends Controller
         
         if(count($recursosNecesarios)>0){
             for($i=0;$i<count($recursosNecesarios); $i++){
-                
-                $acumula+=($recursosNecesarios[$i]->cantidad_recurso * $recursosNecesarios[$i]->costo_r);
-                $recursosNecesarios[$i]->costo_r_acum = number_format($acumula, 2, ',', '');
-                
-                $recursosNecesarios[$i]->costo_total_alimento = ($recursosNecesarios[$i]->cant_tarde + $recursosNecesarios[$i]->cant_manana) * $recursosNecesarios[$i]->costo_a; 
-                
-                $acumula2+=$recursosNecesarios[$i]->costo_total_alimento;
-                $recursosNecesarios[$i]->costo_a_acum = number_format($acumula2, 2, ',', '');
-                
-                $recursosNecesarios[$i]->costo_minutosh = $recursosNecesarios[$i]->minutos_hombre*$minutos_hombre->costo;
-                $acumula3+=$recursosNecesarios[$i]->costo_minutosh;
-                $recursosNecesarios[$i]->costo_h_acum = number_format($acumula3, 2, ',', '');
+							$recursosNecesarios[$i]->costo_total_recurso = ($recursosNecesarios[$i]->cantidad_recurso * $recursosNecesarios[$i]->costo_r);
+							$acumula+=($recursosNecesarios[$i]->cantidad_recurso * $recursosNecesarios[$i]->costo_r);
+							
+							$recursosNecesarios[$i]->costo_total_alimento = ($recursosNecesarios[$i]->cant_tarde + $recursosNecesarios[$i]->cant_manana) * $recursosNecesarios[$i]->costo_a; 
+							$acumula2+=(($recursosNecesarios[$i]->cant_tarde + $recursosNecesarios[$i]->cant_manana) * $recursosNecesarios[$i]->costo_a);
+	
+							$recursosNecesarios[$i]->costo_minutosh = $recursosNecesarios[$i]->minutos_hombre*$minutos_hombre->costo;
+							$acumula3+=$recursosNecesarios[$i]->costo_minutosh;
+
+							$recursosNecesarios[$i]->costo_total_actividad = ($acumula + 	$acumula2 + 	$acumula3);
+
+							$recursosNecesarios[$i]->costo_r_acum = number_format($acumula, 2, ',', '');
+							$recursosNecesarios[$i]->costo_a_acum = number_format($acumula2, 2, ',', '');
+							$recursosNecesarios[$i]->costo_h_acum = number_format($acumula3, 2, ',', '');
+							$recursosNecesarios[$i]->costo_total_recurso = number_format(	$recursosNecesarios[$i]->costo_total_recurso, 2, ',', '');
+							$recursosNecesarios[$i]->costo_total_alimento = number_format(	$recursosNecesarios[$i]->costo_total_alimento, 2, ',', '');
+							$recursosNecesarios[$i]->costo_total_actividad = number_format(	$recursosNecesarios[$i]->costo_total_actividad, 2, ',', '');
             }
         }
        
@@ -128,14 +144,14 @@ class InformeController extends Controller
     public function traerInformes(){
         $minutos_hombre = Recursos::select()->where('recurso','Minutos hombre')->orWhere('recurso','Minuto hombre')->orWhere('recurso','Minutos')->first();
 
-        $recursosNecesarios = RecursoNecesario::orderBy('fecha_ra', 'desc')
-        ->join('recursos', 'recursos_necesarios.id_recurso', 'recursos.id')
-        ->join('alimentos', 'recursos_necesarios.id_alimento','alimentos.id')
-        ->join('recursos_siembras', 'recursos_necesarios.id', 'recursos_siembras.id_registro')
-        ->join('siembras', 'recursos_siembras.id_siembra', 'siembras.id')
-        ->join('actividades','recursos_necesarios.tipo_actividad','actividades.id')
-        ->select('recursos_necesarios.id as id', 'minutos_hombre', 'id_recurso', 'id_alimento','actividad', 'fecha_ra', 'cant_manana', 'cant_tarde', 'detalles', 'tipo_actividad', 'recurso', 'alimento', 'recursos.costo as costo_r', 'alimentos.costo_kg as costo_a', 'nombre_siembra', 'estado', 'cantidad_recurso')
-        ->get();
+				$recursosNecesarios = RecursoNecesario::orderBy('fecha_ra', 'desc')
+				->leftJoin('recursos', 'recursos_necesarios.id_recurso', 'recursos.id')
+				->leftJoin('alimentos', 'recursos_necesarios.id_alimento','alimentos.id')
+				->join('recursos_siembras', 'recursos_necesarios.id', 'recursos_siembras.id_registro')
+				->join('siembras', 'recursos_siembras.id_siembra', 'siembras.id')
+				->join('actividades','recursos_necesarios.tipo_actividad','actividades.id')
+				->select('recursos.id as idr', 'alimentos.id as ida', 'recursos_necesarios.id as id','actividad', 'id_recurso', 'id_alimento', 'fecha_ra', 'minutos_hombre', 'cant_manana', 'cant_tarde', 'detalles', 'tipo_actividad', 'recurso', 'alimento', 'recursos.costo as costo_r', 'alimentos.costo_kg as costo_a', 'nombre_siembra', 'estado', 'cantidad_recurso')
+				->get();
         
         $acumula=0;
         $acumula2=0;
@@ -143,18 +159,22 @@ class InformeController extends Controller
         
         if(count($recursosNecesarios)>0){
             for($i=0;$i<count($recursosNecesarios); $i++){
-                
-                $acumula+=$recursosNecesarios[$i]->costo_r;
-                $recursosNecesarios[$i]->costo_r_acum = $acumula;
-                
-                $recursosNecesarios[$i]->costo_total_alimento = ($recursosNecesarios[$i]->cant_tarde + $recursosNecesarios[$i]->cant_manana) * $recursosNecesarios[$i]->costo_a; 
-                
-                $acumula2+=$recursosNecesarios[$i]->costo_total_alimento;
-                $recursosNecesarios[$i]->costo_a_acum = $acumula2;
-                
-                $recursosNecesarios[$i]->costo_minutosh = $recursosNecesarios[$i]->minutos_hombre*$minutos_hombre->costo;
-                $acumula3+=$recursosNecesarios[$i]->costo_minutosh;
-                $recursosNecesarios[$i]->costo_h_acum = $acumula3;
+
+							$recursosNecesarios[$i]->costo_total_recurso = ($recursosNecesarios[$i]->cantidad_recurso * $recursosNecesarios[$i]->costo_r);
+							$acumula+=($recursosNecesarios[$i]->cantidad_recurso * $recursosNecesarios[$i]->costo_r);
+							
+							$recursosNecesarios[$i]->costo_total_alimento = ($recursosNecesarios[$i]->cant_tarde + $recursosNecesarios[$i]->cant_manana) * $recursosNecesarios[$i]->costo_a; 
+							$acumula2+=(($recursosNecesarios[$i]->cant_tarde + $recursosNecesarios[$i]->cant_manana) * $recursosNecesarios[$i]->costo_a);
+	
+							$recursosNecesarios[$i]->costo_minutosh = $recursosNecesarios[$i]->minutos_hombre*$minutos_hombre->costo;
+							$acumula3+=$recursosNecesarios[$i]->costo_minutosh;
+							
+
+							$recursosNecesarios[$i]->costo_total_actividad = ($acumula + 	$acumula2 + 	$acumula3);
+
+							$recursosNecesarios[$i]->costo_r_acum = number_format($acumula, 2, ',', '');
+							$recursosNecesarios[$i]->costo_a_acum = number_format($acumula2, 2, ',', '');
+							$recursosNecesarios[$i]->costo_h_acum = number_format($acumula3, 2, ',', '');
             }
         }
         return ['recursosNecesarios' => $recursosNecesarios];
@@ -202,17 +222,24 @@ class InformeController extends Controller
         if(count($recursosNecesarios)>0){
             for($i=0;$i<count($recursosNecesarios); $i++){
                 
-                $acumula+=($recursosNecesarios[$i]->cantidad_recurso * $recursosNecesarios[$i]->costo_r);
-                $recursosNecesarios[$i]->costo_r_acum = number_format($acumula, 2, ',', '');
-                
-                $recursosNecesarios[$i]->costo_total_alimento = ($recursosNecesarios[$i]->cant_tarde + $recursosNecesarios[$i]->cant_manana) * $recursosNecesarios[$i]->costo_a; 
-                
-                $acumula2+=(($recursosNecesarios[$i]->cant_tarde + $recursosNecesarios[$i]->cant_manana) * $recursosNecesarios[$i]->costo_a);
-                $recursosNecesarios[$i]->costo_a_acum = number_format($acumula2, 2, ',', '');
-                        
-                $recursosNecesarios[$i]->costo_minutosh = $recursosNecesarios[$i]->minutos_hombre*$minutos_hombre->costo;
-                $acumula3+=$recursosNecesarios[$i]->costo_minutosh;
-                $recursosNecesarios[$i]->costo_h_acum = number_format($acumula3, 2, ',', '');
+							$recursosNecesarios[$i]->costo_total_recurso = ($recursosNecesarios[$i]->cantidad_recurso * $recursosNecesarios[$i]->costo_r);
+							$acumula+=($recursosNecesarios[$i]->cantidad_recurso * $recursosNecesarios[$i]->costo_r);
+							
+							$recursosNecesarios[$i]->costo_total_alimento = ($recursosNecesarios[$i]->cant_tarde + $recursosNecesarios[$i]->cant_manana) * $recursosNecesarios[$i]->costo_a; 
+							$acumula2+=(($recursosNecesarios[$i]->cant_tarde + $recursosNecesarios[$i]->cant_manana) * $recursosNecesarios[$i]->costo_a);
+	
+							$recursosNecesarios[$i]->costo_minutosh = $recursosNecesarios[$i]->minutos_hombre*$minutos_hombre->costo;
+							$acumula3+=$recursosNecesarios[$i]->costo_minutosh;
+							
+
+							$recursosNecesarios[$i]->costo_total_actividad = ($acumula + 	$acumula2 + 	$acumula3);
+
+							$recursosNecesarios[$i]->costo_r_acum = number_format($acumula, 2, ',', '');
+							$recursosNecesarios[$i]->costo_a_acum = number_format($acumula2, 2, ',', '');
+							$recursosNecesarios[$i]->costo_h_acum = number_format($acumula3, 2, ',', '');
+							$recursosNecesarios[$i]->costo_total_recurso = number_format(	$recursosNecesarios[$i]->costo_total_recurso, 2, ',', '');
+							$recursosNecesarios[$i]->costo_total_alimento = number_format(	$recursosNecesarios[$i]->costo_total_alimento, 2, ',', '');
+							$recursosNecesarios[$i]->costo_total_actividad = number_format(	$recursosNecesarios[$i]->costo_total_actividad, 2, ',', '');
             }
         }
         
@@ -228,18 +255,19 @@ class InformeController extends Controller
     public function traerExistencias(){
     
         $existencias = EspecieSiembra::select(
-            'cant_actual',
-            'contenedor',
-            'capacidad',
-            'especies_siembra.cantidad as cantidad_inicial',            
-            'especie',
-            'especies_siembra.id_especie as id_especie',
-            'especies_siembra.id_siembra as id_siembra',          
-            'fecha_inicio',            
-            'nombre_siembra',            
-            'peso_inicial',
-            'peso_actual',
-            )
+					'cant_actual',
+					'contenedor',
+					'capacidad',
+					'especies_siembra.cantidad as cantidad_inicial',            
+					'especie',
+					'especies_siembra.id_especie as id_especie',
+					'especies_siembra.id_siembra as id_siembra',
+					'especies_siembra.lote as lote',
+					'fecha_inicio',            
+					'nombre_siembra',            
+					'peso_inicial',
+					'peso_actual',
+				)
         ->orderBy('especies_siembra.id_siembra')
         ->orderBy('especies_siembra.id_especie')
         ->join('siembras', 'especies_siembra.id_siembra', 'siembras.id' )
@@ -250,10 +278,6 @@ class InformeController extends Controller
              
         $var1 = 0;
         $var2 = 0;
-        $var3 = 0;
-        $var4 = 0;
-        $sal_bio = 0;
-        $sal_ani = 0;
         $bio_acum  = 0;
         $diff = 0 ;
         
@@ -266,7 +290,6 @@ class InformeController extends Controller
             for($i=0;$i<count($existencias); $i++){
                 $existencias[$i]->biomasa_inicial = ((($existencias[$i]->peso_inicial)*($existencias[$i]->cantidad_inicial)) / 1000);
                 $existencias[$i]->biomasa_disponible = ((($existencias[$i]->peso_actual)*($existencias[$i]->cant_actual)) / 1000);
-                
                 
                 $bio_dispo = ((($existencias[$i]->peso_actual)*($existencias[$i]->cant_actual)) / 1000);
                 
@@ -317,29 +340,32 @@ class InformeController extends Controller
         $c3 = "siembras.id"; $op2 = '!='; $c4 = '-1';
         $c5 = "siembras.id"; $op3 = '!='; $c6 = '-1';
         $c7 = "siembras.id"; $op4 = '!='; $c8 = '-1';
-        $c9 = "especies_siembra.peso_actual"; $op5 = '>='; $c10 = '0';
-        $c11 = "especies_siembra.peso_actual"; $op6 = '>='; $c12 = '0';
+       	$op5 = '>='; $c10 = '0';
+        $op6 = '>='; $c12 = '0';
+				$op7 = '!='; $c14 = '-1';
         
         if($request['f_siembra']!='-1'){$c1="siembras.id"; $op1='='; $c2= $request['f_siembra'];}
         if($request['f_especie']!='-1'){$c3="especies.id"; $op2='='; $c4= $request['f_especie'];}
         if($request['f_inicio_d']!='-1'){$c5="fecha_inicio"; $op3='>='; $c6= $request['f_inicio_d'];}
         if($request['f_inicio_h']!='-1'){$c7="fecha_inicio"; $op4='<='; $c8= $request['f_inicio_h'];}
-        if($request['f_peso_d']!='-1'){$c9="peso_actual"; $op5='>='; $c10= $request['f_peso_d'];}
-        if($request['f_peso_h']!='-1'){$c11="peso_actual"; $op6='<='; $c12= $request['f_peso_h'];}
+        if($request['f_peso_d']!='-1'){$op5='>='; $c10= $request['f_peso_d'];}
+        if($request['f_peso_h']!='-1'){$op6='<='; $c12= $request['f_peso_h'];}
+				if($request['f_lote']!='-1'){$op7='='; $c14= $request['f_lote'];}
         
         $existencias = EspecieSiembra::select(
-            'cant_actual',
-            'contenedor',
-            'capacidad',
-            'especies_siembra.cantidad as cantidad_inicial',            
-            'especie',
-            'especies_siembra.id_especie as id_especie',
-            'especies_siembra.id_siembra as id_siembra',          
-            'fecha_inicio',            
-            'nombre_siembra',            
-            'peso_inicial',
-            'peso_actual',
-            )
+					'cant_actual',
+					'contenedor',
+					'capacidad',
+					'especies_siembra.cantidad as cantidad_inicial',            
+					'especie',
+					'especies_siembra.id_especie as id_especie',
+					'especies_siembra.id_siembra as id_siembra',
+					'especies_siembra.lote as lote',
+					'fecha_inicio',            
+					'nombre_siembra',            
+					'peso_inicial',
+					'peso_actual',
+				)
         ->orderBy('especies_siembra.id_siembra')
         ->orderBy('especies_siembra.id_especie')
         ->join('siembras', 'especies_siembra.id_siembra', 'siembras.id' )
@@ -352,12 +378,11 @@ class InformeController extends Controller
         ->where($c7, $op4, $c8)
         ->where('peso_actual', $op5, $c10)
         ->where('peso_actual', $op6, $c12)
+				->where('lote', $op7, $c14)
         ->get();
         
         $var1 = 0;
         $var2 = 0;
-        $var3 = 0;
-        $sal_bio = 0;
         $bio_acum  = 0;
         $int_tiempo = 0;
         $registros = Registro::select()
@@ -433,17 +458,18 @@ class InformeController extends Controller
         ->get();
         
         $existencias = EspecieSiembra::select(
-            'cant_actual',
-            'contenedor',
-            'capacidad',
-            'especies_siembra.cantidad as cantidad_inicial',
-            'especies_siembra.id_especie as id_especie',
-            'especies_siembra.id_siembra as id_siembra',          
-            'fecha_inicio',            
-            'nombre_siembra',            
-            'peso_inicial',
-            'peso_actual',
-            )
+					'cant_actual',
+					'contenedor',
+					'capacidad',
+					'especies_siembra.cantidad as cantidad_inicial',
+					'especies_siembra.id_especie as id_especie',
+					'especies_siembra.lote as lote',
+					'especies_siembra.id_siembra as id_siembra',
+					'fecha_inicio',
+					'nombre_siembra',
+					'peso_inicial',
+					'peso_actual',
+				)
         ->orderBy('especies_siembra.id_siembra')
         ->orderBy('especies_siembra.id_especie')
         ->join('siembras', 'especies_siembra.id_siembra', 'siembras.id' )
@@ -476,11 +502,6 @@ class InformeController extends Controller
             ->get();
             
         $mh = Recursos::select()->where('recurso','Minutos hombre')->orWhere('recurso','Minuto hombre')->orWhere('recurso','Minutos')->first();
-            
-        $sal_bio = 0;
-        $bio_acum  = 0;
-        $bio_dispo = 0;
-        $sum_bio_dispo=0;
         $aux_regs = array();
         $diff = 0 ;
         
@@ -514,11 +535,16 @@ class InformeController extends Controller
                                         ->where('id_especie', $existencias[$j]->id_especie)
                                         ->first();
 
-                                    $date1 = new \DateTime($existencias[$j]->fecha_inicio);
-                                    $date2 = new \DateTime($int_tiempo['fecha_registro']);
-                                    $diff = $date1->diff($date2);
-                              
-                                    $existencias[$j]->intervalo_tiempo  = $diff->days;
+                                    if(isset($int_tiempo['fecha_registro'])){
+                                        $date1 = new \DateTime($existencias[$j]->fecha_inicio);
+                                        $date2 = new \DateTime($int_tiempo['fecha_registro']);
+                                        $diff = $date1->diff($date2);
+
+                                        $existencias[$j]->intervalo_tiempo  = $diff->days;
+                                    }else{
+                                        $existencias[$j]->intervalo_tiempo  = 1;
+                                    }
+                                    
                                     $existencias[$j]->salida_biomasa += $registros[$k]->biomasa; 
                             
                                     if($existencias[$j]->id_especie == $registros[$k]->id_especie){
@@ -543,16 +569,18 @@ class InformeController extends Controller
                             $siembras[$i]->incremento_biomasa += $existencias[$j]->incremento_biomasa;
                             $siembras[$i]->intervalo_tiempo = $existencias[$j]->intervalo_tiempo;
                             $siembras[$i]->porc_supervivencia_final = (( $siembras[$i]->salida_animales * 100) / $siembras[$i]->cantidad_inicial);
+														$siembras[$i]->densidad_inicial =($siembras[$i]->cantidad_inicial/$siembras[$i]->capacidad);
                             $siembras[$i]->densidad_final =($siembras[$i]->salida_animales/$siembras[$i]->capacidad);
+														$siembras[$i]->carga_inicial = ($siembras[$i]->biomasa_inicial/$existencias[$j]->capacidad);
                             $siembras[$i]->carga_final = ($siembras[$i]->salida_biomasa/$existencias[$j]->capacidad);
                             
                         }
                     }
                 }
-                 for($l=0;$l<count($recursos_necesarios); $l++){
+                for($l=0;$l<count($recursos_necesarios); $l++){
                     if($siembras[$i]->id == $recursos_necesarios[$l]->id_siembra){
                         $siembras[$i]->minutos_hombre += $recursos_necesarios[$l]->minutos_hombre;
-                        $siembras[$i]->horas_hombre += $recursos_necesarios[$l]->horas_hombre;
+                        $siembras[$i]->horas_hombre = $siembras[$i]->minutos_hombre/60;
                         $recursos_necesarios[$l]->costo_total_recurso =  $recursos_necesarios[$l]->cantidad_recurso *  $recursos_necesarios[$l]->costo_recurso;
                         $siembras[$i]->costo_total_recurso += $recursos_necesarios[$l]->costo_total_recurso;
                         $recursos_necesarios[$l]->cantidad_total_alimento = $recursos_necesarios[$l]->cant_tarde + $recursos_necesarios[$l]->cant_manana;
@@ -566,7 +594,7 @@ class InformeController extends Controller
                             $siembras[$i]->incr_bio_acum_conver +=  $recursos_necesarios[$l]->incr_bio_acum_conver;
                         }
                     }
-                 }
+                }
                 $siembras[$i]->costo_minutos_hombre += ($siembras[$i]->minutos_hombre * $mh->costo );
                 $siembras[$i]->costo_total_siembra = ($siembras[$i]->costo_minutos_hombre + $siembras[$i]->costo_total_alimento + $siembras[$i]->costo_total_recurso);
                 
@@ -610,6 +638,7 @@ class InformeController extends Controller
                 $siembras[$i]->biomasa_disponible = number_format($siembras[$i]->biomasa_disponible,2,',','');
                 $siembras[$i]->mortalidad_kg = number_format($siembras[$i]->mortalidad_kg,2,',','');
                 $siembras[$i]->salida_animales = number_format($siembras[$i]->salida_animales,2,',','');
+								$siembras[$i]->densidad_inicial = (number_format(( $siembras[$i]->densidad_inicial),2, ',',''));
                 $siembras[$i]->densidad_final = (number_format(( $siembras[$i]->densidad_final),2, ',',''));
                 $siembras[$i]->incremento_biomasa = number_format($siembras[$i]->incremento_biomasa,2,',','');
                 $siembras[$i]->bio_dispo_conver = number_format($siembras[$i]->bio_dispo_conver,2,',','');
@@ -622,6 +651,7 @@ class InformeController extends Controller
                 $siembras[$i]->conversion_alimenticia_parcial = number_format($siembras[$i]->conversion_alimenticia_parcial,2,',','');
                 $siembras[$i]->conversion_final = number_format($siembras[$i]->conversion_final,2,',','');
                 $siembras[$i]->porc_supervivencia_final = number_format($siembras[$i]->porc_supervivencia_final,2,',','');
+								$siembras[$i]->carga_inicial = number_format($siembras[$i]->carga_inicial,2,',','');
                 $siembras[$i]->carga_final = number_format($siembras[$i]->carga_final,2,',','');
                 $siembras[$i]->costo_total_recurso = number_format($siembras[$i]->costo_total_recurso,2,',','');
                 $siembras[$i]->costo_produccion_final = number_format($siembras[$i]->costo_produccion_final,2,',','');
@@ -630,6 +660,7 @@ class InformeController extends Controller
                     "biomasa_inicial" => $siembras[$i]->biomasa_inicial,
                     "biomasa_disponible" => $siembras[$i]->biomasa_disponible,
                     'bio_dispo_conver' =>$siembras[$i]->bio_dispo_conver,
+										"carga_inicial" => $siembras[$i]->carga_inicial,
                     "carga_final" => $siembras[$i]->carga_final,
                     "cantidad_inicial" => $siembras[$i]->cantidad_inicial,
                     "cant_actual" => $siembras[$i]->cant_actual,
@@ -643,6 +674,7 @@ class InformeController extends Controller
                     "costo_produccion_final" => $siembras[$i]->costo_produccion_final,
                     'conversion_alimenticia_siembra' => $siembras[$i]->conversion_alimenticia_siembra,
                     'conversion_alimenticia_parcial' => $siembras[$i]->conversion_alimenticia_parcial,
+										"densidad_inicial" => $siembras[$i]->densidad_inicial,
                     "densidad_final" => $siembras[$i]->densidad_final,
                     'ganancia_peso_dia'=>$siembras[$i]->ganancia_peso_dia,
                     "fecha_inicio" => $siembras[$i]->fecha_inicio,    
@@ -806,7 +838,9 @@ class InformeController extends Controller
                             $siembras[$i]->incremento_biomasa += $existencias[$j]->incremento_biomasa;
                             $siembras[$i]->intervalo_tiempo = $existencias[$j]->intervalo_tiempo;
                             $siembras[$i]->porc_supervivencia_final = (( $siembras[$i]->salida_animales * 100) / $siembras[$i]->cantidad_inicial);
+														$siembras[$i]->densidad_inicial =($siembras[$i]->cantidad_inicial/$siembras[$i]->capacidad);
                             $siembras[$i]->densidad_final =($siembras[$i]->salida_animales/$siembras[$i]->capacidad);
+														$siembras[$i]->carga_inicial = ($siembras[$i]->biomasa_inicial/$existencias[$j]->capacidad);
                             $siembras[$i]->carga_final = ($siembras[$i]->salida_biomasa/$existencias[$j]->capacidad);
                         }     
                     }
@@ -814,7 +848,7 @@ class InformeController extends Controller
                  for($l=0;$l<count($recursos_necesarios); $l++){
                     if($siembras[$i]->id == $recursos_necesarios[$l]->id_siembra){
                         $siembras[$i]->minutos_hombre += $recursos_necesarios[$l]->minutos_hombre;
-                        $siembras[$i]->horas_hombre += $recursos_necesarios[$l]->horas_hombre;
+                        $siembras[$i]->horas_hombre = $siembras[$i]->minutos_hombre/60;
                         $recursos_necesarios[$l]->costo_total_recurso =  $recursos_necesarios[$l]->cantidad_recurso *  $recursos_necesarios[$l]->costo_recurso;
                         $siembras[$i]->costo_total_recurso += $recursos_necesarios[$l]->costo_total_recurso;
                         $recursos_necesarios[$l]->cantidad_total_alimento = $recursos_necesarios[$l]->cant_tarde + $recursos_necesarios[$l]->cant_manana;
@@ -882,7 +916,9 @@ class InformeController extends Controller
                 $siembras[$i]->conversion_alimenticia_parcial = number_format($siembras[$i]->conversion_alimenticia_parcial,2,',','');
                 $siembras[$i]->conversion_final = number_format($siembras[$i]->conversion_final,2,',','');
                 $siembras[$i]->porc_supervivencia_final = number_format($siembras[$i]->porc_supervivencia_final,2,',','');
+								$siembras[$i]->densidad_inicial = number_format($siembras[$i]->densidad_inicial,2,',','');
                 $siembras[$i]->densidad_final = number_format($siembras[$i]->densidad_final,2,',','');
+								$siembras[$i]->carga_inicial = number_format($siembras[$i]->carga_inicial,2,',','');
                 $siembras[$i]->carga_final = number_format($siembras[$i]->carga_final,2,',','');
                 $siembras[$i]->costo_total_recurso = number_format($siembras[$i]->costo_total_recurso,2,',','');
                 $siembras[$i]->costo_produccion_final = number_format($siembras[$i]->costo_produccion_final,2,',','');
@@ -892,6 +928,7 @@ class InformeController extends Controller
                     "biomasa_inicial" => $siembras[$i]->biomasa_inicial,
                     "biomasa_disponible" => $siembras[$i]->biomasa_disponible,
                     'bio_dispo_conver' =>$siembras[$i]->bio_dispo_conver,
+										"carga_inicial" => $siembras[$i]->carga_inicial,
                     "carga_final" => $siembras[$i]->carga_final,
                     "cantidad_inicial" => $siembras[$i]->cantidad_inicial,
                     "cant_actual" => $siembras[$i]->cant_actual,
@@ -905,6 +942,7 @@ class InformeController extends Controller
                     "costo_produccion_final" => $siembras[$i]->costo_produccion_final,
                     'conversion_alimenticia_parcial' => $siembras[$i]->conversion_alimenticia_parcial,
                     'conversion_alimenticia_siembra' => $siembras[$i]->conversion_alimenticia_siembra,
+										"densidad_inicial" => $siembras[$i]->densidad_inicial,
                     "densidad_final" => $siembras[$i]->densidad_final,
                     'ganancia_peso_dia'=>$siembras[$i]->ganancia_peso_dia,
                     "fecha_inicio" => $siembras[$i]->fecha_inicio,    

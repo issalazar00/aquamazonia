@@ -11,7 +11,7 @@ use App\Recursos;
 use App\Siembra;
 use App\Actividad;
 use Illuminate\Support\Facades\DB;
-
+use SebastianBergmann\Environment\Console;
 
 class InformeRecursosNecesariosController extends Controller
 {
@@ -24,22 +24,14 @@ class InformeRecursosNecesariosController extends Controller
     {
       //
       $minutos_hombre = Recursos::select()->where('recurso','Minutos hombre')->orWhere('recurso','Minuto hombre')->orWhere('recurso','Minutos')->first();
-      
-      /*$recursosNecesarios = RecursoNecesario::orderBy('fecha_ra', 'desc')
-      ->join('recursos_siembras', 'recursos_necesarios.id', 'recursos_siembras.id_registro')
-      ->leftJoin('recursos', 'recursos_necesarios.id_recurso','recursos.id')
-      ->join('siembras', 'recursos_siembras.id_siembra', 'siembras.id')
-      ->join('actividades','recursos_necesarios.tipo_actividad','actividades.id')
-      ->where('tipo_actividad', '!=', '1')
-      ->where('estado',1)
-      ->get();*/
-      
+    
       $recursosNecesarios = RecursoNecesario::
         select(
         'actividad',
         'id_siembra',
         'tipo_actividad', 
         'nombre_siembra',
+        'siembras.estado as estado',
         DB::raw('SUM(cantidad_recurso) as cantidad_recurso'),
         DB::raw('SUM(cant_manana) as c_manana'),
         DB::raw('SUM(cant_tarde) as c_tarde'),
@@ -50,12 +42,15 @@ class InformeRecursosNecesariosController extends Controller
       ->join('siembras', 'recursos_siembras.id_siembra', 'siembras.id')     
       ->join('actividades','recursos_necesarios.tipo_actividad','actividades.id')
       ->groupBy('siembras.nombre_siembra')
+      ->groupBy('siembras.estado')
       ->groupBy('recursos_siembras.id_siembra')
       ->groupBy('recursos_necesarios.tipo_actividad')
       ->groupBy('actividades.actividad')
-      ->paginate(10);
-  
-      for($i=0;$i<count($recursosNecesarios); $i++){
+      ->paginate(20);
+
+     
+      foreach($recursosNecesarios as $recursoNecesario){
+       
         $costo_recursos = RecursoNecesario::select()
         ->join('actividades','recursos_necesarios.tipo_actividad','actividades.id')
         ->join('recursos_siembras', 'recursos_necesarios.id', 'recursos_siembras.id_registro')
@@ -64,21 +59,36 @@ class InformeRecursosNecesariosController extends Controller
         ->join('siembras', 'recursos_siembras.id_siembra', 'siembras.id')
         ->get();
         
-        for($j=0;$j<count($costo_recursos); $j++){               
+        foreach($costo_recursos as $costo_recurso ){               
          
-          if($recursosNecesarios[$i]->id_siembra == $costo_recursos[$j]->id_siembra && $recursosNecesarios[$i]->tipo_actividad == $costo_recursos[$j]->tipo_actividad){          
-            $recursosNecesarios[$i]->costo_recurso +=  ($costo_recursos[$j]->cantidad_recurso * $costo_recursos[$j]->costo);
-            $recursosNecesarios[$i]->cantidad_alimento += ($costo_recursos[$j]->cant_tarde + $costo_recursos[$j]->cant_manana);
-            $recursosNecesarios[$i]->costo_alimento +=  (($costo_recursos[$j]->cant_tarde + $costo_recursos[$j]->cant_manana) * $costo_recursos[$j]->costo_kg);
-            $recursosNecesarios[$i]->costo_minutos = (floatval($recursosNecesarios[$i]->minutos_hombre)) * $minutos_hombre->costo;
-            $recursosNecesarios[$i]->costo_total_actividad = $recursosNecesarios[$i]->costo_recurso + $recursosNecesarios[$i]->costo_minutos;
+          if($recursoNecesario->id_siembra == $costo_recurso->id_siembra) {
+          
+            
+            $recursoNecesario->minutosHombre += $costo_recurso->minutos_hombre;
+            
+            $recursoNecesario->costoRecurso +=  ($costo_recurso->cantidad_recurso * $costo_recurso->costo);
+            $recursoNecesario->cantidadAlimento += ($costo_recurso->cant_tarde + $costo_recurso->cant_manana);
+            $recursoNecesario->costoAlimento +=  (($costo_recurso->cant_tarde + $costo_recurso->cant_manana) * $costo_recurso->costo_kg);
+            $recursoNecesario->costoMinutos = ($recursoNecesario->minutosHombre) * $minutos_hombre->costo;
+            $recursoNecesario->costoTotalSiembra = $recursoNecesario->costoRecurso + $recursoNecesario->costoMinutos + $recursoNecesario->costoAlimento;
+
+            if ($recursoNecesario->tipo_actividad == $costo_recurso->tipo_actividad) {          
+              $recursoNecesario->costo_recurso +=  ($costo_recurso->cantidad_recurso * $costo_recurso->costo);
+              $recursoNecesario->cantidad_alimento += ($costo_recurso->cant_tarde + $costo_recurso->cant_manana);
+              $recursoNecesario->costo_alimento +=  (($costo_recurso->cant_tarde + $costo_recurso->cant_manana) * $costo_recurso->costo_kg);
+              $recursoNecesario->costo_minutos = (floatval($recursoNecesario->minutos_hombre)) * $minutos_hombre->costo;
+              $recursoNecesario->costo_total_actividad = $recursoNecesario->costo_recurso + $recursoNecesario->costo_minutos + $recursoNecesario->costo_alimento;
+              $recursoNecesario->porcentaje_total_produccion = ($recursoNecesario->costo_total_actividad * 100)/$recursoNecesario->costoTotalSiembra;
+            }
           }
         }
        
-        $recursosNecesarios[$i]->horas_hombre = number_format($recursosNecesarios[$i]->horas_hombre,2,',','');
-        $recursosNecesarios[$i]->costo_recurso = number_format($recursosNecesarios[$i]->costo_recurso,2,',','');
-        $recursosNecesarios[$i]->costo_total_actividad = number_format($recursosNecesarios[$i]->costo_total_actividad,2,',','');
+        $recursoNecesario->horas_hombre = number_format($recursoNecesario->minutos_hombre/60,2,',','');
+        $recursoNecesario->costo_recurso = number_format($recursoNecesario->costo_recurso,2,',','');
+        $recursoNecesario->costo_total_actividad = number_format($recursoNecesario->costo_total_actividad,2,',','');
+        $recursoNecesario->porcentaje_total_produccion = number_format($recursoNecesario->porcentaje_total_produccion,2,',','');
       }  
+
       return ['recursosNecesarios' => $recursosNecesarios];
     }
     
@@ -89,9 +99,11 @@ class InformeRecursosNecesariosController extends Controller
       
       $c1 = 'tipo_actividad'; $op1 = '!='; $c2 = '-1';
       $c3 = 'tipo_actividad'; $op2 = '!='; $c4 = '-1';
+      $c5 = 'estado'; $op3 = '!='; $c6 = '-1';
       
       if($request['f_siembra']!='-1'){$c1="id_siembra"; $op1='='; $c2= $request['f_siembra'];}
       if($request['f_actividad']!='-1'){$c3="tipo_actividad"; $op2='='; $c4= $request['f_actividad'];}
+      if($request['f_estado']!='-1'){$c3="estado"; $op2='='; $c4= $request['f_estado'];}
       
       $recursosNecesarios = RecursoNecesario::
         select(
@@ -99,6 +111,7 @@ class InformeRecursosNecesariosController extends Controller
         'id_siembra',
         'tipo_actividad', 
         'nombre_siembra',
+        'siembras.estado as estado',
         DB::raw('SUM(cantidad_recurso) as cantidad_recurso'),
         DB::raw('SUM(cant_manana) as c_manana'),
         DB::raw('SUM(cant_tarde) as c_tarde'),
@@ -109,14 +122,17 @@ class InformeRecursosNecesariosController extends Controller
       ->join('siembras', 'recursos_siembras.id_siembra', 'siembras.id')     
       ->join('actividades','recursos_necesarios.tipo_actividad','actividades.id')
       ->groupBy('siembras.nombre_siembra')
+      ->groupBy('siembras.estado')
       ->groupBy('recursos_siembras.id_siembra')
       ->groupBy('recursos_necesarios.tipo_actividad')
       ->groupBy('actividades.actividad')
       ->where($c1, $op1, $c2)
       ->where($c3, $op2, $c4)
-      ->get();
+      ->where($c5, $op3, $c6)
+      ->paginate(20);
   
-      for($i=0;$i<count($recursosNecesarios); $i++){
+      foreach($recursosNecesarios as $recursoNecesario){
+       
         $costo_recursos = RecursoNecesario::select()
         ->join('actividades','recursos_necesarios.tipo_actividad','actividades.id')
         ->join('recursos_siembras', 'recursos_necesarios.id', 'recursos_siembras.id_registro')
@@ -125,19 +141,37 @@ class InformeRecursosNecesariosController extends Controller
         ->join('siembras', 'recursos_siembras.id_siembra', 'siembras.id')
         ->get();
         
-        for($j=0;$j<count($costo_recursos); $j++){               
+        foreach($costo_recursos as $costo_recurso ){               
          
-          if($recursosNecesarios[$i]->id_siembra == $costo_recursos[$j]->id_siembra && $recursosNecesarios[$i]->tipo_actividad == $costo_recursos[$j]->tipo_actividad){          
-            $recursosNecesarios[$i]->costo_recurso +=  ($costo_recursos[$j]->cantidad_recurso * $costo_recursos[$j]->costo);
-            $recursosNecesarios[$i]->cantidad_alimento += ($costo_recursos[$j]->cant_tarde + $costo_recursos[$j]->cant_manana);
-            $recursosNecesarios[$i]->costo_alimento +=  (($costo_recursos[$j]->cant_tarde + $costo_recursos[$j]->cant_manana) * $costo_recursos[$j]->costo_kg);
-            $recursosNecesarios[$i]->costo_minutos = (floatval($recursosNecesarios[$i]->minutos_hombre)) * $minutos_hombre->costo;
-            $recursosNecesarios[$i]->costo_total_actividad = $recursosNecesarios[$i]->costo_recurso + $recursosNecesarios[$i]->costo_minutos;
+          if($recursoNecesario->id_siembra == $costo_recurso->id_siembra) {
+          
+            
+            $recursoNecesario->minutosHombre += $costo_recurso->minutos_hombre;
+            
+            $recursoNecesario->costoRecurso +=  ($costo_recurso->cantidad_recurso * $costo_recurso->costo);
+            $recursoNecesario->cantidadAlimento += ($costo_recurso->cant_tarde + $costo_recurso->cant_manana);
+            $recursoNecesario->costoAlimento +=  (($costo_recurso->cant_tarde + $costo_recurso->cant_manana) * $costo_recurso->costo_kg);
+            $recursoNecesario->costoMinutos = ($recursoNecesario->minutosHombre) * $minutos_hombre->costo;
+            $recursoNecesario->costoTotalSiembra = $recursoNecesario->costoRecurso + $recursoNecesario->costoMinutos + $recursoNecesario->costoAlimento;
+
+          
+
+            if ($recursoNecesario->tipo_actividad == $costo_recurso->tipo_actividad) {          
+              $recursoNecesario->costo_recurso +=  ($costo_recurso->cantidad_recurso * $costo_recurso->costo);
+              $recursoNecesario->cantidad_alimento += ($costo_recurso->cant_tarde + $costo_recurso->cant_manana);
+              $recursoNecesario->costo_alimento +=  (($costo_recurso->cant_tarde + $costo_recurso->cant_manana) * $costo_recurso->costo_kg);
+              $recursoNecesario->costo_minutos = (floatval($recursoNecesario->minutos_hombre)) * $minutos_hombre->costo;
+              $recursoNecesario->costo_total_actividad = $recursoNecesario->costo_recurso + $recursoNecesario->costo_minutos + $recursoNecesario->costo_alimento;
+              $recursoNecesario->porcentaje_total_produccion = ($recursoNecesario->costo_total_actividad * 100)/$recursoNecesario->costoTotalSiembra;
+            }
           }
-        }        
-        $recursosNecesarios[$i]->horas_hombre = number_format($recursosNecesarios[$i]->horas_hombre,2,',','');
-        $recursosNecesarios[$i]->costo_recurso = number_format($recursosNecesarios[$i]->costo_recurso,2,',','');
-        $recursosNecesarios[$i]->costo_total_actividad = number_format($recursosNecesarios[$i]->costo_total_actividad,2,',','');
+        }
+       
+        $recursoNecesario->horas_hombre = number_format($recursoNecesario->minutos_hombre/60,2,',','');
+        $recursoNecesario->costo_recurso = number_format($recursoNecesario->costo_recurso,2,',','');
+        $recursoNecesario->costo_total_actividad = number_format($recursoNecesario->costo_total_actividad,2,',','');
+        $recursoNecesario->porcentaje_total_produccion = number_format($recursoNecesario->porcentaje_total_produccion,2,',','');
+
       }  
       return ['recursosNecesarios' => $recursosNecesarios];
     }
