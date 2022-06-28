@@ -288,7 +288,7 @@
           '4:00 a.m' : '4_am',
           '7:00 a.m' : '7_am',
           '4:00 p.m' : '4_pm',
-          '8:00 a.m' : '8_pm',
+          '8:00 p.m' : '8_pm',
           'Temperatura' : 'temperatura', 
           'Ph' : 'ph',
           'Amonio' : 'amonio',

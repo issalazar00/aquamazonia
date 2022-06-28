@@ -117,6 +117,7 @@ class SiembraController extends Controller
 			$siembra->id_contenedor = $request->siembra['id_contenedor'];
 			$siembra->nombre_siembra = $request->siembra['nombre_siembra'];
 			$siembra->fecha_inicio = $request->siembra['fecha_inicio'];
+			$siembra->phase_id = $request->siembra['phase_id'];
 			$siembra->estado = 1;    
 			$siembra->save();        
 			
