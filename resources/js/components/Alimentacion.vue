@@ -65,7 +65,7 @@
                   <tr>
                     <th>#</th>
                     <th>Tipo de Actividad</th>
-                    <th class="fixed-column">Siembra</th>
+                    <th>Siembra</th>
                     <th>Fecha</th>
                     <th>Minutos hombre</th>
                     <th> Alimento</th>
@@ -99,7 +99,7 @@
                 </tbody>
                 <tfoot>
                    <tr>
-                    <th colspan="4" class="text-right">TOTAL:</th>
+                    <th colspan="4" class="text-right">PROMEDIO:</th>
                     <th v-text="promedios.tmh"></th>
                     <th></th>
                     <th v-text="promedios.cman"></th>                                        
@@ -169,11 +169,11 @@
               <div class="col-md-6"> 
                 <div class="form-group row">                    
                   <label for="cant_manana" class="col-md-4">Kg Mañana</label>
-                  <input type="number" class="form-control col-md-7" id="kg_manana" aria-describedby="cant_manana" placeholder="Kg Mañana" v-model="form.cant_manana">                      
+                  <input type="number" step="any" class="form-control col-md-7" id="kg_manana" aria-describedby="cant_manana" placeholder="Kg Mañana" v-model="form.cant_manana">                      
                 </div>
                 <div class="form-group row">    
                   <label for="cant_tarde" class="col-md-4">Kg tarde</label>
-                  <input type="number" class="form-control col-md-7" id="cant_tarde" aria-describedby="cant_tarde" placeholder="Kg tarde" v-model="form.cant_tarde">                      
+                  <input type="number" step="any" class="form-control col-md-7" id="cant_tarde" aria-describedby="cant_tarde" placeholder="Kg tarde" v-model="form.cant_tarde">                      
                 </div>
               
                 <div class="form-group row">   
@@ -349,7 +349,7 @@ import downloadexcel from "vue-json-excel"
         })
       },
 
-      listar(page){
+      listar(page = 1){
         let me = this;
         axios.get("api/lista-alimentacion?page=" + page)
         .then(function (response){
@@ -362,7 +362,7 @@ import downloadexcel from "vue-json-excel"
         let me = this;
         axios.get("api/siembras")
         .then(function (response){
-          me.listadoSiembras = response.data.siembra;         
+          me.listadoSiembras = response.data.listado_siembras;         
         })
       },
       listarAlimentos(){
@@ -384,12 +384,6 @@ import downloadexcel from "vue-json-excel"
           auxRecurso.forEach(element => me.nombresRecursos[element.id] = element.recurso);          
         })
       },
-      checkSiembras(){
-        let me = this;
-        me.addSiembras({
-          'id_siembra' : this.form.id_siembra
-        })
-      },
       guardarRecursos(){
         let me = this;        
         this.form.post("api/recursos-necesarios")
@@ -397,25 +391,6 @@ import downloadexcel from "vue-json-excel"
           me.listar();
          $('#modalRecursos').modal('hide');
         })
-      },
-      eliminarRegistro(objeto){
-        let me = this;
-        swal({
-          title: "Estás seguro?",
-          text: "Una vez eliminado, no se puede recuperar este registro",
-          icon: "warning",
-          buttons: ["Cancelar", "Aceptar"],
-          dangerMode: true,
-        })
-        .then((willDelete) => {
-          if (willDelete) {
-            axios.delete('api/recursos-necesarios/'+objeto)
-            .then(({data})=>{
-              me.listar();
-              
-            })
-          }
-        });        
       },
       cambiarPagina(page){
         let me = this;
