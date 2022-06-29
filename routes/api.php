@@ -18,6 +18,8 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 	return $request->user();
 });
 
+Route::get('siembras/listado-lotes', 'API\SiembraController@listadoLotes');
+
 Route::apiResources([
 	'contenedores' => 'API\ContenedorController',
 	'actividades' => 'API\ActividadController',
@@ -34,10 +36,16 @@ Route::apiResources([
 	'informes-siembras' => 'API\InformeSiembraController',
 	'informes-registros' => 'API\InformeRegistroController',
 	'informes-recursos-necesarios' => 'API\InformeRecursosNecesariosController',
+	'informes-alimentos' => 'API\InformeAlimentosController',
 	'informes-biomasa-alimento' => 'API\InfomeBiomasaAlimentoController',
+	'phases' => 'PhaseController',
+	'historial-alimentos-costos' => 'API\HistorialAlimentoController',
+	'historial-recursos-costos' => 'API\HistorialRecursoController',
+	'especies-siembra' => 'API\EspeciesSiembraController'
 ]);
 
 Route::namespace('API')->group(function () {
+
 	Route::post('registros-siembra/{id}', 'RegistroController@registrosxSiembra');
 	Route::post('filtro-registros', 'RegistroController@filtroRegistros');
 	Route::post('actualizarEstado/{id}', 'SiembraController@actualizarEstado');
@@ -50,17 +58,18 @@ Route::namespace('API')->group(function () {
 	Route::post('informe-recursos-totales', 'InformeController@informeRecursosTotales');
 	Route::post('filtro-parametros', 'ParametroCalidadController@filtroParametros');
 	Route::post('filtro-parametros-excel', 'ParametroCalidadController@filtroParametrosExcel');
-	Route::post('parametro-x-contenedor/{id}', 'ParametroCalidadController@mostrarParametrosxContenedores');
-	Route::post('parametro-x-contenedor-excel/{id}', 'ParametroCalidadController@mostrarParametrosxContenedoresExcel');
-	Route::post('siembras-alimentacion/{id}', 'RecursoNecesarioController@siembraxAlimentacion');   
-	Route::post('anadir-especie-siembra', 'SiembraController@anadirEspeciesxSiembra');   
-	Route::post('filtro-registros-siembras', 'InformeRegistroController@filtroRegistros');   
+	Route::post('filtro-registros-siembras', 'InformeRegistroController@filtroRegistros');
 	Route::post('filtro-recursos', 'InformeRecursosNecesariosController@filtroRecursos');
 	Route::post('filtro-biomasa-alimento', 'InfomeBiomasaAlimentoController@filtroBiomasaAlimento');
-	
+	Route::post('parametro-x-contenedor/{id}', 'ParametroCalidadController@mostrarParametrosxContenedores');
+	Route::post('parametro-x-contenedor-excel/{id}', 'ParametroCalidadController@mostrarParametrosxContenedoresExcel');
+	Route::post('anadir-especie-siembra', 'SiembraController@anadirEspeciesxSiembra');
+	Route::post('siembras-alimentacion/{id}', 'RecursoNecesarioController@siembraxAlimentacion');
+	Route::post('filtro-registros-siembras', 'InformeRegistroController@filtroRegistros');
+	Route::post('filtro-recursos', 'InformeRecursosNecesariosController@filtroRecursos');
+	Route::post('filtro-biomasa-alimento', 'InfomeBiomasaAlimentoController@filtroBiomasaAlimento');
 	Route::get('listadoContenedores', 'ContenedorController@listadoContenedores');
-	Route::get('listadoLotes', 'SiembraController@listadoLotes');
-	Route::get('especies-siembra-edita/{id}', 'SiembraController@getEspeciesSiembra');    
+	Route::get('especies-siembra-edita/{id}', 'SiembraController@getEspeciesSiembra');
 	Route::get('lista-alimentacion', 'RecursoNecesarioController@alimentacion');
 	Route::get('traer-siembras', 'SiembraController@traerSiembras');
 	Route::get('traer-recursos', 'InformeController@traerInformes');
