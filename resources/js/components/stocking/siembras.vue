@@ -8,7 +8,7 @@
           <div class="card-body">
             <div class="row mb-1">
               <div class="col-12 text-right">
-                <button class="btn btn-success" @click="anadirItem()">
+                <button class="btn btn-success" @click="anadirItem(), id = 0">
                   Nueva siembra
                 </button>
               </div>
@@ -121,8 +121,8 @@
         </div>
       </div>
     </div>
-    <create-edit-stocking :listado-contenedores="listadoContenedores"
-      ref="createEditStocking" :listado-especies="listadoEspecies" :id="id" />
+    <create-edit-stocking :listado-contenedores="listadoContenedores" ref="createEditStocking"
+      :listado-especies="listadoEspecies" :id="id" />
     <!-- Modal añadir alimentos a siembras -->
     <div class="modal fade" id="modalRecursos" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
       aria-hidden="true">
@@ -533,8 +533,10 @@ export default {
       this.listarEspecies();
       this.listarContenedores();
       this.listadoItems = [];
+
     },
     editarSiembra(siembra) {
+      this.id = siembra.id
       $("#modalSiembra").modal("show");
       this.listarContenedores();
       this.$refs.createEditStocking.editarSiembra(siembra)
@@ -564,9 +566,14 @@ export default {
         me.listadoSiembras = response.data.siembra;
         me.pecesxSiembra = response.data.pecesSiembra;
         me.campos = response.data.campos;
-        me.lotes = response.data.lotes;
+
         me.fechaActual = response.data.fecha_actual;
       });
+    },
+    listarLotes() {
+      axios.get("api/siembras/listado-lotes").then(function (response) {
+        me.lotes = response.data.lotes;
+      })
     },
     abrirIngreso(id) {
       this.idSiembraRegistro = id;

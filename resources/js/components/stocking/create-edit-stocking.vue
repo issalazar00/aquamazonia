@@ -15,61 +15,39 @@
             <div class="form-group row col-md-4">
               <div class="col-sm-12 col-md-12 text-left">
                 <label for="">Contenedor</label>
-                <div v-if="id == ''">
-                  <select v-model="form.id_contenedor" name="id_contenedor" class="form-control" id="id_contenedor">
-                     <option v-if="contenedor.estado == 1" :value="contenedor.id"
-                      v-for="(contenedor, index) in listadoContenedores" :key="index" selected>
+                <select v-model="form.id_contenedor" name="id_contenedor" class="form-control" id="id_contenedor"
+                  v-if="!id">
+                  <template v-for="(contenedor, index) in listadoContenedores">
+                    <option v-if="contenedor.estado == 1" :value="contenedor.id" :key="index" selected>
                       {{ contenedor.contenedor }}
                     </option>
-                  </select>
-                </div>
-                <div v-else>
-                  <select disabled v-model="form.id_contenedor" name="id_contenedor" class="form-control"
-                    id="id_contenedor">
-                    <option :value="contenedor.id" v-for="(contenedor, index) in listadoContenedores" :key="index"
-                      selected>
-                      {{ contenedor.contenedor }}
-                    </option>
-                  </select>
-                </div>
+                  </template>
+                </select>
+                <input type="text" class="form-control" disabled readonly v-if="id" :value="form.contenedor">
               </div>
             </div>
             <div class="form-group row col-md-4">
               <div class="col-sm-12 col-md-12 text-left">
                 <label for="nombre_siembra">Nombre de Siembra</label>
-                <!-- <input class="form-control" type="text" id="nombre_siembra" v-model="form.nombre_siembra"> -->
-                <input v-if="id == ''" class="form-control" type="text" id="nombre_siembra"
-                  v-model="form.nombre_siembra" />
-                <input v-else disabled class="form-control" type="text" id="nombre_siembra"
+                <input :disabled="id ? true : false" class="form-control" type="text" id="nombre_siembra"
                   v-model="form.nombre_siembra" />
               </div>
             </div>
             <div class="form-group row col-md-4">
               <div class="col-sm-12 col-md-12 text-left">
                 <label for="">Fecha Inicio</label>
-                <input v-if="id == ''" type="date" class="form-control" id="fecha_inicio" v-model="form.fecha_inicio"
-                  required />
-                <input v-else type="date" class="form-control" id="fecha_inicio" v-model="form.fecha_inicio" disabled />
+                <input :disabled="id ? true : false" type="date" class="form-control" id="fecha_inicio"
+                  v-model="form.fecha_inicio" required />
               </div>
             </div>
             <div class="form-group row col-md-4">
               <div class="col-sm-12 col-md-12 text-left">
                 <label for="">Fase</label>
-                <div v-if="id == ''">
-                  <select v-model="form.phase_id" name="phase_id" class="form-control" id="phase_id">
-                    <option :value="phase.id" v-for="(phase, index) in phaseListing.data"
-                      :key="index" selected>
-                      {{ phase.phase }}
-                    </option>
-                  </select>
-                </div>
-                <div v-else>
-                  <select disabled v-model="form.phase_id" name="phase_id" class="form-control" id="phase_id">
-                    <option :value="phase.id" v-for="(phase, index) in phaseListing.data" :key="index" selected>
-                      {{ phase.phase }}
-                    </option>
-                  </select>
-                </div>
+                <select v-model="form.phase_id" name="phase_id" class="form-control" id="phase_id">
+                  <option v-for="(phase, index) in phaseListing.data" :value="phase.id" :key="index" selected>
+                    {{ form.phase = phase.phase }}
+                  </option>
+                </select>
               </div>
             </div>
             <table class="table">
@@ -274,12 +252,7 @@ export default {
     },
     editarSiembra(siembra) {
       let me = this;
-      me.form.nombre_siembra = siembra.nombre_siembra;
-      me.form.id_contenedor = siembra.id_contenedor;
-      me.form.fecha_inicio = siembra.fecha_inicio;
-      me.form.id_siembra = siembra.id;
-      me.idSiembraR = siembra.id;
-      me.id_edita = siembra.id;
+      me.form = siembra;
       axios
         .get("api/especies-siembra-edita/" + siembra.id)
         .then(function (response) {
