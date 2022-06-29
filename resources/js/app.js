@@ -9,16 +9,13 @@ require('./bootstrap');
 window.Vue = require('vue');
 
 import VueRouter from 'vue-router'
-import swal from 'sweetalert'
+import Swal from 'sweetalert2'
 import Vue from 'vue'
 import { Form, HasError, AlertError } from 'vform'
 
 import JsonExcel from 'vue-json-excel'
-
-
-
 Vue.component('downloadExcel', JsonExcel)
-
+window.Swal = Swal
 Vue.use(VueRouter)
 
 let routes = [
@@ -41,22 +38,25 @@ let routes = [
     { path: '/informe-consolidado', component: require('./components/InformeConsolidado.vue').default },
     { path: '/informes-recursos-necesarios', component: require('./components/InformeRecursosNecesarios.vue').default },
     { path: '/informes-biomasa-alimento', component: require('./components/InformeBiomasaAlimento.vue').default },
-    { path: '/informes-produccion', component: require('./components/InformeProduccion.vue').default },
+    { path: '/informe-costos', component: require('./components/InformeCostos.vue').default },
+    { path: '/historial-costos-alimentos', component: require('./components/HistorialCostosAlimentos.vue').default },
+    { path: '/historial-costos-recursos', component: require('./components/HistorialCostosRecursos.vue').default },
+    { path: '/informe-consolidado-alimentos', component: require('./components/InformeConsolidadoAlimentos.vue').default },
     { path: '/example', component: require('./components/ExampleComponent.vue').default },
 
 ]
 
 const router = new VueRouter({
 
-        routes // short for `routes: routes`
-    })
-    /**
-     * The following block of code may be used to automatically register your
-     * Vue components. It will recursively scan this directory for the Vue
-     * components and automatically register them with their "basename".
-     *
-     * Eg. ./components/ExampleComponent.vue -> <example-component></example-component>
-     */
+    routes // short for `routes: routes`
+})
+/**
+ * The following block of code may be used to automatically register your
+ * Vue components. It will recursively scan this directory for the Vue
+ * components and automatically register them with their "basename".
+ *
+ * Eg. ./components/ExampleComponent.vue -> <example-component></example-component>
+ */
 
 // const files = require.context('./', true, /\.vue$/i)
 // files.keys().map(key => Vue.component(key.split('/').pop().split('.')[0], files(key).default))

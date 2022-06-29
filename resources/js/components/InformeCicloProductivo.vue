@@ -11,10 +11,25 @@
                       </div>
                       <div class="row">
                         <div class="form-group col-md-2">
-                          <label for="siembra">Siembras</label>
-                          <select class="form-control" id="siembra" v-model="f_siembra">
-                            <option value="-1">Seleccionar</option>
-                            <option :value="ls.id" v-for="(ls, index) in listadoSiembras" :key="index">{{ls.nombre_siembra}}</option>                        
+                          <label for="f_estado">
+                            Estado:
+                            <select class="custom-select" name="estado" id="estado" v-model="f_estado">
+                              <option value="-1">--Seleccionar--</option>
+                              <option value="0">Inactiva</option>
+                              <option value="1">Activa</option>
+                            </select>
+                          </label>
+                        </div>
+                        <div class="form-group col-3" v-show="f_estado==1">
+                          <label for="siembra_activa">Siembras Activas</label>
+                          <select name="siembra_activa" class="custom-select" id="siembra_activa" v-model="f_siembra">
+                            <option v-for="(siembraActiva, index) in siembrasActivas" :key="index"  :value="siembraActiva.id">{{siembraActiva.nombre_siembra}}</option>
+                          </select>
+                        </div>
+                        <div class="form-group col-3" v-show="f_estado==0">
+                          <label for="siembra_inactiva">Siembras Inactivas</label>
+                          <select name="siembra_inactiva" class="custom-select" id="siembra_inactiva"  v-model="f_siembra">
+                            <option v-for="(siembraInactiva, index) in siembrasInactivas" :key="index" :value="siembraInactiva.id">{{siembraInactiva.nombre_siembra}}</option>
                           </select>
                         </div>
                         <div class="form-group col-md-2">
@@ -77,16 +92,16 @@
                               <th>Inicio siembra</th>                             
                               <th>Cant Inicial</th>
                               <th>Peso Inicial</th>
-                              <th>Cant Actual</th>
+                              <th>Animales finales</th>
                               <th>Peso Actual</th>   
                                <th>Fecha último registro</th>
                               <th>Tiempo de cultivo</th>
                               <th>Biomasa dispo</th>
-                              <th>Salida de biomasa</th>
-                              <th>Mortalidad</th>                              
+                              <th>Biomasa cosechada</th>
+                              <th>Mortalidad Animales</th>                              
                               <th>Mort. Kg</th>
                               <th>% Mortalidad</th>
-                              <th>Salida animales</th>
+                              <th>Animales cosechados</th>
                               <th>Incremento de biomasa</th>
                               <th>Ganancia de peso por día</th>
                               <th>Densidad Final (Animales/m<sup>2</sup>)</th>
@@ -103,7 +118,7 @@
                               <td v-text="le.fecha_inicio"></td>                              
                               <td v-text="le.cantidad_inicial"></td>
                               <td v-text="le.peso_inicial+' gr'"></td>
-                              <td v-text="le.cant_actual"></td>
+                              <td v-text="le.cantidad_actual"></td>
                               <td v-text="le.peso_actual+' gr'"></td>   
                               <td v-text="le.fecha_registro"></td>
                               <td v-if="le.intervalo_tiempo">{{le.intervalo_tiempo}} días</td>
@@ -116,13 +131,12 @@
                               <td v-text="le.mortalidad_kg ? le.mortalidad_kg +' kg' : '0'"></td>
                               <td v-if="le.mortalidad_porcentaje">{{le.mortalidad_porcentaje}}</td>
                               <td v-else>0</td>
-                              <td v-if="le.salida_animales">{{le.salida_animales}}</td>
+                              <td v-if="le.salida_animales_sin_mortalidad">{{le.salida_animales_sin_mortalidad}}</td>
                               <td v-else>0</td>
                               <td v-text="le.incremento_biomasa"></td>
                               <td v-text="le.ganancia_peso_dia"></td>
                               <td v-text="le.densidad_final"></td>
                               <td v-text="le.carga_final"></td>
-                           
                             </tr>
                           </tbody>
                         </table>
@@ -147,16 +161,16 @@
           'Inicio siembra' : 'fecha_inicio',
           'Cantidad Inicial' : 'cantidad_inicial',
           'Peso inicial' : 'peso_inicial',
-          'Cantidad actual' : 'cant_actual',
+          'Animales finales' : 'cant_actual',
           'Peso actual' : 'peso_actual',
           'Fecha último registro' : 'fecha_registro',
           'Tiempo de cultivo' : 'intervalo_tiempo',
           'Biomasa disponible' : 'biomasa_disponible',
-          'Salida de biomasa' : 'salida_biomasa',
-          'Mortalidad' : 'mortalidad',
+          'Biomasa cosechada' : 'salida_biomasa',
+          'Mortalidad Animales' : 'mortalidad',
           'Mortalidad kg' : 'mortalidad_kg',
           '% Mortalidad' : 'mortalidad_porcentaje',
-          'Salida animales' : 'salida_animales',
+          'Animales cosechados' : 'salida_animales_sin_mortalidad',
           'Incremento de biomasa': 'incremento_biomasa',
           'Gananacia de peso por día': 'ganancia_peso_dia',
           'Densidad final (Animales/m2)' : 'densidad_final',
@@ -167,7 +181,10 @@
         listadoSiembras: [], 
         imprimirRecursos:[],
         listadoLotes : [],
+        siembrasActivas: [],
+        siembrasInactivas: [],
         f_siembra : '',
+        f_estado : '1',
         f_lote : '',
         f_especie: '', 
         f_inicio_d : '',
@@ -203,11 +220,12 @@
           me.listadoEspecies = response.data
         })
       },
-      listarSiembras(){
+      listarSiembras(estado_siembra){
         let me = this;
-        axios.get("api/siembras")
+        axios.get('api/siembras?estado_siembra='+estado_siembra)
         .then(function (response){
-          me.listadoSiembras = response.data.siembra;
+          me.siembrasActivas = response.data.listado_siembras;
+          me.siembrasInactivas = response.data.listado_siembras_inactivas;
         })
       },
       listarLotes(){
@@ -221,6 +239,7 @@
         let me = this;
         
         if(this.f_siembra == ''){this.smb = '-1'}else{this.smb = this.f_siembra}
+        if(this.f_estado == ''){this.est = '-1'}else{this.est = this.f_estado}
         if(this.f_lote == ''){this.lot = '-1'}else{this.lot = this.f_lote}
         if(this.f_especie == ''){this.esp = '-1'}else{this.esp = this.f_especie}
         if(this.f_inicio_d == ''){this.fecd = '-1'}else{this.fecd = this.f_inicio_d}
@@ -230,6 +249,7 @@
         
         const data ={
           'f_siembra' : this.smb,
+          'f_estado' : this.est,
           'f_lote' : this.lot,
           'f_especie' : this.esp,
           'f_inicio_d' : this.fecd,
