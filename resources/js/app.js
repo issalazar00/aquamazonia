@@ -9,16 +9,13 @@ require('./bootstrap');
 window.Vue = require('vue');
 
 import VueRouter from 'vue-router'
-import swal from 'sweetalert'
+import Swal from 'sweetalert2'
 import Vue from 'vue'
 import { Form, HasError, AlertError } from 'vform'
 
 import JsonExcel from 'vue-json-excel'
-
-
-
 Vue.component('downloadExcel', JsonExcel)
-
+window.Swal = Swal
 Vue.use(VueRouter)
 
 let routes = [
@@ -28,8 +25,8 @@ let routes = [
     { path: '/especies', component: require('./components/Especies.vue').default },
     { path: '/alimentos', component: require('./components/Alimentos.vue').default },
     { path: '/recursos', component: require('./components/Recursos.vue').default },
-    { path: '/usuarios', component: require('./components/users/users.vue').default },
-    { path: '/siembras', component: require('./components/stocking/siembras.vue').default },
+    { path: '/usuarios', component: require('./components/Usuarios.vue').default },
+    { path: '/siembras', component: require('./components/Siembras.vue').default },
     { path: '/recursos-necesarios', component: require('./components/RecursosNecesarios.vue').default },
     { path: '/informes', component: require('./components/Informes.vue').default },
     { path: '/alimentacion', component: require('./components/Alimentacion.vue').default },
@@ -41,8 +38,12 @@ let routes = [
     { path: '/informe-consolidado', component: require('./components/InformeConsolidado.vue').default },
     { path: '/informes-recursos-necesarios', component: require('./components/InformeRecursosNecesarios.vue').default },
     { path: '/informes-biomasa-alimento', component: require('./components/InformeBiomasaAlimento.vue').default },
-    { path: '/informes-produccion', component: require('./components/InformeProduccion.vue').default },
+    { path: '/informe-costos', component: require('./components/InformeCostos.vue').default },
+    { path: '/historial-costos-alimentos', component: require('./components/HistorialCostosAlimentos.vue').default },
+    { path: '/historial-costos-recursos', component: require('./components/HistorialCostosRecursos.vue').default },
+    { path: '/informe-consolidado-alimentos', component: require('./components/InformeConsolidadoAlimentos.vue').default },
     { path: '/phases', component: require('./components/phases/phases.vue').default }
+
 ]
 
 const router = new VueRouter({
@@ -59,6 +60,8 @@ const router = new VueRouter({
 
 // const files = require.context('./', true, /\.vue$/i)
 // files.keys().map(key => Vue.component(key.split('/').pop().split('.')[0], files(key).default))
+
+//Vue.component('example-component', require('./components/ExampleComponent.vue'));
 
 //Vue.component('dashboard-component', require('./components/Dashboard.vue').default);
 /**
