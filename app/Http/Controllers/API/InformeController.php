@@ -22,54 +22,7 @@ class InformeController extends Controller
 	 *
 	 * @return \Illuminate\Http\Response
 	 */
-	public function index()
-	{
-
-		$minutos_hombre = Recursos::select()->where('recurso', 'Minutos hombre')->orWhere('recurso', 'Minuto hombre')->orWhere('recurso', 'Minutos')->first();
-
-		$recursosNecesarios = RecursoNecesario::orderBy('fecha_ra', 'desc')
-			->leftJoin('recursos', 'recursos_necesarios.id_recurso', 'recursos.id')
-			->leftJoin('alimentos', 'recursos_necesarios.id_alimento', 'alimentos.id')
-			->join('recursos_siembras', 'recursos_necesarios.id', 'recursos_siembras.id_registro')
-			->join('siembras', 'recursos_siembras.id_siembra', 'siembras.id')
-			->join('actividades', 'recursos_necesarios.tipo_actividad', 'actividades.id')
-			->select('recursos.id as idr', 'alimentos.id as ida', 'recursos_necesarios.id as id', 'actividad', 'id_recurso', 'id_alimento', 'fecha_ra', 'minutos_hombre', 'cant_manana', 'cant_tarde', 'detalles', 'tipo_actividad', 'recurso', 'alimento', 'recursos.costo as costo_r', 'alimentos.costo_kg as costo_a', 'nombre_siembra', 'estado', 'cantidad_recurso')
-			->orderBy('nombre_siembra', 'desc')
-			->get();
-
-		$acumula = 0;
-		$acumula2 = 0;
-		$acumula3 = 0;
-
-
-		$promedioRecursos = array();
-		$sumac = 0;
-
-		if (count($recursosNecesarios) > 0) {
-			for ($i = 0; $i < count($recursosNecesarios); $i++) {
-
-				$recursosNecesarios[$i]->costo_total_recurso = ($recursosNecesarios[$i]->cantidad_recurso * $recursosNecesarios[$i]->costo_r);
-				$acumula += ($recursosNecesarios[$i]->cantidad_recurso * $recursosNecesarios[$i]->costo_r);
-
-				$recursosNecesarios[$i]->costo_total_alimento = ($recursosNecesarios[$i]->cant_tarde + $recursosNecesarios[$i]->cant_manana) * $recursosNecesarios[$i]->costo_a;
-				$acumula2 += (($recursosNecesarios[$i]->cant_tarde + $recursosNecesarios[$i]->cant_manana) * $recursosNecesarios[$i]->costo_a);
-
-				$recursosNecesarios[$i]->costo_minutosh = $recursosNecesarios[$i]->minutos_hombre * $minutos_hombre->costo;
-				$acumula3 += $recursosNecesarios[$i]->costo_minutosh;
-				$recursosNecesarios[$i]->costo_total_actividad = ($acumula + 	$acumula2 + 	$acumula3);
-
-				$sumac = $recursosNecesarios[$i]->costo_total_actividad;
-
-				$recursosNecesarios[$i]->costo_r_acum = number_format($acumula, 2, ',', '');
-				$recursosNecesarios[$i]->costo_a_acum = number_format($acumula2, 2, ',', '');
-				$recursosNecesarios[$i]->costo_h_acum = number_format($acumula3, 2, ',', '');
-			}
-		}
-
-		return ['recursosNecesarios' => $recursosNecesarios];
-	}
-
-	public function filtroInformes(Request $request)
+	public function index(Request $request)
 	{
 		$minutos_hombre = Recursos::select()->where('recurso', 'Minutos hombre')->orWhere('recurso', 'Minuto hombre')->orWhere('recurso', 'Minutos')->first();
 
@@ -153,7 +106,7 @@ class InformeController extends Controller
 			->where($simbra_id, $op7, $filtro_siembra)
 			->where('siembras.id_contenedor', $signCont, $idContenedor)
 			->orderBy('nombre_siembra', 'desc')
-			->get();
+			->paginate(30);
 
 		$acumula = 0;
 		$acumula2 = 0;
@@ -170,17 +123,24 @@ class InformeController extends Controller
 
 				$recursosNecesarios[$i]->costo_minutosh = $recursosNecesarios[$i]->minutos_hombre * $minutos_hombre->costo;
 				$acumula3 += $recursosNecesarios[$i]->costo_minutosh;
-
-
 				$recursosNecesarios[$i]->costo_total_actividad = ($acumula + 	$acumula2 + 	$acumula3);
-
-				$recursosNecesarios[$i]->costo_r_acum = number_format($acumula, 2, ',', '');
-				$recursosNecesarios[$i]->costo_a_acum = number_format($acumula2, 2, ',', '');
-				$recursosNecesarios[$i]->costo_h_acum = number_format($acumula3, 2, ',', '');
+				$recursosNecesarios[$i]->costo_r_acum = $acumula;
+				$recursosNecesarios[$i]->costo_a_acum = $acumula2;
+				$recursosNecesarios[$i]->costo_h_acum = $acumula3;
 			}
 		}
 
-		return ['recursosNecesarios' => $recursosNecesarios];
+		return [
+			'recursosNecesarios' => $recursosNecesarios,
+			'pagination' => [
+				'total'        => $recursosNecesarios->total(),
+				'current_page' => $recursosNecesarios->currentPage(),
+				'per_page'     => $recursosNecesarios->perPage(),
+				'last_page'    => $recursosNecesarios->lastPage(),
+				'from'         => $recursosNecesarios->firstItem(),
+				'to'           => $recursosNecesarios->lastItem(),
+			]
+		];
 	}
 
 	public function traerInformes()
@@ -663,10 +623,11 @@ class InformeController extends Controller
 				if (count($especies) > 0) {
 					$contador_esp = 0;
 					foreach ($especies as $especie) {
-						$especie->mortalidad = $especies_siembra->cantidadEspecieSiembra($especie->id_siembra, $especie->id_especie)->mortalidad;
-						$especie->biomasa = $especies_siembra->cantidadEspecieSiembra($especie->id_siembra, $especie->id_especie)->biomasa;
-						$especie->salida_animales = $especies_siembra->cantidadEspecieSiembra($especie->id_siembra, $especie->id_especie)->cantidad + $especies_siembra->cantidadEspecieSiembra($especie->id_siembra, $especie->id_especie)->mortalidad;
-						$especie->salida_animales_sin_mortalidad = $especies_siembra->cantidadEspecieSiembra($especie->id_siembra, $especie->id_especie)->cantidad;
+						$especie->mortalidad = $especies_siembra->cantidadEspecieSiembra($especie->id_siembra, $especie->id_especie)->mortalidad ?? 0;
+						$especie->biomasa = $especies_siembra->cantidadEspecieSiembra($especie->id_siembra, $especie->id_especie)->biomasa ?? 0;
+						$cantidad = $especies_siembra->cantidadEspecieSiembra($especie->id_siembra, $especie->id_especie)->cantidad  ?? 0;
+						$especie->salida_animales = $cantidad + $especie->mortalidad;
+						$especie->salida_animales_sin_mortalidad = $especies_siembra->cantidadEspecieSiembra($especie->id_siembra, $especie->id_especie)->cantidad ?? 0;
 						$especie->cantidad_actual = $especie->cantidad_inicial - $especie->salida_animales;
 						$especie->biomasa_disponible = ((($especie->peso_actual) * ($especie->cantidad_actual)) / 1000);
 						$especie->biomasa_inicial =  ((($especie->peso_inicial) * ($especie->cantidad_inicial)) / 1000);
@@ -716,10 +677,10 @@ class InformeController extends Controller
 								}
 							}
 
-							$siembra->mortalidad =  $especies_siembra->cantidadTotalEspeciesSiembra($siembra->id)->mortalidad;
+							$siembra->mortalidad =  $especies_siembra->cantidadTotalEspeciesSiembra($siembra->id)->mortalidad ?? 0;
 							$siembra->mortalidad_kg += $especie->mortalidad_kg;
 							$siembra->mortalidad_porcentaje = (($siembra->mortalidad * 100) / $siembra->cantidad_inicial);
-							$siembra->salida_biomasa = $especies_siembra->cantidadTotalEspeciesSiembraSinMortalidad($siembra->id)->biomasa;
+							$siembra->salida_biomasa = $especies_siembra->cantidadTotalEspeciesSiembraSinMortalidad($siembra->id)->biomasa ?? 0;
 							$siembra->salida_animales += $especie->salida_animales;
 							$siembra->salida_animales_sin_mortalidad += $especie->salida_animales_sin_mortalidad;
 							$siembra->cantidad_actual += $especie->cantidad_actual;

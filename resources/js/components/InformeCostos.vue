@@ -89,7 +89,7 @@
           'Costo recursos':'costo_total_recurso',
           'Costo alimentos':'costo_total_alimento',
           'Costo total siembra':'costo_tot',
-          'Costo total de producción parcial' : 'costo_produccion_parcial'
+          'Costo producción parcial' : 'costo_produccion_parcial'
         },       
         listadoExistencias : [],
         listadoEspecies : [],

@@ -159,22 +159,22 @@
           'Area' : 'capacidad',
           'Especie' : 'especie',
           'Inicio siembra' : 'fecha_inicio',
-          'Cantidad Inicial' : 'cantidad_inicial',
-          'Peso inicial' : 'peso_inicial',
+          'Cantidad Inicial \n (Animales)' : 'cantidad_inicial',
+          'Peso inicial \n (g)' : 'peso_inicial',
           'Animales finales' : 'cant_actual',
           'Peso actual' : 'peso_actual',
           'Fecha último registro' : 'fecha_registro',
-          'Tiempo de cultivo' : 'intervalo_tiempo',
-          'Biomasa disponible' : 'biomasa_disponible',
-          'Biomasa cosechada' : 'salida_biomasa',
+          'Tiempo de cultivo \n (Días) ' : 'intervalo_tiempo',
+          'Biomasa muestreo \n (Kg)' : 'biomasa_disponible',
+          'Biomasa cosechada \n (Kg)' : 'salida_biomasa',
           'Mortalidad Animales' : 'mortalidad',
           'Mortalidad kg' : 'mortalidad_kg',
           '% Mortalidad' : 'mortalidad_porcentaje',
           'Animales cosechados' : 'salida_animales_sin_mortalidad',
-          'Incremento de biomasa': 'incremento_biomasa',
-          'Gananacia de peso por día': 'ganancia_peso_dia',
-          'Densidad final (Animales/m2)' : 'densidad_final',
-          'Carga final (Kg/m2)' : 'carga_final'
+          'Incremento de biomasa \n (Kg)': 'incremento_biomasa',
+          'Gananacia de peso por día \n (g/día)': 'ganancia_peso_dia',
+          'Densidad parcial (Animales/m<sup>2</sup>)' : 'densidad_final',
+          'Carga parcial (Kg/m<sup>2</sup>)' : 'carga_final'
         },       
         listadoExistencias : [],
         listadoEspecies : [],
@@ -230,7 +230,7 @@
       },
       listarLotes(){
         let me = this;
-        axios.get("api/listadoLotes")
+        axios.get("api/siembras/listado-lotes")
         .then(function (response){
           me.listadoLotes = response.data;
         })

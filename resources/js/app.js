@@ -18,6 +18,9 @@ Vue.component('downloadExcel', JsonExcel)
 window.Swal = Swal
 Vue.use(VueRouter)
 
+import vueNumeralFilterInstaller from 'vue-numeral-filter';
+Vue.use(vueNumeralFilterInstaller, { locale: 'es' });
+
 let routes = [
     { path: '/', component: require('./components/Dashboard.vue').default },
     { path: '/dashboard', component: require('./components/Dashboard.vue').default },
@@ -25,8 +28,9 @@ let routes = [
     { path: '/especies', component: require('./components/Especies.vue').default },
     { path: '/alimentos', component: require('./components/Alimentos.vue').default },
     { path: '/recursos', component: require('./components/Recursos.vue').default },
-    { path: '/usuarios', component: require('./components/Usuarios.vue').default },
-    { path: '/siembras', component: require('./components/Siembras.vue').default },
+    { path: '/usuarios', component: require('./components/users/users.vue').default },
+    { path: '/siembras', component: require('./components/stocking/siembras.vue').default },
+    // { path: '/siembras', component: require('./components/Siembras.vue').default },
     { path: '/recursos-necesarios', component: require('./components/RecursosNecesarios.vue').default },
     { path: '/informes', component: require('./components/Informes.vue').default },
     { path: '/alimentacion', component: require('./components/Alimentacion.vue').default },
@@ -47,7 +51,6 @@ let routes = [
 ]
 
 const router = new VueRouter({
-
     routes // short for `routes: routes`
 })
 /**
