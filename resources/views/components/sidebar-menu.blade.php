@@ -45,14 +45,14 @@
           <router-link class="nav-link" to="/informes-biomasa-alimento">Biomasa por Alimentación</router-link>
         </li>
         <li class="nav-item col-nav-item ">
-          <router-link class="nav-link" to="/informes-produccion">Informes Producción</router-link>
+          <router-link class="nav-link" to="/informe-costos">Informes Costos</router-link>
         </li>
         <li class="nav-item col-nav-item ">
           <router-link class="nav-link" to="/calidad-agua">Registrar parametros de calidad del Agua</router-link>
         </li>
         <!-- <li class="nav-item col-nav-item ">
-                      <router-link class="nav-link" to="/informes">Informes</router-link>
-                  </li> -->
+                            <router-link class="nav-link" to="/informes">Informes</router-link>
+                        </li> -->
         <li class="nav-item col-nav-item dropdown">
           <a id="navbarDropdown" class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown"
             aria-haspopup="true" aria-expanded="false" v-pre>
@@ -64,6 +64,8 @@
             <router-link class="dropdown-item" to="/informes">Informe recursos </router-link>
             <router-link class="dropdown-item" to="/informes-recursos-necesarios">Informe consolidado recursos
               necesarios</router-link>
+            <router-link class="dropdown-item" to="/informe-consolidado-alimentos">Informe consolidado alimentos
+            </router-link>
             <router-link class="dropdown-item" to="/informes-parametros">Informe Párametros de calidad del agua
             </router-link>
             <!-- <router-link class="dropdown-item" to="/informe-siembras">Informe siembras</router-link>       -->
@@ -78,10 +80,14 @@
             Configuracion<span class="caret"></span>
           </a>
           <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
-            <router-link class="dropdown-item" to="/contenedores">Contenedores</router-link>
+            <router-link class="dropdown-item" to="/contenedores">Estanques</router-link>
             <router-link class="dropdown-item" to="/especies">Especies</router-link>
             <router-link class="dropdown-item" to="/alimentos">Alimentos</router-link>
+            <router-link class="dropdown-item" to="/historial-costos-alimentos">Historial Costos Alimentos
+            </router-link>
             <router-link class="dropdown-item" to="/recursos">Recursos</router-link>
+            <router-link class="dropdown-item" to="/historial-costos-recursos">Historial Costos Recursos
+            </router-link>
             <router-link class="dropdown-item" to="/usuarios">Usuarios</router-link>
             <router-link class="dropdown-item" to="/phases">Fases</router-link>
           </div>
@@ -94,7 +100,7 @@
 
           <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
             <a class="dropdown-item" href="{{ route('logout') }}" onclick="event.preventDefault();
-                                  document.getElementById('logout-form').submit();">
+                                        document.getElementById('logout-form').submit();">
               {{ __('Salir') }}
             </a>
 

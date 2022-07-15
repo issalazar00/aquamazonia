@@ -29,7 +29,7 @@
                                         <td></td>
                                         <td v-text="usuario.name"></td>
                                         <td v-text="usuario.email"></td>
-                                        <td v-text="usuario.estado == 1 ? 'Activo' : 'Inacitvo'">
+                                        <td v-text="usuario.estado == 1 ? 'Activo' : 'Inacitvo'"></td>
                                         <td>
                                             <!-- <span style="font-size: 1.5em; color:#FFC107;"><i class="fas fa-user"></i></span>-->
                                             <button @click="editar(usuario)" class="btn btn-success" type="button" data-toggle="modal" data-target="#agregar">                                            

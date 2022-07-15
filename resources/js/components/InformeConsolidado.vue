@@ -15,111 +15,57 @@
                             <div class="form-group col-md-2">
                                 <label for="f_estado">
                                     Estado:
-                                    <select
-                                        class="custom-select"
-                                        name="estado"
-                                        id="estado"
-                                        v-model="f_estado"
-                                    >
-                                        <option value="-1"
-                                            >--Seleccionar--</option
-                                        >
+                                    <select class="custom-select" name="estado" id="estado" v-model="f_estado">
+                                        <option value="-1">--Seleccionar--</option>
                                         <option value="0">Inactiva</option>
                                         <option value="1">Activa</option>
                                     </select>
                                 </label>
                             </div>
-                            <div
-                                class="form-group col-3"
-                                v-show="f_estado == 1"
-                            >
-                                <label for="siembra_activa"
-                                    >Siembras Activas</label
-                                >
-                                <select
-                                    name="siembra_activa"
-                                    class="custom-select"
-                                    id="siembra_activa"
-                                    v-model="f_siembra"
-                                >
-                                    <option
-                                        v-for="(siembraActiva,
-                                        index) in siembrasActivas"
-                                        :key="index"
-                                        :value="siembraActiva.id"
-                                        >{{
-                                            siembraActiva.nombre_siembra
-                                        }}</option
-                                    >
+                            <div class="form-group col-3" v-show="f_estado == 1">
+                                <label for="siembra_activa">Siembras Activas</label>
+                                <select name="siembra_activa" class="custom-select" id="siembra_activa"
+                                    v-model="f_siembra">
+                                    <option v-for="(siembraActiva,
+                                    index) in siembrasActivas" :key="index" :value="siembraActiva.id">{{
+            siembraActiva.nombre_siembra
+    }}</option>
                                 </select>
                             </div>
-                            <div
-                                class="form-group col-3"
-                                v-show="f_estado == 0"
-                            >
-                                <label for="siembra_inactiva"
-                                    >Siembras Inactivas</label
-                                >
-                                <select
-                                    name="siembra_inactiva"
-                                    class="custom-select"
-                                    id="siembra_inactiva"
-                                    v-model="f_siembra"
-                                >
-                                    <option
-                                        v-for="(siembraInactiva,
-                                        index) in siembrasInactivas"
-                                        :key="index"
-                                        :value="siembraInactiva.id"
-                                        >{{
-                                            siembraInactiva.nombre_siembra
-                                        }}</option
-                                    >
+                            <div class="form-group col-3" v-show="f_estado == 0">
+                                <label for="siembra_inactiva">Siembras Inactivas</label>
+                                <select name="siembra_inactiva" class="custom-select" id="siembra_inactiva"
+                                    v-model="f_siembra">
+                                    <option v-for="(siembraInactiva,
+                                    index) in siembrasInactivas" :key="index" :value="siembraInactiva.id">{{
+            siembraInactiva.nombre_siembra
+    }}</option>
                                 </select>
                             </div>
                             <div class="form-group col-md-2">
                                 <label for="contenedor">Estanque:</label>
-                                <select
-                                    class="custom-select"
-                                    id="contenedor"
-                                    v-model="f_contenedor"
-                                >
+                                <select class="custom-select" id="contenedor" v-model="f_contenedor">
                                     <option value="-1">Seleccionar</option>
-                                    <option
-                                        :value="cont.id"
-                                        v-for="(cont,
-                                        index) in listadoEstanques"
-                                        :key="index"
-                                        >{{ cont.contenedor }}</option
-                                    >
+                                    <option :value="cont.id" v-for="(cont,
+                                    index) in listadoEstanques" :key="index">{{ cont.contenedor }}</option>
                                 </select>
                             </div>
 
                             <div class="form-group col-md-2">
-                                <button
-                                    class="btn btn-primary"
-                                    @click="filtroSiembra()"
-                                >
+                                <button class="btn btn-primary" @click="filtroSiembra()">
                                     Filtrar resultados
                                 </button>
                             </div>
                             <div class="form-group col-md-2">
-                                <downloadexcel
-                                    class="btn btn-success form-control"
-                                    :fetch="fetchData"
-                                    :fields="json_fields"
-                                    name="informe-consolidado.xls"
-                                    type="xls"
-                                >
+                                <downloadexcel class="btn btn-success form-control" :fetch="fetchData"
+                                    :fields="json_fields" name="informe-consolidado.xls" type="xls">
                                     <i class="fa fa-fw fa-download"></i> Generar
                                     Excel
                                 </downloadexcel>
                             </div>
                         </div>
                         <div class="table-container" id="table-container2">
-                            <table
-                                class="table-sticky table table-sm table-hover table-bordered"
-                            >
+                            <table class="table-sticky table table-sm table-hover table-bordered">
                                 <thead class="thead-primary">
                                     <tr>
                                         <th>#</th>
@@ -162,46 +108,32 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr
-                                        v-for="(le,
-                                        index) in listadoExistencias"
-                                        :key="index"
-                                    >
+                                    <tr v-for="(le,
+                                    index) in listadoExistencias" :key="index">
                                         <td v-text="index + 1"></td>
-                                        <td
-                                            v-text="le.nombre_siembra"
-                                            class="fixed-column"
-                                        ></td>
+                                        <td v-text="le.nombre_siembra" class="fixed-column"></td>
                                         <td v-text="le.capacidad"></td>
                                         <td v-text="le.fecha_inicio"></td>
                                         <td v-text="le.intervalo_tiempo"></td>
                                         <td v-text="le.cantidad_inicial"></td>
                                         <td v-text="le.biomasa_inicial"></td>
-                                        <td
-                                            v-text="le.peso_inicial + ' gr'"
-                                        ></td>
+                                        <td v-text="le.peso_inicial + ' gr'"></td>
                                         <td v-text="le.carga_inicial"></td>
                                         <td v-text="le.cant_actual"></td>
-                                        <td
-                                            v-text="le.peso_actual + ' gr'"
-                                        ></td>
-                                        <td
-                                            v-text="
-                                                le.biomasa_disponible + ' kg'
-                                            "
-                                        ></td>
+                                        <td v-text="le.peso_actual + ' gr'"></td>
+                                        <td v-text="
+                                            le.biomasa_disponible + ' kg'
+                                        "></td>
                                         <td v-if="le.salida_biomasa">
                                             {{ le.salida_biomasa }} kg
                                         </td>
                                         <td v-else>0</td>
                                         <td>{{ le.mortalidad }}</td>
-                                        <td
-                                            v-text="
-                                                le.mortalidad_kg
-                                                    ? le.mortalidad_kg + ' kg'
-                                                    : '0'
-                                            "
-                                        ></td>
+                                        <td v-text="
+                                            le.mortalidad_kg
+                                                ? le.mortalidad_kg + ' kg'
+                                                : '0'
+                                        "></td>
                                         <td v-if="le.mortalidad_porcentaje">
                                             {{ le.mortalidad_porcentaje }}
                                         </td>
@@ -215,29 +147,17 @@
                                         <td v-text="le.carga_final"></td>
                                         <td v-text="le.horas_hombre"></td>
                                         <td v-text="le.costo_minutosh"></td>
-                                        <td
-                                            v-text="le.costo_total_recurso"
-                                        ></td>
-                                        <td
-                                            v-text="le.costo_total_alimento"
-                                        ></td>
-                                        <td
-                                            v-text="le.cantidad_total_alimento"
-                                        ></td>
+                                        <td v-text="le.costo_total_recurso"></td>
+                                        <td v-text="le.costo_total_alimento"></td>
+                                        <td v-text="le.cantidad_total_alimento"></td>
                                         <td v-text="le.costo_tot"></td>
-                                        <td
-                                            v-text="le.costo_produccion_final"
-                                        ></td>
-                                        <td
-                                            v-text="
-                                                le.conversion_alimenticia_parcial
-                                            "
-                                        ></td>
+                                        <td v-text="le.costo_produccion_final"></td>
+                                        <td v-text="
+                                            le.conversion_alimenticia_parcial
+                                        "></td>
                                         <td v-text="le.conversion_final"></td>
                                         <td v-text="le.ganancia_peso_dia"></td>
-                                        <td
-                                            v-text="le.porc_supervivencia_final"
-                                        ></td>
+                                        <td v-text="le.porc_supervivencia_final"></td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -256,17 +176,17 @@ export default {
         return {
             json_fields: {
                 Siembra: "nombre_siembra",
-                Area: "capacidad",
+                'Area (m<sup>2</sup>)': "capacidad",
                 "Inicio siembra": "fecha_inicio",
-                "Tiempo de cultivo": "intervalo_tiempo",
-                "Cantidad Inicial": "cantidad_inicial",
-                "Biomasa inicial": "biomasa_inicial",
-                "Peso inicial": "peso_inicial",
-                "Carga inicial": "carga_inicial",
+                "Tiempo de cultivo \n (Días)": "intervalo_tiempo",
+                "Cantidad Inicial \n (Animales) ": "cantidad_inicial",
+                "Biomasa inicial \n (Kg) ": "biomasa_inicial",
+                "Peso inicial  \n (g)": "peso_inicial",
+                "Carga inicial  \n (Kg / m<sup>2</sup> ) ": "carga_inicial",
                 "Animales final": "cant_actual",
-                "Peso actual": "peso_actual",
-                "Biomasa disponible": "biomasa_disponible",
-                "Biomasa cosechada": "salida_biomasa",
+                "Peso actual \n (g)": "peso_actual",
+                // "Biomasa disponible": "biomasa_disponible",
+                "Biomasa cosechada \n (Kg)": "salida_biomasa",
                 'Mortalidad Animales': "mortalidad",
                 "Mortalidad kg": "mortalidad_kg",
                 "Mortalidad %": "mortalidad_porcentaje",
@@ -277,13 +197,12 @@ export default {
                 "Horas hombre": "horas_hombre",
                 "Costo Horas": "costo_minutosh",
                 "Costo total recursos": "costo_total_recurso",
-                "Costo horas": "costo_horas",
+                // "Costo horas": "costo_horas",
                 "Costo total alimentos": "costo_total_alimento",
                 "Total Kg Alimento": "cantidad_total_alimento",
                 "Costo total Siembra": "costo_tot",
                 "Costo producccion final": "costo_produccion_final",
-                "Conversión alimenticia parcial":
-                    "conversion_alimenticia_siembra",
+                "Conversión alimenticia parcial": "conversion_alimenticia_siembra",
                 "Conversion final": "conversion_final",
                 "Ganancia peso dia": "ganancia_peso_dia",
                 "% Supervivencia final": "porc_supervivencia_final"
@@ -315,13 +234,13 @@ export default {
             this.listarEspecies();
             this.listarSiembras();
             this.listarEstanques();
-            axios.get("api/traer-existencias-detalle").then(function(response) {
+            axios.get("api/traer-existencias-detalle").then(function (response) {
                 me.listadoExistencias = response.data.existencias;
             });
         },
         listarEspecies() {
             let me = this;
-            axios.get("api/especies").then(function(response) {
+            axios.get("api/especies").then(function (response) {
                 me.listadoEspecies = response.data;
             });
         },
@@ -329,7 +248,7 @@ export default {
             let me = this;
             axios
                 .get("api/siembras?estado_siembra=" + estado_siembra)
-                .then(function(response) {
+                .then(function (response) {
                     me.siembrasActivas = response.data.listado_siembras;
                     me.siembrasInactivas =
                         response.data.listado_siembras_inactivas;
@@ -337,7 +256,7 @@ export default {
         },
         listarEstanques() {
             let me = this;
-            axios.get("api/contenedores").then(function(response) {
+            axios.get("api/contenedores").then(function (response) {
                 me.listadoEstanques = response.data;
             });
         },
