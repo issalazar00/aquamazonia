@@ -31,11 +31,14 @@
                     <select class="form-control" id="t_actividad" v-model="t_actividad">
                       <option value="-1" selected>
                         Seleccionar</option>
-                      <option v-for="(actividad,
-                      index) in listadoActividades" :key="index" v-bind:value="actividad.id">
-                        {{
-                            actividad.actividad
-                        }}</option>
+                      <template v-for="(actividad,
+                      index) in listadoActividades" v-bind:value="actividad.id">
+                        <option :key="index" v-if="actividad.actividad != 'Alimentación'">
+                          {{
+                              actividad.actividad
+                          }}</option>
+                      </template>
+
                     </select>
                   </div>
                   <div class="form-group col-md-2">
@@ -44,9 +47,9 @@
                       <option value="-1">
                         Seleccionar</option>
                       <option v-for="(recurso,
-                      index) in listadoRecursos" :key="index" v-bind:value="recurso.id">{{
-      recurso.recurso
-  }}</option>
+                      index) in listadoRecursos" :key="index" v-bind:value="recurso.id">
+                        {{ recurso.recurso }}
+                      </option>
                     </select>
                   </div>
                   <div class="form-group col-md-2">
@@ -109,11 +112,17 @@
                     <td v-text="item.nombre_siembra"></td>
                     <td v-text="item.fecha_ra"></td>
                     <td v-text="item.minutos_hombre"></td>
-                    <td v-text="item.total_minutos_hombre"></td>
+                    <td>
+                      {{ item.total_minutos_hombre | numeral('$0,0.00') }}
+                    </td>
                     <td v-text="item.recurso"></td>
                     <td v-text="item.cantidad_recurso"></td>
-                    <td v-text="item.costo"></td>
-                    <td v-text="item.costo_total_recurso"></td>
+                    <td>
+                      {{ item.costo | numeral('$0,0.00') }}
+                    </td>
+                    <td>
+                      {{ item.costo_total_recurso | numeral('$0,0.00') }}
+                    </td>
                     <td v-text="item.detalles"></td>
                     <td>
                       <button class="btn btn-danger" @click="
@@ -130,12 +139,18 @@
                     <th colspan="4" class="text-right">
                       TOTAL:
                     </th>
-                    <th v-text="promedios.tmh"></th>
-                    <th v-text="promedios.ttmh"></th>
+                    <th v-text="promedios.tmh"> </th>
+                    <th>
+                      {{ promedios.ttmh | numeral('$0,0.00') }}
+                    </th>
                     <th></th>
                     <th v-text="promedios.tcr"></th>
-                    <th v-text="promedios.tc"></th>
-                    <th v-text="promedios.ctr"></th>
+                    <th>
+                      {{ promedios.tc | numeral('$0,0.00') }}
+                    </th>
+                    <th>
+                      {{ promedios.ctr | numeral('$0,0.00') }}
+                    </th>
                     <th></th>
                     <th></th>
                   </tr>

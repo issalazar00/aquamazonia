@@ -4,13 +4,7 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Siembra;
-use App\RecursoSiembra;
-use App\RecursoNecesario;
-use App\Recurso;
-use App\EspecieSiembra;
-use App\Contenedor;
-use App\Registro;
+
 
 class InformeRecursosController extends Controller
 {

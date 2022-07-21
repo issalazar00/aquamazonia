@@ -51,17 +51,12 @@ class RecursoNecesarioController extends Controller
 				$sumcr += $recursosNecesarios[$i]->cantidad_recurso;
 				$sumc += $recursosNecesarios[$i]->costo;
 				$sumctr += $recursosNecesarios[$i]->costo_total_recurso;
-
-				$recursosNecesarios[$i]->costo_total_recurso = number_format($recursosNecesarios[$i]->costo_total_recurso, 2, ',', '');
 			}
 			$promedioRecursos['tmh'] = $summh;
 			$promedioRecursos['ttmh'] = $sumtmh;
 			$promedioRecursos['tcr'] = $sumcr;
 			$promedioRecursos['tc'] = $sumc;
 			$promedioRecursos['ctr'] = $sumctr;
-
-			$promedioRecursos['tc'] = number_format($promedioRecursos['tc'], 2, ',', '');
-			$promedioRecursos['ctr'] = number_format($promedioRecursos['ctr'], 2, ',', '');
 		}
 
 		return [
@@ -105,7 +100,7 @@ class RecursoNecesarioController extends Controller
 				$recursosNecesarios[$i]->alimento_dia = $recursosNecesarios[$i]->cant_tarde + $recursosNecesarios[$i]->cant_manana;
 				if ($recursosNecesarios[$i]->conv_alimenticia > 0) {
 					$recursosNecesarios[$i]->incr_bio_acum_conver = $recursosNecesarios[$i]->alimento_dia / $recursosNecesarios[$i]->conv_alimenticia;
-					$recursosNecesarios[$i]->conv_alimenticia = number_format($recursosNecesarios[$i]->conv_alimenticia, 2, ',', '');
+					$recursosNecesarios[$i]->conv_alimenticia = $recursosNecesarios[$i]->conv_alimenticia;
 				}
 				$summh += $recursosNecesarios[$i]->minutos_hombre;
 				$cantm += $recursosNecesarios[$i]->cant_manana;
@@ -118,13 +113,12 @@ class RecursoNecesarioController extends Controller
 				$recursosNecesarios[$i]->incr_bio_acum_conver = number_format($recursosNecesarios[$i]->incr_bio_acum_conver, 2, ',', '');
 				$recursosNecesarios[$i]->costo_total_alimento = number_format($recursosNecesarios[$i]->costo_total_alimento, 2, ',', '');
 			}
-			$promedioRecursos['tmh'] =  number_format($summh, 2, ',', '');
-			$promedioRecursos['cman'] =  number_format($cantm, 2, ',', '');
-			$promedioRecursos['ctar'] =  number_format($cantt, 2, ',', '');;
-			$promedioRecursos['alid'] =  number_format($alid, 2, ',', '');;
-			$promedioRecursos['coskg'] = number_format($coskg / $counter, 2, ',', '');
-			$promedioRecursos['cta'] = number_format($cta, 2, ',', '');
-			$icb = number_format($icb, 2, ',', '');
+			$promedioRecursos['tmh'] =  $summh;
+			$promedioRecursos['cman'] = $cantm;
+			$promedioRecursos['ctar'] =  $cantt;
+			$promedioRecursos['alid'] =  $alid;
+			$promedioRecursos['coskg'] = $coskg / $counter;
+			$promedioRecursos['cta'] = $cta;
 			$promedioRecursos['icb'] = $icb;
 		}
 
@@ -138,7 +132,7 @@ class RecursoNecesarioController extends Controller
 				'last_page'    => $recursosNecesarios->lastPage(),
 				'from'         => $recursosNecesarios->firstItem(),
 				'to'           => $recursosNecesarios->lastItem(),
-			],
+			]
 		];
 	}
 	public function siembraxAlimentacion($id)
@@ -174,7 +168,6 @@ class RecursoNecesarioController extends Controller
 	{
 		//
 		$c_alim = RecursoNecesario::select()->orderBy('id', 'desc')->first();
-		// print_r($c_alim->conv_alimenticia);
 
 		$recursoNecesario = new RecursoNecesario();
 		$recursoNecesario->id_recurso = $request['id_recurso'];
@@ -192,36 +185,24 @@ class RecursoNecesarioController extends Controller
 			$recursoNecesario->conv_alimenticia = $request['conv_alimenticia'];
 		}
 		$recursoNecesario->detalles = $request['detalles'];
-		$recursoNecesario->save();
 
-		if ($request['tipo_actividad'] == '1') {
-			if (!is_array($request['id_siembra'])) {
-				$siembras = Siembra::findOrFail($request['id_siembra']);
-				$siembras->fecha_alimento = $request['fecha_ra'];
-				$siembras->save();
+		if (!is_array($request['id_siembra'])) {
 
-				$recursoSiembra = new RecursoSiembra();
-				$recursoSiembra->id_registro = $recursoNecesario->id;
-				$recursoSiembra->id_siembra = $request['id_siembra'];
-				$recursoSiembra->save();
-			} else {
-				foreach ($request->id_siembra as $siembra) {
-					$siembras = Siembra::findOrFail($siembra);
-					$siembras->fecha_alimento = $request['fecha_ra'];
-					$siembras->save();
+			$recursoNecesario->siembra_id = $request['id_siembra'];
+			$recursoNecesario->save();
 
-					$recursoSiembra = new RecursoSiembra();
-					$recursoSiembra->id_registro = $recursoNecesario->id;
-					$recursoSiembra->id_siembra = $siembra;
-					$recursoSiembra->save();
-				}
-			}
+			$siembras = Siembra::findOrFail($request['id_siembra']);
+			$siembras->fecha_alimento = $request['fecha_ra'];
+			$siembras->save();
 		} else {
 			foreach ($request->id_siembra as $siembra) {
-				$recursoSiembra = new RecursoSiembra();
-				$recursoSiembra->id_registro = $recursoNecesario->id;
-				$recursoSiembra->id_siembra = $siembra;
-				$recursoSiembra->save();
+
+				$recursoNecesario->siembra_id = $siembra;
+				$recursoNecesario->save();
+
+				$siembras = Siembra::findOrFail($siembra);
+				$siembras->fecha_alimento = $request['fecha_ra'];
+				$siembras->save();
 			}
 		}
 
