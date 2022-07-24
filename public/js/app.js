@@ -3178,6 +3178,28 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 
 
 /* harmony default export */ __webpack_exports__["default"] = ({
@@ -6069,6 +6091,21 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 
 /* harmony default export */ __webpack_exports__["default"] = ({
   data: function data() {
@@ -6077,7 +6114,12 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         'Siembra': 'nombre_siembra',
         'Area / (m<sup>2</sup>)': 'capacidad',
         'Cantidad inicial \n (Animales)': 'cantidad_inicial',
-        'Biomasa inicial \n (Kg)': 'biomasa_inicial',
+        'Biomasa inicial \n (Kg)': {
+          field: 'biomasa_inicial',
+          callback: function callback(value) {
+            return numeral(value).format('0.00');
+          }
+        },
         'Biomasa disponible muestreo \n (Kg)': 'biomasa_disponible',
         'Biomasa cosechada \n (Kg)': 'salida_biomasa',
         'Mortalidad': 'mortalidad',
@@ -6106,20 +6148,13 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       var _this = this;
 
       return _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.mark(function _callee() {
-        var me, response;
         return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.wrap(function _callee$(_context) {
           while (1) {
             switch (_context.prev = _context.next) {
               case 0:
-                me = _this;
-                _context.next = 3;
-                return _this.listadoExistencias;
-
-              case 3:
-                response = _context.sent;
                 return _context.abrupt("return", _this.listadoExistencias);
 
-              case 5:
+              case 1:
               case "end":
                 return _context.stop();
             }
@@ -6129,9 +6164,14 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
     },
     listar: function listar() {
       var me = this;
-      this.listarEspecies();
-      this.listarSiembras();
-      axios.get("api/informes-biomasa-alimento").then(function (response) {
+      var data = {
+        'f_siembra': this.f_siembra == '' ? '-1' : this.f_siembra,
+        'f_inicio_d': this.f_inicio_d == '' ? '-1' : this.f_siembra,
+        'f_inicio_h': this.f_inicio_h == '' ? '-1' : this.f_siembra
+      };
+      axios.get("api/informes-biomasa-alimento", {
+        params: data
+      }).then(function (response) {
         me.listadoExistencias = response.data.existencias;
       });
     },
@@ -6146,41 +6186,12 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       axios.get("api/siembras").then(function (response) {
         me.listadoSiembras = response.data.listado_siembras;
       });
-    },
-    filtroSiembra: function filtroSiembra() {
-      var me = this;
-
-      if (this.f_siembra == '') {
-        this.smb = '-1';
-      } else {
-        this.smb = this.f_siembra;
-      } // if(this.f_especie == ''){this.esp = '-1'}else{this.esp = this.f_especie}
-
-
-      if (this.f_inicio_d == '') {
-        this.fecd = '-1';
-      } else {
-        this.fecd = this.f_inicio_d;
-      }
-
-      if (this.f_inicio_h == '') {
-        this.fech = '-1';
-      } else {
-        this.fech = this.f_inicio_h;
-      }
-
-      var data = {
-        'f_siembra': this.smb,
-        'f_inicio_d': this.fecd,
-        'f_inicio_h': this.fech
-      };
-      axios.post("api/filtro-biomasa-alimento", data).then(function (response) {
-        me.listadoExistencias = response.data.existencias;
-      });
     }
   },
   mounted: function mounted() {
     this.listar();
+    this.listarEspecies();
+    this.listarSiembras();
   }
 });
 
@@ -6354,6 +6365,69 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 
 /* harmony default export */ __webpack_exports__["default"] = ({
   data: function data() {
@@ -6362,40 +6436,82 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         'Siembra': 'nombre_siembra',
         'Lote': 'lote',
         'Area': 'capacidad',
-        'Especie': 'especie',
+        'Especie': 'especie.especie',
         'Inicio siembra': 'fecha_inicio',
         'Cantidad Inicial \n (Animales)': 'cantidad_inicial',
         'Peso inicial \n (g)': 'peso_inicial',
-        'Animales finales': 'cant_actual',
-        'Peso actual': 'peso_actual',
+        'Animales finales': {
+          field: 'cantidad_actual',
+          callback: function callback(value) {
+            return numeral(value).format('0.00');
+          }
+        },
+        'Peso actual \n (g)': {
+          field: 'peso_actual',
+          callback: function callback(value) {
+            return numeral(value).format('0.00');
+          }
+        },
         'Fecha último registro': 'fecha_registro',
         'Tiempo de cultivo \n (Días) ': 'intervalo_tiempo',
-        'Biomasa muestreo \n (Kg)': 'biomasa_disponible',
-        'Biomasa cosechada \n (Kg)': 'salida_biomasa',
-        'Mortalidad Animales': 'mortalidad',
+        'Tiempo de cultivo \n (Meses) ': {
+          field: 'intervalo_tiempo_months',
+          callback: function callback(value) {
+            return numeral(value).format('0.00');
+          }
+        },
+        'Biomasa muestreo \n (Kg)': {
+          field: 'biomasa_disponible',
+          callback: function callback(value) {
+            return numeral(value).format('0.00');
+          }
+        },
+        'Biomasa cosechada \n (Kg)': {
+          field: 'salida_biomasa',
+          callback: function callback(value) {
+            return numeral(value).format('0.00');
+          }
+        },
+        'Mortalidad Animales': {
+          field: 'mortalidad',
+          callback: function callback(value) {
+            return numeral(value).format('0.00');
+          }
+        },
         'Mortalidad kg': 'mortalidad_kg',
         '% Mortalidad': 'mortalidad_porcentaje',
-        'Animales cosechados': 'salida_animales_sin_mortalidad',
+        'Animales cosechados': {
+          field: 'salida_animales_sin_mortalidad',
+          callback: function callback(value) {
+            return numeral(value).format('0.00');
+          }
+        },
         'Incremento de biomasa \n (Kg)': 'incremento_biomasa',
         'Gananacia de peso por día \n (g/día)': 'ganancia_peso_dia',
-        'Densidad parcial (Animales/m<sup>2</sup>)': 'densidad_final',
-        'Carga parcial (Kg/m<sup>2</sup>)': 'carga_final'
+        'Densidad parcial (Animales/m<sup>2</sup>)': 'densidad_parcial',
+        'Carga parcial (Kg/m<sup>2</sup>)': {
+          field: 'carga_parcial',
+          callback: function callback(value) {
+            return numeral(value).format('0.00');
+          }
+        }
       },
       listadoExistencias: [],
+      totalizadoEspeciesSiembras: [],
       listadoEspecies: [],
       listadoSiembras: [],
       imprimirRecursos: [],
       listadoLotes: [],
       siembrasActivas: [],
       siembrasInactivas: [],
-      f_siembra: '',
+      f_siembra: '-1',
       f_estado: '1',
-      f_lote: '',
-      f_especie: '',
-      f_inicio_d: '',
-      f_inicio_h: '',
+      f_lote: '-1',
+      f_especie: '-1',
+      f_inicio_d: '-1',
+      f_inicio_h: '-1',
       f_peso_d: 0,
-      f_peso_h: 0
+      f_peso_h: 1000
     };
   },
   components: {
@@ -6406,21 +6522,13 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       var _this = this;
 
       return _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.mark(function _callee() {
-        var me, response;
         return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.wrap(function _callee$(_context) {
           while (1) {
             switch (_context.prev = _context.next) {
               case 0:
-                me = _this; // const response = await axios.get('api/informe-recursos');
-
-                _context.next = 3;
-                return _this.listadoExistencias;
-
-              case 3:
-                response = _context.sent;
                 return _context.abrupt("return", _this.listadoExistencias);
 
-              case 5:
+              case 1:
               case "end":
                 return _context.stop();
             }
@@ -6429,12 +6537,22 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       }))();
     },
     listar: function listar() {
+      var data = {
+        'f_siembra': this.f_siembra == '-1' ? '-1' : this.f_siembra,
+        'f_estado': this.f_estado == '-1' ? '-1' : this.f_estado,
+        'f_lote': this.f_lote == '-1' ? '-1' : this.f_lote,
+        'f_especie': this.f_especie == '-1' ? '-1' : this.f_especie,
+        'f_inicio_d': this.f_inicio_d == '-1' ? '-1' : this.f_inicio_d,
+        'f_inicio_h': this.f_inicio_h == '-1' ? '-1' : this.f_inicio_h,
+        'f_peso_d': this.f_peso_d == '-1' ? '-1' : this.f_peso_d,
+        'f_peso_h': this.f_peso_h == '-1' ? '-1' : this.f_peso_h
+      };
       var me = this;
-      this.listarEspecies();
-      this.listarSiembras();
-      this.listarLotes();
-      axios.get("api/traer-existencias").then(function (response) {
+      axios.get("api/traer-existencias", {
+        params: data
+      }).then(function (response) {
         me.listadoExistencias = response.data.existencias;
+        me.totalizadoEspeciesSiembras = response.data.totalizadoEspeciesSiembras;
       });
     },
     listarEspecies: function listarEspecies() {
@@ -6455,75 +6573,13 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       axios.get("api/siembras/listado-lotes").then(function (response) {
         me.listadoLotes = response.data;
       });
-    },
-    filtroCiclo: function filtroCiclo() {
-      var me = this;
-
-      if (this.f_siembra == '') {
-        this.smb = '-1';
-      } else {
-        this.smb = this.f_siembra;
-      }
-
-      if (this.f_estado == '') {
-        this.est = '-1';
-      } else {
-        this.est = this.f_estado;
-      }
-
-      if (this.f_lote == '') {
-        this.lot = '-1';
-      } else {
-        this.lot = this.f_lote;
-      }
-
-      if (this.f_especie == '') {
-        this.esp = '-1';
-      } else {
-        this.esp = this.f_especie;
-      }
-
-      if (this.f_inicio_d == '') {
-        this.fecd = '-1';
-      } else {
-        this.fecd = this.f_inicio_d;
-      }
-
-      if (this.f_inicio_h == '') {
-        this.fech = '-1';
-      } else {
-        this.fech = this.f_inicio_h;
-      }
-
-      if (this.f_peso_d == '') {
-        this.pesod = '-1';
-      } else {
-        this.pesod = this.f_peso_d;
-      }
-
-      if (this.f_peso_h == '') {
-        this.pesoh = '-1';
-      } else {
-        this.pesoh = this.f_peso_h;
-      }
-
-      var data = {
-        'f_siembra': this.smb,
-        'f_estado': this.est,
-        'f_lote': this.lot,
-        'f_especie': this.esp,
-        'f_inicio_d': this.fecd,
-        'f_inicio_h': this.fech,
-        'f_peso_d': this.pesod,
-        'f_peso_h': this.pesoh
-      };
-      axios.post("api/filtro-ciclos", data).then(function (response) {
-        me.listadoExistencias = response.data.existencias;
-      });
     }
   },
   mounted: function mounted() {
     this.listar();
+    this.listarEspecies();
+    this.listarSiembras();
+    this.listarLotes();
   }
 });
 
@@ -9349,6 +9405,21 @@ function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
 
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 //
 //
 //
@@ -54021,7 +54092,7 @@ var render = function() {
                       },
                       [
                         _c("i", { staticClass: "fa fa-fw fa-download" }),
-                        _vm._v(" Generar Excel \n                ")
+                        _vm._v(" Generar Excel\n                ")
                       ]
                     )
                   ],
@@ -54097,7 +54168,12 @@ var render = function() {
                           return _c(
                             "option",
                             { key: index, domProps: { value: ls.id } },
-                            [_vm._v(_vm._s(ls.nombre_siembra))]
+                            [
+                              _vm._v(
+                                _vm._s(ls.nombre_siembra) +
+                                  "\n                    "
+                              )
+                            ]
                           )
                         })
                       ],
@@ -54148,7 +54224,12 @@ var render = function() {
                           return _c(
                             "option",
                             { key: index, domProps: { value: alimento.id } },
-                            [_vm._v(_vm._s(alimento.alimento))]
+                            [
+                              _vm._v(
+                                "\n                      " +
+                                  _vm._s(alimento.alimento)
+                              )
+                            ]
                           )
                         })
                       ],
@@ -54351,21 +54432,41 @@ var render = function() {
                           }
                         }),
                         _vm._v(" "),
-                        _c("td", {
-                          domProps: { textContent: _vm._s(item.costo_kg) }
-                        }),
+                        _c("td", [
+                          _vm._v(
+                            "\n                    " +
+                              _vm._s(
+                                _vm._f("numeral")(item.costo_kg, "$0,0.00")
+                              ) +
+                              "\n                  "
+                          )
+                        ]),
                         _vm._v(" "),
-                        _c("td", {
-                          domProps: {
-                            textContent: _vm._s(item.costo_total_alimento)
-                          }
-                        }),
+                        _c("td", [
+                          _vm._v(
+                            "\n                    " +
+                              _vm._s(
+                                _vm._f("numeral")(
+                                  item.costo_total_alimento,
+                                  "$0,0.00"
+                                )
+                              ) +
+                              "\n                  "
+                          )
+                        ]),
                         _vm._v(" "),
-                        _c("td", {
-                          domProps: {
-                            textContent: _vm._s(item.conv_alimenticia)
-                          }
-                        }),
+                        _c("td", [
+                          _vm._v(
+                            "\n                    " +
+                              _vm._s(
+                                _vm._f("numeral")(
+                                  item.conv_alimenticia,
+                                  "0,0.00"
+                                )
+                              ) +
+                              "\n                  "
+                          )
+                        ]),
                         _vm._v(" "),
                         _c("td", {
                           domProps: {
@@ -54407,19 +54508,37 @@ var render = function() {
                         domProps: { textContent: _vm._s(_vm.promedios.alid) }
                       }),
                       _vm._v(" "),
-                      _c("th", {
-                        domProps: { textContent: _vm._s(_vm.promedios.coskg) }
-                      }),
+                      _c("th", [
+                        _vm._v(
+                          "\n                    " +
+                            _vm._s(
+                              _vm._f("numeral")(_vm.promedios.coskg, "$0,0.00")
+                            ) +
+                            "\n                  "
+                        )
+                      ]),
                       _vm._v(" "),
-                      _c("th", {
-                        domProps: { textContent: _vm._s(_vm.promedios.cta) }
-                      }),
+                      _c("th", [
+                        _vm._v(
+                          "\n                    " +
+                            _vm._s(
+                              _vm._f("numeral")(_vm.promedios.cta, "$0,0.00")
+                            ) +
+                            "\n                  "
+                        )
+                      ]),
                       _vm._v(" "),
                       _c("th"),
                       _vm._v(" "),
-                      _c("th", {
-                        domProps: { textContent: _vm._s(_vm.promedios.icb) }
-                      })
+                      _c("th", [
+                        _vm._v(
+                          "\n                  " +
+                            _vm._s(
+                              _vm._f("numeral")(_vm.promedios.icb, "0,0.00")
+                            ) +
+                            "\n                  "
+                        )
+                      ])
                     ])
                   ])
                 ]
@@ -54592,7 +54711,12 @@ var render = function() {
                             return _c(
                               "option",
                               { key: index, domProps: { value: alimento.id } },
-                              [_vm._v(_vm._s(alimento.alimento))]
+                              [
+                                _vm._v(
+                                  "\n                    " +
+                                    _vm._s(alimento.alimento)
+                                )
+                              ]
                             )
                           })
                         ],
@@ -59304,7 +59428,11 @@ var render = function() {
                       return _c(
                         "option",
                         { key: index, domProps: { value: ls.id } },
-                        [_vm._v(_vm._s(ls.nombre_siembra))]
+                        [
+                          _vm._v(
+                            _vm._s(ls.nombre_siembra) + "\n                "
+                          )
+                        ]
                       )
                     })
                   ],
@@ -59375,13 +59503,13 @@ var render = function() {
                     staticClass: "btn btn-primary",
                     on: {
                       click: function($event) {
-                        return _vm.filtroSiembra()
+                        return _vm.listar()
                       }
                     }
                   },
                   [
                     _vm._v(
-                      "\n                        Filtrar resultados\n                      "
+                      "\n                Filtrar resultados\n              "
                     )
                   ]
                 )
@@ -59404,7 +59532,7 @@ var render = function() {
                     },
                     [
                       _c("i", { staticClass: "fa fa-fw fa-download" }),
-                      _vm._v(" Generar Excel \n                      ")
+                      _vm._v(" Generar Excel\n              ")
                     ]
                   )
                 ],
@@ -59451,67 +59579,120 @@ var render = function() {
                             }
                           }),
                           _vm._v(" "),
-                          _c("td", {
-                            domProps: {
-                              textContent: _vm._s(le.biomasa_inicial)
-                            }
-                          }),
+                          _c("td", [
+                            _vm._v(
+                              "\n                    " +
+                                _vm._s(
+                                  _vm._f("numeral")(le.biomasa_inicial, "0.00")
+                                ) +
+                                "\n                  "
+                            )
+                          ]),
                           _vm._v(" "),
-                          _c("td", {
-                            domProps: {
-                              textContent: _vm._s(le.biomasa_disponible)
-                            }
-                          }),
+                          _c("td", [
+                            _vm._v(
+                              "\n                    " +
+                                _vm._s(
+                                  _vm._f("numeral")(
+                                    le.biomasa_disponible,
+                                    "0.00"
+                                  )
+                                ) +
+                                "\n                  "
+                            )
+                          ]),
                           _vm._v(" "),
                           le.salida_biomasa
                             ? _c("td", [
-                                _vm._v(_vm._s(le.salida_biomasa) + " kg")
+                                _vm._v(
+                                  _vm._s(
+                                    _vm._f("numeral")(le.salida_biomasa, "0.00")
+                                  ) + " kg"
+                                )
                               ])
                             : _c("td", [_vm._v("0")]),
                           _vm._v(" "),
-                          _c("td", {
-                            domProps: { textContent: _vm._s(le.mortalidad) }
-                          }),
+                          _c("td", [
+                            _vm._v(
+                              "\n                    " +
+                                _vm._s(
+                                  _vm._f("numeral")(le.mortalidad, "0.00")
+                                ) +
+                                "\n                  "
+                            )
+                          ]),
                           _vm._v(" "),
-                          _c("td", {
-                            domProps: {
-                              textContent: _vm._s(
-                                le.mortalidad_kg
-                                  ? le.mortalidad_kg + " kg"
-                                  : "0"
-                              )
-                            }
-                          }),
+                          _c("td", [
+                            _vm._v(
+                              "\n                    " +
+                                _vm._s(
+                                  _vm._f("numeral")(le.mortalidad_kg, "0.00")
+                                ) +
+                                " kg\n                  "
+                            )
+                          ]),
                           _vm._v(" "),
-                          _c("td", {
-                            domProps: {
-                              textContent: _vm._s(le.cantidad_total_alimento)
-                            }
-                          }),
+                          _c("td", [
+                            _vm._v(
+                              "\n                    " +
+                                _vm._s(
+                                  _vm._f("numeral")(
+                                    le.cantidad_total_alimento,
+                                    "0.00"
+                                  )
+                                ) +
+                                "\n                  "
+                            )
+                          ]),
                           _vm._v(" "),
-                          _c("td", {
-                            domProps: {
-                              textContent: _vm._s(le.incr_bio_acum_conver)
-                            }
-                          }),
+                          _c("td", [
+                            _vm._v(
+                              "\n                    " +
+                                _vm._s(
+                                  _vm._f("numeral")(
+                                    le.incr_bio_acum_conver,
+                                    "0.00"
+                                  )
+                                ) +
+                                "\n                  "
+                            )
+                          ]),
                           _vm._v(" "),
-                          _c("td", {
-                            domProps: {
-                              textContent: _vm._s(le.conversion_alimenticia)
-                            }
-                          }),
+                          _c("td", [
+                            _vm._v(
+                              "\n                    " +
+                                _vm._s(
+                                  _vm._f("numeral")(
+                                    le.conversion_alimenticia,
+                                    "0.00"
+                                  )
+                                ) +
+                                "\n                  "
+                            )
+                          ]),
                           _vm._v(" "),
-                          _c("td", {
-                            domProps: {
-                              textContent: _vm._s(le.bio_dispo_alimen)
-                            }
-                          }),
+                          _c("td", [
+                            _vm._v(
+                              "\n                    " +
+                                _vm._s(
+                                  _vm._f("numeral")(le.bio_dispo_alimen, "0.00")
+                                ) +
+                                "\n                  "
+                            )
+                          ]),
                           _vm._v(" "),
-                          _c("td", {
-                            domProps: {
-                              textContent: _vm._s(le.porc_supervivencia_final)
-                            }
-                          })
+                          _c("td", [
+                            _vm._v(
+                              "\n                    " +
+                                _vm._s(
+                                  _vm._f("numeral")(
+                                    le.porc_supervivencia_final,
+                                    "0.00"
+                                  )
+                                ) +
+                                "\n                  "
+                            )
+                          ])
                         ])
                       }),
                       0
@@ -59547,13 +59728,13 @@ var staticRenderFns = [
         _vm._v(" "),
         _c("th", [_vm._v("Area m"), _c("sup", [_vm._v("3")])]),
         _vm._v(" "),
-        _c("th", [_vm._v("Cant Inicial")]),
+        _c("th", [_vm._v("Cant Inicial (Animales) ")]),
         _vm._v(" "),
-        _c("th", [_vm._v("Biomasa Inicial")]),
+        _c("th", [_vm._v("Biomasa Inicial (Kg)")]),
         _vm._v(" "),
-        _c("th", [_vm._v("Biomasa disponible muestreo")]),
+        _c("th", [_vm._v("Biomasa disponible muestreo (Kg)")]),
         _vm._v(" "),
-        _c("th", [_vm._v("Biomasa cosechada")]),
+        _c("th", [_vm._v("Biomasa cosechada (Kg)")]),
         _vm._v(" "),
         _c("th", [_vm._v("Mortalidad")]),
         _vm._v(" "),
@@ -59561,11 +59742,11 @@ var staticRenderFns = [
         _vm._v(" "),
         _c("th", [_vm._v("Total alimento (Kg)")]),
         _vm._v(" "),
-        _c("th", [_vm._v("Incremento de biomasa por alimento")]),
+        _c("th", [_vm._v("Incremento de biomasa por alimento (Kg)")]),
         _vm._v(" "),
         _c("th", [_vm._v("Conversión Alimenticia")]),
         _vm._v(" "),
-        _c("th", [_vm._v("Biomasa disponible por alimento")]),
+        _c("th", [_vm._v("Biomasa disponible por alimento (Kg)")]),
         _vm._v(" "),
         _c("th", [_vm._v("% Supervivencia final")])
       ])
@@ -59607,9 +59788,7 @@ var render = function() {
             _c("div", { staticClass: "row" }, [
               _c("div", { staticClass: "form-group col-md-2" }, [
                 _c("label", { attrs: { for: "f_estado" } }, [
-                  _vm._v(
-                    "\n                        Estado:\n                        "
-                  ),
+                  _vm._v("\n                Estado:\n                "),
                   _c(
                     "select",
                     {
@@ -59664,7 +59843,7 @@ var render = function() {
                       name: "show",
                       rawName: "v-show",
                       value: _vm.f_estado == 1,
-                      expression: "f_estado==1"
+                      expression: "f_estado == 1"
                     }
                   ],
                   staticClass: "form-group col-3"
@@ -59703,14 +59882,28 @@ var render = function() {
                         }
                       }
                     },
-                    _vm._l(_vm.siembrasActivas, function(siembraActiva, index) {
-                      return _c(
-                        "option",
-                        { key: index, domProps: { value: siembraActiva.id } },
-                        [_vm._v(_vm._s(siembraActiva.nombre_siembra))]
-                      )
-                    }),
-                    0
+                    [
+                      _c("option", { attrs: { value: "-1" } }, [
+                        _vm._v("--Seleccionar--")
+                      ]),
+                      _vm._v(" "),
+                      _vm._l(_vm.siembrasActivas, function(
+                        siembraActiva,
+                        index
+                      ) {
+                        return _c(
+                          "option",
+                          { key: index, domProps: { value: siembraActiva.id } },
+                          [
+                            _vm._v(
+                              "\n                  " +
+                                _vm._s(siembraActiva.nombre_siembra)
+                            )
+                          ]
+                        )
+                      })
+                    ],
+                    2
                   )
                 ]
               ),
@@ -59723,7 +59916,7 @@ var render = function() {
                       name: "show",
                       rawName: "v-show",
                       value: _vm.f_estado == 0,
-                      expression: "f_estado==0"
+                      expression: "f_estado == 0"
                     }
                   ],
                   staticClass: "form-group col-3"
@@ -59765,17 +59958,26 @@ var render = function() {
                         }
                       }
                     },
-                    _vm._l(_vm.siembrasInactivas, function(
-                      siembraInactiva,
-                      index
-                    ) {
-                      return _c(
-                        "option",
-                        { key: index, domProps: { value: siembraInactiva.id } },
-                        [_vm._v(_vm._s(siembraInactiva.nombre_siembra))]
-                      )
-                    }),
-                    0
+                    [
+                      _c("option", { attrs: { value: "-1" } }, [
+                        _vm._v("--Seleccionar--")
+                      ]),
+                      _vm._v(" "),
+                      _vm._l(_vm.siembrasInactivas, function(
+                        siembraInactiva,
+                        index
+                      ) {
+                        return _c(
+                          "option",
+                          {
+                            key: index,
+                            domProps: { value: siembraInactiva.id }
+                          },
+                          [_vm._v(_vm._s(siembraInactiva.nombre_siembra))]
+                        )
+                      })
+                    ],
+                    2
                   )
                 ]
               ),
@@ -59872,7 +60074,7 @@ var render = function() {
                       return _c(
                         "option",
                         { key: index, domProps: { value: les.id } },
-                        [_vm._v(_vm._s(les.especie))]
+                        [_vm._v(_vm._s(les.especie) + "\n                ")]
                       )
                     })
                   ],
@@ -59999,13 +60201,13 @@ var render = function() {
                     staticClass: "btn btn-primary",
                     on: {
                       click: function($event) {
-                        return _vm.filtroCiclo()
+                        return _vm.listar()
                       }
                     }
                   },
                   [
                     _vm._v(
-                      "\n                        Filtrar resultados\n                      "
+                      "\n                Filtrar resultados\n              "
                     )
                   ]
                 )
@@ -60028,7 +60230,7 @@ var render = function() {
                     },
                     [
                       _c("i", { staticClass: "fa fa-fw fa-download" }),
-                      _vm._v(" Generar Excel \n                      ")
+                      _vm._v(" Generar Excel\n              ")
                     ]
                   )
                 ],
@@ -60036,7 +60238,7 @@ var render = function() {
               )
             ]),
             _vm._v(" "),
-            _c("div", [
+            _c("div", {}, [
               _c(
                 "table",
                 {
@@ -60048,119 +60250,348 @@ var render = function() {
                   _vm._v(" "),
                   _c(
                     "tbody",
-                    _vm._l(_vm.listadoExistencias, function(le, index) {
-                      return _c("tr", { key: index }, [
-                        _c("td", {
-                          domProps: { textContent: _vm._s(index + 1) }
-                        }),
-                        _vm._v(" "),
-                        _c("td", {
-                          staticClass: "fixed-column",
-                          domProps: { textContent: _vm._s(le.nombre_siembra) }
-                        }),
-                        _vm._v(" "),
-                        _c("td", {
-                          domProps: { textContent: _vm._s(le.lote) }
-                        }),
-                        _vm._v(" "),
-                        _c("td", {
-                          domProps: { textContent: _vm._s(le.capacidad) }
-                        }),
-                        _vm._v(" "),
-                        _c("td", {
-                          domProps: { textContent: _vm._s(le.especie) }
-                        }),
-                        _vm._v(" "),
-                        _c("td", {
-                          domProps: { textContent: _vm._s(le.fecha_inicio) }
-                        }),
-                        _vm._v(" "),
-                        _c("td", {
-                          domProps: { textContent: _vm._s(le.cantidad_inicial) }
-                        }),
-                        _vm._v(" "),
-                        _c("td", {
-                          domProps: {
-                            textContent: _vm._s(le.peso_inicial + " gr")
-                          }
-                        }),
-                        _vm._v(" "),
-                        _c("td", {
-                          domProps: { textContent: _vm._s(le.cantidad_actual) }
-                        }),
-                        _vm._v(" "),
-                        _c("td", {
-                          domProps: {
-                            textContent: _vm._s(le.peso_actual + " gr")
-                          }
-                        }),
-                        _vm._v(" "),
-                        _c("td", {
-                          domProps: { textContent: _vm._s(le.fecha_registro) }
-                        }),
-                        _vm._v(" "),
-                        le.intervalo_tiempo
-                          ? _c("td", [
-                              _vm._v(_vm._s(le.intervalo_tiempo) + " días")
-                            ])
-                          : _c("td", [_vm._v("0")]),
-                        _vm._v(" "),
-                        _c("td", {
-                          domProps: {
-                            textContent: _vm._s(le.biomasa_disponible + " kg")
-                          }
-                        }),
-                        _vm._v(" "),
-                        le.salida_biomasa
-                          ? _c("td", [
-                              _vm._v(_vm._s(le.salida_biomasa) + " kg")
-                            ])
-                          : _c("td", [_vm._v("0")]),
-                        _vm._v(" "),
-                        le.mortalidad
-                          ? _c("td", [_vm._v(_vm._s(le.mortalidad))])
-                          : _c("td", [_vm._v("0")]),
-                        _vm._v(" "),
-                        _c("td", {
-                          domProps: {
-                            textContent: _vm._s(
-                              le.mortalidad_kg ? le.mortalidad_kg + " kg" : "0"
+                    [
+                      _vm._l(_vm.listadoExistencias, function(le, index) {
+                        return _c("tr", { key: index }, [
+                          _c("td", {
+                            domProps: { textContent: _vm._s(index + 1) }
+                          }),
+                          _vm._v(" "),
+                          _c("td", { staticClass: "fixed-column" }, [
+                            _vm._v(
+                              "\n                    " +
+                                _vm._s(le.nombre_siembra) +
+                                "\n                  "
                             )
-                          }
-                        }),
+                          ]),
+                          _vm._v(" "),
+                          _c("td", [
+                            _vm._v(
+                              "\n                    " +
+                                _vm._s(le.lote) +
+                                "\n                  "
+                            )
+                          ]),
+                          _vm._v(" "),
+                          _c("td", [
+                            _vm._v(
+                              "\n                    " +
+                                _vm._s(le.capacidad) +
+                                "\n                  "
+                            )
+                          ]),
+                          _vm._v(" "),
+                          _c("td", [
+                            _vm._v(
+                              "\n                    " +
+                                _vm._s(le.especie.especie) +
+                                "\n                  "
+                            )
+                          ]),
+                          _vm._v(" "),
+                          _c("td", [
+                            _vm._v(
+                              "\n                    " +
+                                _vm._s(le.fecha_inicio) +
+                                "\n                  "
+                            )
+                          ]),
+                          _vm._v(" "),
+                          _c("td", [
+                            _vm._v(
+                              "\n                    " +
+                                _vm._s(le.cantidad_inicial) +
+                                "\n                  "
+                            )
+                          ]),
+                          _vm._v(" "),
+                          _c("td", [
+                            _vm._v(
+                              "\n                    " +
+                                _vm._s(le.peso_inicial) +
+                                " gr\n                  "
+                            )
+                          ]),
+                          _vm._v(" "),
+                          _c("td", [
+                            _vm._v(
+                              "\n                    " +
+                                _vm._s(
+                                  _vm._f("numeral")(le.cantidad_actual, "0.00")
+                                ) +
+                                "\n                  "
+                            )
+                          ]),
+                          _vm._v(" "),
+                          _c("td", [
+                            _vm._v(
+                              "\n                    " +
+                                _vm._s(le.peso_actual) +
+                                " gr\n                  "
+                            )
+                          ]),
+                          _vm._v(" "),
+                          _c("td", [
+                            _vm._v(
+                              "\n                    " +
+                                _vm._s(le.fecha_registro) +
+                                "\n                  "
+                            )
+                          ]),
+                          _vm._v(" "),
+                          _c("td", [
+                            _vm._v(_vm._s(le.intervalo_tiempo) + " días")
+                          ]),
+                          _vm._v(" "),
+                          _c("td", [
+                            _vm._v(
+                              _vm._s(
+                                _vm._f("numeral")(
+                                  le.intervalo_tiempo_months,
+                                  "0.00"
+                                )
+                              ) + " meses"
+                            )
+                          ]),
+                          _vm._v(" "),
+                          _c("td", [
+                            _vm._v(
+                              "\n                    " +
+                                _vm._s(
+                                  _vm._f("numeral")(
+                                    le.biomasa_disponible,
+                                    "0.00"
+                                  )
+                                ) +
+                                " kg\n                  "
+                            )
+                          ]),
+                          _vm._v(" "),
+                          _c("td", [
+                            _vm._v(
+                              _vm._s(
+                                _vm._f("numeral")(le.salida_biomasa, "0.00")
+                              ) + " kg"
+                            )
+                          ]),
+                          _vm._v(" "),
+                          _c("td", [
+                            _vm._v(
+                              _vm._s(_vm._f("numeral")(le.mortalidad, "0.00"))
+                            )
+                          ]),
+                          _vm._v(" "),
+                          _c("td", [
+                            _vm._v(
+                              " " +
+                                _vm._s(
+                                  _vm._f("numeral")(le.mortalidad_kg, "0.00")
+                                ) +
+                                " kg"
+                            )
+                          ]),
+                          _vm._v(" "),
+                          _c("td", [
+                            _vm._v(
+                              _vm._s(
+                                _vm._f("numeral")(
+                                  le.mortalidad_porcentaje,
+                                  "0.00"
+                                )
+                              )
+                            )
+                          ]),
+                          _vm._v(" "),
+                          _c("td", [
+                            _vm._v(
+                              _vm._s(
+                                _vm._f("numeral")(
+                                  le.salida_animales_sin_mortalidad,
+                                  "0.00"
+                                )
+                              )
+                            )
+                          ]),
+                          _vm._v(" "),
+                          _c("td", [
+                            _vm._v(
+                              "\n                    " +
+                                _vm._s(
+                                  _vm._f("numeral")(
+                                    le.incremento_biomasa,
+                                    "0.00"
+                                  )
+                                ) +
+                                "\n                  "
+                            )
+                          ]),
+                          _vm._v(" "),
+                          _c("td", [
+                            _vm._v(
+                              "\n                    " +
+                                _vm._s(
+                                  _vm._f("numeral")(
+                                    le.ganancia_peso_dia,
+                                    "0.00"
+                                  )
+                                ) +
+                                "\n                  "
+                            )
+                          ]),
+                          _vm._v(" "),
+                          _c("td", [
+                            _vm._v(
+                              "\n                    " +
+                                _vm._s(
+                                  _vm._f("numeral")(le.densidad_parcial, "0.00")
+                                ) +
+                                "\n                  "
+                            )
+                          ]),
+                          _vm._v(" "),
+                          _c("td", [
+                            _vm._v(
+                              "\n                    " +
+                                _vm._s(
+                                  _vm._f("numeral")(le.carga_parcial, "0.00")
+                                ) +
+                                "\n                  "
+                            )
+                          ])
+                        ])
+                      }),
+                      _vm._v(" "),
+                      _c("tr", { staticClass: "h6 font-weight-bold" }, [
+                        _c("td"),
                         _vm._v(" "),
-                        le.mortalidad_porcentaje
-                          ? _c("td", [_vm._v(_vm._s(le.mortalidad_porcentaje))])
-                          : _c("td", [_vm._v("0")]),
+                        _c("td"),
                         _vm._v(" "),
-                        le.salida_animales_sin_mortalidad
-                          ? _c("td", [
-                              _vm._v(_vm._s(le.salida_animales_sin_mortalidad))
-                            ])
-                          : _c("td", [_vm._v("0")]),
+                        _c("td"),
                         _vm._v(" "),
-                        _c("td", {
-                          domProps: {
-                            textContent: _vm._s(le.incremento_biomasa)
-                          }
-                        }),
+                        _c("td"),
                         _vm._v(" "),
-                        _c("td", {
-                          domProps: {
-                            textContent: _vm._s(le.ganancia_peso_dia)
-                          }
-                        }),
+                        _c("td"),
                         _vm._v(" "),
-                        _c("td", {
-                          domProps: { textContent: _vm._s(le.densidad_final) }
-                        }),
+                        _c("td"),
                         _vm._v(" "),
-                        _c("td", {
-                          domProps: { textContent: _vm._s(le.carga_final) }
-                        })
+                        _c("td", [
+                          _vm._v(
+                            _vm._s(
+                              _vm._f("numeral")(
+                                _vm.totalizadoEspeciesSiembras.cantidad_inicial,
+                                "0,00"
+                              )
+                            )
+                          )
+                        ]),
+                        _vm._v(" "),
+                        _c("td", [
+                          _vm._v(
+                            _vm._s(
+                              _vm._f("numeral")(
+                                _vm.totalizadoEspeciesSiembras.peso_inicial,
+                                "0,00"
+                              )
+                            )
+                          )
+                        ]),
+                        _vm._v(" "),
+                        _c("td", [
+                          _vm._v(
+                            _vm._s(
+                              _vm._f("numeral")(
+                                _vm.totalizadoEspeciesSiembras.cantidad_actual,
+                                "0,00"
+                              )
+                            )
+                          )
+                        ]),
+                        _vm._v(" "),
+                        _c("td"),
+                        _vm._v(" "),
+                        _c("td"),
+                        _vm._v(" "),
+                        _c("td"),
+                        _vm._v(" "),
+                        _c("td"),
+                        _vm._v(" "),
+                        _c("td", [
+                          _vm._v(
+                            "\n                    " +
+                              _vm._s(
+                                _vm._f("numeral")(
+                                  _vm.totalizadoEspeciesSiembras
+                                    .biomasa_disponible,
+                                  "0.00"
+                                )
+                              ) +
+                              "\n                  "
+                          )
+                        ]),
+                        _vm._v(" "),
+                        _c("td", [
+                          _vm._v(
+                            "\n                    " +
+                              _vm._s(
+                                _vm._f("numeral")(
+                                  _vm.totalizadoEspeciesSiembras.salida_biomasa,
+                                  "0.00"
+                                )
+                              ) +
+                              "\n                  "
+                          )
+                        ]),
+                        _vm._v(" "),
+                        _c("td", [
+                          _vm._v(
+                            _vm._s(
+                              _vm._f("numeral")(
+                                _vm.totalizadoEspeciesSiembras.mortalidad,
+                                "0.00"
+                              )
+                            )
+                          )
+                        ]),
+                        _vm._v(" "),
+                        _c("td", [
+                          _vm._v(
+                            "\n                    " +
+                              _vm._s(
+                                _vm._f("numeral")(
+                                  _vm.totalizadoEspeciesSiembras.mortalidad_kg,
+                                  "0.00"
+                                )
+                              ) +
+                              "\n                  "
+                          )
+                        ]),
+                        _vm._v(" "),
+                        _c("td"),
+                        _vm._v(" "),
+                        _c("td", [
+                          _vm._v(
+                            "\n                    " +
+                              _vm._s(
+                                _vm._f("numeral")(
+                                  _vm.totalizadoEspeciesSiembras
+                                    .salida_animales_sin_mortalidad,
+                                  "0.00"
+                                )
+                              ) +
+                              "\n                  "
+                          )
+                        ]),
+                        _vm._v(" "),
+                        _c("td"),
+                        _vm._v(" "),
+                        _c("td"),
+                        _vm._v(" "),
+                        _c("td"),
+                        _vm._v(" "),
+                        _c("td")
                       ])
-                    }),
-                    0
+                    ],
+                    2
                   )
                 ]
               )
@@ -60198,21 +60629,58 @@ var staticRenderFns = [
         _vm._v(" "),
         _c("th", [_vm._v("Inicio siembra")]),
         _vm._v(" "),
-        _c("th", [_vm._v("Cant Inicial")]),
+        _c("th", [
+          _vm._v("Cant Inicial "),
+          _c("br"),
+          _vm._v(" "),
+          _c("small", [_vm._v("(Animales)")])
+        ]),
         _vm._v(" "),
-        _c("th", [_vm._v("Peso Inicial")]),
+        _c("th", [
+          _vm._v("Peso Inicial "),
+          _c("br"),
+          _vm._v(" "),
+          _c("small", [_vm._v("(g)")])
+        ]),
         _vm._v(" "),
         _c("th", [_vm._v("Animales finales")]),
         _vm._v(" "),
-        _c("th", [_vm._v("Peso Actual")]),
+        _c("th", [
+          _vm._v("Peso Actual "),
+          _c("br"),
+          _vm._v(" "),
+          _c("small", [_vm._v("(g)")])
+        ]),
         _vm._v(" "),
         _c("th", [_vm._v("Fecha último registro")]),
         _vm._v(" "),
-        _c("th", [_vm._v("Tiempo de cultivo")]),
+        _c("th", [
+          _vm._v("Tiempo de cultivo "),
+          _c("br"),
+          _vm._v(" "),
+          _c("small", [_vm._v("(Días)")])
+        ]),
         _vm._v(" "),
-        _c("th", [_vm._v("Biomasa dispo")]),
+        _c("th", [
+          _vm._v("Tiempo de cultivo "),
+          _c("br"),
+          _vm._v(" "),
+          _c("small", [_vm._v("(Meses)")])
+        ]),
         _vm._v(" "),
-        _c("th", [_vm._v("Biomasa cosechada")]),
+        _c("th", [
+          _vm._v("Biomasa muestreo "),
+          _c("br"),
+          _vm._v(" "),
+          _c("small", [_vm._v("(Kg)")])
+        ]),
+        _vm._v(" "),
+        _c("th", [
+          _vm._v("Biomasa cosechada "),
+          _c("br"),
+          _vm._v(" "),
+          _c("small", [_vm._v("(Kg)")])
+        ]),
         _vm._v(" "),
         _c("th", [_vm._v("Mortalidad Animales")]),
         _vm._v(" "),
@@ -60222,20 +60690,36 @@ var staticRenderFns = [
         _vm._v(" "),
         _c("th", [_vm._v("Animales cosechados")]),
         _vm._v(" "),
-        _c("th", [_vm._v("Incremento de biomasa")]),
-        _vm._v(" "),
-        _c("th", [_vm._v("Ganancia de peso por día")]),
-        _vm._v(" "),
         _c("th", [
-          _vm._v("Densidad Final (Animales/m"),
-          _c("sup", [_vm._v("2")]),
-          _vm._v(")")
+          _vm._v("Incremento de biomasa "),
+          _c("br"),
+          _vm._v(" "),
+          _c("small", [_vm._v("(Kg)")])
         ]),
         _vm._v(" "),
         _c("th", [
-          _vm._v("Carga Final (Kg/m"),
-          _c("sup", [_vm._v("2")]),
-          _vm._v(")")
+          _vm._v("Ganancia de peso por día "),
+          _c("br"),
+          _vm._v(" "),
+          _c("small", [_vm._v("(g / día)")])
+        ]),
+        _vm._v(" "),
+        _c("th", [
+          _vm._v("Densidad parcial "),
+          _c("br"),
+          _vm._v(" "),
+          _c("small", [
+            _vm._v("(Animales/m"),
+            _c("sup", [_vm._v("2")]),
+            _vm._v(")")
+          ])
+        ]),
+        _vm._v(" "),
+        _c("th", [
+          _vm._v("Carga parcial "),
+          _c("br"),
+          _vm._v(" "),
+          _c("small", [_vm._v("(Kg/m"), _c("sup", [_vm._v("2")]), _vm._v(")")])
         ])
       ])
     ])
@@ -64652,16 +65136,16 @@ var render = function() {
                           actividad,
                           index
                         ) {
-                          return _c(
-                            "option",
-                            { key: index, domProps: { value: actividad.id } },
-                            [
-                              _vm._v(
-                                "\n                      " +
-                                  _vm._s(actividad.actividad)
-                              )
-                            ]
-                          )
+                          return [
+                            actividad.actividad != "Alimentación"
+                              ? _c("option", { key: index }, [
+                                  _vm._v(
+                                    "\n                        " +
+                                      _vm._s(actividad.actividad)
+                                  )
+                                ])
+                              : _vm._e()
+                          ]
                         })
                       ],
                       2
@@ -64711,7 +65195,13 @@ var render = function() {
                           return _c(
                             "option",
                             { key: index, domProps: { value: recurso.id } },
-                            [_vm._v(_vm._s(recurso.recurso))]
+                            [
+                              _vm._v(
+                                "\n                      " +
+                                  _vm._s(recurso.recurso) +
+                                  "\n                    "
+                              )
+                            ]
                           )
                         })
                       ],
@@ -64910,11 +65400,18 @@ var render = function() {
                             }
                           }),
                           _vm._v(" "),
-                          _c("td", {
-                            domProps: {
-                              textContent: _vm._s(item.total_minutos_hombre)
-                            }
-                          }),
+                          _c("td", [
+                            _vm._v(
+                              "\n                    " +
+                                _vm._s(
+                                  _vm._f("numeral")(
+                                    item.total_minutos_hombre,
+                                    "$0,0.00"
+                                  )
+                                ) +
+                                "\n                  "
+                            )
+                          ]),
                           _vm._v(" "),
                           _c("td", {
                             domProps: { textContent: _vm._s(item.recurso) }
@@ -64926,15 +65423,28 @@ var render = function() {
                             }
                           }),
                           _vm._v(" "),
-                          _c("td", {
-                            domProps: { textContent: _vm._s(item.costo) }
-                          }),
+                          _c("td", [
+                            _vm._v(
+                              "\n                    " +
+                                _vm._s(
+                                  _vm._f("numeral")(item.costo, "$0,0.00")
+                                ) +
+                                "\n                  "
+                            )
+                          ]),
                           _vm._v(" "),
-                          _c("td", {
-                            domProps: {
-                              textContent: _vm._s(item.costo_total_recurso)
-                            }
-                          }),
+                          _c("td", [
+                            _vm._v(
+                              "\n                    " +
+                                _vm._s(
+                                  _vm._f("numeral")(
+                                    item.costo_total_recurso,
+                                    "$0,0.00"
+                                  )
+                                ) +
+                                "\n                  "
+                            )
+                          ]),
                           _vm._v(" "),
                           _c("td", {
                             domProps: { textContent: _vm._s(item.detalles) }
@@ -64988,9 +65498,15 @@ var render = function() {
                           domProps: { textContent: _vm._s(_vm.promedios.tmh) }
                         }),
                         _vm._v(" "),
-                        _c("th", {
-                          domProps: { textContent: _vm._s(_vm.promedios.ttmh) }
-                        }),
+                        _c("th", [
+                          _vm._v(
+                            "\n                    " +
+                              _vm._s(
+                                _vm._f("numeral")(_vm.promedios.ttmh, "$0,0.00")
+                              ) +
+                              "\n                  "
+                          )
+                        ]),
                         _vm._v(" "),
                         _c("th"),
                         _vm._v(" "),
@@ -64998,13 +65514,25 @@ var render = function() {
                           domProps: { textContent: _vm._s(_vm.promedios.tcr) }
                         }),
                         _vm._v(" "),
-                        _c("th", {
-                          domProps: { textContent: _vm._s(_vm.promedios.tc) }
-                        }),
+                        _c("th", [
+                          _vm._v(
+                            "\n                    " +
+                              _vm._s(
+                                _vm._f("numeral")(_vm.promedios.tc, "$0,0.00")
+                              ) +
+                              "\n                  "
+                          )
+                        ]),
                         _vm._v(" "),
-                        _c("th", {
-                          domProps: { textContent: _vm._s(_vm.promedios.ctr) }
-                        }),
+                        _c("th", [
+                          _vm._v(
+                            "\n                    " +
+                              _vm._s(
+                                _vm._f("numeral")(_vm.promedios.ctr, "$0,0.00")
+                              ) +
+                              "\n                  "
+                          )
+                        ]),
                         _vm._v(" "),
                         _c("th"),
                         _vm._v(" "),
@@ -87802,8 +88330,16 @@ window._ = __webpack_require__(/*! lodash */ "./node_modules/lodash/lodash.js");
 try {
   window.Popper = __webpack_require__(/*! popper.js */ "./node_modules/popper.js/dist/esm/popper.js")["default"];
   window.$ = window.jQuery = __webpack_require__(/*! jquery */ "./node_modules/jquery/dist/jquery.js");
+  window.numeral = __webpack_require__(/*! numeral */ "./node_modules/numeral/numeral.js");
 
-  __webpack_require__(/*! bootstrap */ "./node_modules/bootstrap/dist/js/bootstrap.js");
+  __webpack_require__(/*! bootstrap */ "./node_modules/bootstrap/dist/js/bootstrap.js"); //     npm install --save jszip
+  // npm install --save datatables.net-bs4
+  // npm install --save datatables.net-buttons-bs4
+  //     require( 'jszip' );
+  // require( 'datatables.net-bs4' )();
+  // require( 'datatables.net-buttons-bs4' )();
+  // require( 'datatables.net-buttons/js/buttons.html5.js' )();
+
 } catch (e) {}
 /**
  * We'll load the axios HTTP library which allows us to easily issue requests

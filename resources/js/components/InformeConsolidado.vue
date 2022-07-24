@@ -52,7 +52,7 @@
                             </div>
 
                             <div class="form-group col-md-2">
-                                <button class="btn btn-primary" @click="filtroSiembra()">
+                                <button class="btn btn-primary" @click="listar()">
                                     Filtrar resultados
                                 </button>
                             </div>
@@ -213,11 +213,11 @@ export default {
             siembrasInactivas: [],
             imprimirRecursos: [],
             listadoEstanques: [],
-            f_siembra: "",
-            f_contenedor: "",
+            f_siembra: "-1",
+            f_contenedor: "-1",
             f_estado: "1",
-            f_inicio_d: "",
-            f_inicio_h: ""
+            f_inicio_d: "-1",
+            f_inicio_h: "-1"
         };
     },
     components: {
@@ -225,16 +225,20 @@ export default {
     },
     methods: {
         async fetchData() {
-            let me = this;
-            const response = await this.listadoExistencias;
             return this.listadoExistencias;
         },
         listar() {
             let me = this;
-            this.listarEspecies();
-            this.listarSiembras();
-            this.listarEstanques();
-            axios.get("api/traer-existencias-detalle").then(function (response) {
+
+            const data = {
+                'f_siembra': this.f_siembra == '-1' ? '-1' : this.f_siembra,
+                'f_contenedor': this.f_contenedor == '-1' ? '-1' : this.f_contenedor,
+                'f_estado': this.f_estado == '-1' ? '-1' : this.f_estado,
+                'f_inicio_d': this.f_inicio_d == '-1' ? '-1' : this.f_inicio_d,
+                'f_inicio_h': this.f_inicio_h == '-1' ? '-1' : this.f_inicio_h,
+            };
+
+            axios.get("api/traer-existencias-detalle", { params: data }).then(function (response) {
                 me.listadoExistencias = response.data.existencias;
             });
         },
@@ -260,50 +264,11 @@ export default {
                 me.listadoEstanques = response.data;
             });
         },
-
-        filtroSiembra() {
-            let me = this;
-
-            if (this.f_siembra == "") {
-                this.smb = "-1";
-            } else {
-                this.smb = this.f_siembra;
-            }
-            if (this.f_contenedor == "") {
-                this.cont = "-1";
-            } else {
-                this.cont = this.f_contenedor;
-            }
-            if (this.f_estado == "") {
-                this.est = "-1";
-            } else {
-                this.est = this.f_estado;
-            }
-            if (this.f_inicio_d == "") {
-                this.fecd = "-1";
-            } else {
-                this.fecd = this.f_inicio_d;
-            }
-            if (this.f_inicio_h == "") {
-                this.fech = "-1";
-            } else {
-                this.fech = this.f_inicio_h;
-            }
-            const data = {
-                f_siembra: this.smb,
-                f_contenedor: this.cont,
-                f_estado: this.est,
-                f_inicio_d: this.fecd,
-                f_inicio_h: this.fech
-            };
-            axios
-                .post("api/filtro-existencias-detalle", data)
-                .then(response => {
-                    me.listadoExistencias = response.data.existencias;
-                });
-        }
     },
     mounted() {
+        this.listarEspecies();
+        this.listarSiembras();
+        this.listarEstanques();
         this.listar();
     }
 };
