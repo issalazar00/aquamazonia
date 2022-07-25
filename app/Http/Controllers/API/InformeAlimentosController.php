@@ -5,7 +5,6 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\RecursoNecesario;
-use App\RecursoSiembra;
 use App\Alimento;
 use App\Recursos;
 use Illuminate\Support\Facades\DB;

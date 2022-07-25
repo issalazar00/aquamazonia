@@ -52,7 +52,7 @@
                             </div>
 
                             <div class="form-group col-md-2">
-                                <button class="btn btn-primary" @click="filtroSiembra()">
+                                <button class="btn btn-primary" @click="listar()">
                                     Filtrar resultados
                                 </button>
                             </div>
@@ -72,7 +72,8 @@
                                         <th class="fixed-column">Siembra</th>
                                         <th>Area</th>
                                         <th>Inicio siembra</th>
-                                        <th>Tiempo de cultivo</th>
+                                        <th>Tiempo de cultivo <br> <small>(Días)</small></th>
+                                        <th>Tiempo de cultivo <br> <small>(Meses)</small></th>
                                         <th>Cant Inicial</th>
                                         <th>Biomasa Inicial</th>
                                         <th>Peso Inicial</th>
@@ -115,49 +116,76 @@
                                         <td v-text="le.capacidad"></td>
                                         <td v-text="le.fecha_inicio"></td>
                                         <td v-text="le.intervalo_tiempo"></td>
-                                        <td v-text="le.cantidad_inicial"></td>
-                                        <td v-text="le.biomasa_inicial"></td>
-                                        <td v-text="le.peso_inicial + ' gr'"></td>
-                                        <td v-text="le.carga_inicial"></td>
-                                        <td v-text="le.cant_actual"></td>
-                                        <td v-text="le.peso_actual + ' gr'"></td>
-                                        <td v-text="
-                                            le.biomasa_disponible + ' kg'
-                                        "></td>
-                                        <td v-if="le.salida_biomasa">
-                                            {{ le.salida_biomasa }} kg
+                                        <td>{{ le.intervalo_tiempo_months | numeral('0.00') }} meses</td>
+                                        <td>
+                                            {{ le.cantidad_inicial | numeral('0.00') }}
                                         </td>
-                                        <td v-else>0</td>
-                                        <td>{{ le.mortalidad }}</td>
-                                        <td v-text="
-                                            le.mortalidad_kg
-                                                ? le.mortalidad_kg + ' kg'
-                                                : '0'
-                                        "></td>
-                                        <td v-if="le.mortalidad_porcentaje">
-                                            {{ le.mortalidad_porcentaje }}
+                                        <td>
+                                            {{ le.biomasa_inicial | numeral('0.00') }}</td>
+                                        <td>
+                                            {{ le.peso_inicial | numeral('0.00') }} gr
                                         </td>
-                                        <td v-else>0</td>
-                                        <td v-if="le.salida_animales_sin_mortalidad">
-                                            {{ le.salida_animales_sin_mortalidad }}
+                                        <td>
+                                            {{ le.carga_inicial | numeral('0.00') }}</td>
+                                        <td>
+                                            {{ le.cant_actual | numeral('0.00') }}</td>
+                                        <td>
+                                            {{ le.peso_actual | numeral('0.00') }} gr
                                         </td>
-                                        <td v-else>0</td>
-                                        <td v-text="le.densidad_inicial"></td>
-                                        <td v-text="le.densidad_final"></td>
-                                        <td v-text="le.carga_final"></td>
-                                        <td v-text="le.horas_hombre"></td>
-                                        <td v-text="le.costo_minutosh"></td>
-                                        <td v-text="le.costo_total_recurso"></td>
-                                        <td v-text="le.costo_total_alimento"></td>
-                                        <td v-text="le.cantidad_total_alimento"></td>
-                                        <td v-text="le.costo_tot"></td>
-                                        <td v-text="le.costo_produccion_final"></td>
-                                        <td v-text="
-                                            le.conversion_alimenticia_parcial
-                                        "></td>
-                                        <td v-text="le.conversion_final"></td>
-                                        <td v-text="le.ganancia_peso_dia"></td>
-                                        <td v-text="le.porc_supervivencia_final"></td>
+                                        <td>
+                                            {{ le.biomasa_disponible | numeral('0.00') }} kg
+                                        </td>
+                                        <td>
+                                            {{ le.salida_biomasa | numeral('0.00') }} kg
+                                        </td>
+
+                                        <td>{{ le.mortalidad | numeral('0.00') }}</td>
+                                        <td>
+                                            {{ le.mortalidad_kg | numeral('0.00') }} kg
+                                        </td>
+                                        <td>
+                                            {{ le.mortalidad_porcentaje | numeral('0.00') }}
+                                        </td>
+                                        <td>
+                                            {{ le.salida_animales_sin_mortalidad | numeral('0.00') }}
+                                        </td>
+                                        <td>
+                                            {{ le.densidad_inicial | numeral('0.00') }}
+                                        </td>
+                                        <td>
+                                            {{ le.densidad_final | numeral('0.00') }}
+                                        </td>
+                                        <td>
+                                            {{ le.carga_final | numeral('0.00') }}
+                                        </td>
+                                        <td>
+                                            {{ le.horas_hombre | numeral('0.00') }} horas</td>
+                                        <td>
+                                            {{ le.costo_minutosh | numeral('$0,0.00') }}</td>
+                                        <td>
+                                            {{ le.costo_total_recurso | numeral('$0,0.00') }}</td>
+                                        <td>
+                                            {{ le.costo_total_alimento | numeral('$0,0.00') }}
+                                        </td>
+                                        <td>
+                                            {{ le.cantidad_total_alimento }}</td>
+                                        <td>
+                                            {{ le.costo_tot | numeral('$0,0.00') }}</td>
+                                        <td>
+                                            {{ le.costo_produccion_final | numeral('$0,0.00') }}
+                                        </td>
+                                        <td>
+                                            {{ le.conversion_alimenticia_parcial | numeral('0.00') }}
+                                        </td>
+                                        <td>
+                                            {{ le.conversion_final | numeral('0.00') }}
+                                        </td>
+                                        <td>
+                                            {{ le.ganancia_peso_dia | numeral('0.00') }}
+                                        </td>
+                                        <td>
+                                            {{ le.porc_supervivencia_final | numeral('0.00') }}
+                                        </td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -202,7 +230,7 @@ export default {
                 "Total Kg Alimento": "cantidad_total_alimento",
                 "Costo total Siembra": "costo_tot",
                 "Costo producccion final": "costo_produccion_final",
-                "Conversión alimenticia parcial": "conversion_alimenticia_siembra",
+                "Conversión alimenticia parcial": "conversion_alimenticia_parcial",
                 "Conversion final": "conversion_final",
                 "Ganancia peso dia": "ganancia_peso_dia",
                 "% Supervivencia final": "porc_supervivencia_final"
@@ -213,11 +241,11 @@ export default {
             siembrasInactivas: [],
             imprimirRecursos: [],
             listadoEstanques: [],
-            f_siembra: "",
-            f_contenedor: "",
+            f_siembra: "-1",
+            f_contenedor: "-1",
             f_estado: "1",
-            f_inicio_d: "",
-            f_inicio_h: ""
+            f_inicio_d: "-1",
+            f_inicio_h: "-1"
         };
     },
     components: {
@@ -225,16 +253,20 @@ export default {
     },
     methods: {
         async fetchData() {
-            let me = this;
-            const response = await this.listadoExistencias;
             return this.listadoExistencias;
         },
         listar() {
             let me = this;
-            this.listarEspecies();
-            this.listarSiembras();
-            this.listarEstanques();
-            axios.get("api/traer-existencias-detalle").then(function (response) {
+
+            const data = {
+                'f_siembra': this.f_siembra == '-1' ? '-1' : this.f_siembra,
+                'f_contenedor': this.f_contenedor == '-1' ? '-1' : this.f_contenedor,
+                'f_estado': this.f_estado == '-1' ? '-1' : this.f_estado,
+                'f_inicio_d': this.f_inicio_d == '-1' ? '-1' : this.f_inicio_d,
+                'f_inicio_h': this.f_inicio_h == '-1' ? '-1' : this.f_inicio_h,
+            };
+
+            axios.get("api/traer-existencias-detalle", { params: data }).then(function (response) {
                 me.listadoExistencias = response.data.existencias;
             });
         },
@@ -260,50 +292,11 @@ export default {
                 me.listadoEstanques = response.data;
             });
         },
-
-        filtroSiembra() {
-            let me = this;
-
-            if (this.f_siembra == "") {
-                this.smb = "-1";
-            } else {
-                this.smb = this.f_siembra;
-            }
-            if (this.f_contenedor == "") {
-                this.cont = "-1";
-            } else {
-                this.cont = this.f_contenedor;
-            }
-            if (this.f_estado == "") {
-                this.est = "-1";
-            } else {
-                this.est = this.f_estado;
-            }
-            if (this.f_inicio_d == "") {
-                this.fecd = "-1";
-            } else {
-                this.fecd = this.f_inicio_d;
-            }
-            if (this.f_inicio_h == "") {
-                this.fech = "-1";
-            } else {
-                this.fech = this.f_inicio_h;
-            }
-            const data = {
-                f_siembra: this.smb,
-                f_contenedor: this.cont,
-                f_estado: this.est,
-                f_inicio_d: this.fecd,
-                f_inicio_h: this.fech
-            };
-            axios
-                .post("api/filtro-existencias-detalle", data)
-                .then(response => {
-                    me.listadoExistencias = response.data.existencias;
-                });
-        }
     },
     mounted() {
+        this.listarEspecies();
+        this.listarSiembras();
+        this.listarEstanques();
         this.listar();
     }
 };

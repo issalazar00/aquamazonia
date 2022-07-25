@@ -51,8 +51,7 @@ Route::namespace('API')->group(function () {
 	Route::post('actualizarEstado/{id}', 'SiembraController@actualizarEstado');
 	Route::post('filtro-siembras', 'InformeSiembraController@filtroSiembras');
 	Route::post('searchResults', 'RecursoNecesarioController@searchResults');
-	Route::post('filtro-ciclos', 'InformeController@filtroExistencias');
-	Route::post('filtro-existencias-detalle', 'InformeController@filtroExistenciasDetalle');
+	// Route::post('filtro-existencias-detalle', 'InformeController@filtroExistenciasDetalle');
 	Route::post('informe-recursos', 'InformeController@informeRecursos');
 	Route::post('informe-recursos-totales', 'InformeController@informeRecursosTotales');
 	Route::post('filtro-parametros', 'ParametroCalidadController@filtroParametros');

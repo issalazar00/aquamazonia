@@ -16,7 +16,7 @@ class Registro extends Model
 		'peso_ganado',
 		'mortalidad',
 		'biomasa',
-		'cantidad', 
+		'cantidad',
 		'estado'
 	];
 }
