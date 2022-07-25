@@ -39,6 +39,7 @@ class EspeciesSiembraController extends Controller
       'id_siembra',
       DB::raw('SUM(cantidad) as cantidad'),
       DB::raw('SUM(mortalidad) as mortalidad'),
+      DB::raw('SUM((mortalidad * peso_ganado) /1000 ) as mortalidad_kg'),
       DB::raw('SUM(biomasa) as biomasa')
     )
       ->where('id_siembra', $id_siembra)
@@ -50,11 +51,12 @@ class EspeciesSiembraController extends Controller
     return Registro::select(
       'id_siembra',
       DB::raw('SUM(cantidad) as cantidad'),
-      DB::raw('SUM(biomasa) as biomasa')
+      DB::raw('SUM(biomasa) as biomasa'),
+      DB::raw('SUM((mortalidad * peso_ganado) /1000 ) as mortalidad_kg'),
     )
       ->where('id_siembra', $id_siembra)
       ->where('tipo_registro', '<>', 0)
-    
+
       ->groupBy('id_siembra')
       ->first();
   }
@@ -69,6 +71,7 @@ class EspeciesSiembraController extends Controller
       'id_especie',
       DB::raw('SUM(cantidad) as cantidad'),
       DB::raw('SUM(mortalidad) as mortalidad'),
+      DB::raw('SUM((mortalidad * peso_ganado) /1000 ) as mortalidad_kg'),
       DB::raw('SUM(biomasa) as biomasa')
     )
       ->where('id_siembra', $id_siembra)
@@ -92,7 +95,8 @@ class EspeciesSiembraController extends Controller
       ->groupBy('id_siembra')
       ->groupBy('id_especie')
       ->first();
-  }  /**
+  }
+  /**
    * Store a newly created resource in storage.
    *
    * @param  \Illuminate\Http\Request  $request

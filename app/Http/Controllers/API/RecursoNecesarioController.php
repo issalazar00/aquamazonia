@@ -9,9 +9,8 @@ use App\RecursoSiembra;
 
 use App\Recursos;
 use App\Siembra;
-use App\Actividad;
+use Illuminate\Support\Facades\DB;
 
-use Illuminate\Support\Facades\Auth;
 
 class RecursoNecesarioController extends Controller
 {
@@ -75,65 +74,134 @@ class RecursoNecesarioController extends Controller
 	public function  alimentacion(Request $request)
 	{
 		$minutos_hombre = Recursos::select()->where('recurso', 'Minutos hombre')->orWhere('recurso', 'Minuto hombre')->orWhere('recurso', 'Minutos')->first();
-		$recursosNecesarios = RecursoNecesario::orderBy('fecha_ra', 'desc')
-			->join('recursos_siembras', 'recursos_necesarios.id', 'recursos_siembras.id_registro')
-			->join('alimentos', 'recursos_necesarios.id_alimento', 'alimentos.id')
-			->join('siembras', 'recursos_siembras.id_siembra', 'siembras.id')
-			->join('actividades', 'recursos_necesarios.tipo_actividad', 'actividades.id')
-			->where('tipo_actividad', '=', '1')
-			->where('estado', 1)
-			->paginate(20);
 
-		$promedioRecursos = array();
-		$summh = 0;
-		$cantm = 0;
-		$cantt = 0;
-		$alid = 0;
-		$coskg = 0;
-		$cta = 0;
-		$icb = 0;
-		$counter = count($recursosNecesarios);
-		if (count($recursosNecesarios) > 0) {
-			for ($i = 0; $i < count($recursosNecesarios); $i++) {
-				$recursosNecesarios[$i]->costo_total_alimento = ($recursosNecesarios[$i]->cant_tarde + $recursosNecesarios[$i]->cant_manana) * $recursosNecesarios[$i]->costo_kg;
-				$recursosNecesarios[$i]->total_minutos_hombre = $recursosNecesarios[$i]->minutos_hombre * $minutos_hombre->costo;
-				$recursosNecesarios[$i]->alimento_dia = $recursosNecesarios[$i]->cant_tarde + $recursosNecesarios[$i]->cant_manana;
-				if ($recursosNecesarios[$i]->conv_alimenticia > 0) {
-					$recursosNecesarios[$i]->incr_bio_acum_conver = $recursosNecesarios[$i]->alimento_dia / $recursosNecesarios[$i]->conv_alimenticia;
-					$recursosNecesarios[$i]->conv_alimenticia = $recursosNecesarios[$i]->conv_alimenticia;
-				}
-				$summh += $recursosNecesarios[$i]->minutos_hombre;
-				$cantm += $recursosNecesarios[$i]->cant_manana;
-				$cantt += $recursosNecesarios[$i]->cant_tarde;
-				$alid += $recursosNecesarios[$i]->alimento_dia;
-				$coskg += $recursosNecesarios[$i]->costo_kg;
-				$cta += $recursosNecesarios[$i]->costo_total_alimento;
-				$icb += $recursosNecesarios[$i]->incr_bio_acum_conver;
-				// Formato de numeros
-				$recursosNecesarios[$i]->incr_bio_acum_conver = number_format($recursosNecesarios[$i]->incr_bio_acum_conver, 2, ',', '');
-				$recursosNecesarios[$i]->costo_total_alimento = number_format($recursosNecesarios[$i]->costo_total_alimento, 2, ',', '');
-			}
-			$promedioRecursos['tmh'] =  $summh;
-			$promedioRecursos['cman'] = $cantm;
-			$promedioRecursos['ctar'] =  $cantt;
-			$promedioRecursos['alid'] =  $alid;
-			$promedioRecursos['coskg'] = $coskg / $counter;
-			$promedioRecursos['cta'] = $cta;
-			$promedioRecursos['icb'] = $icb;
+
+		$tipo_actividad = "recursos_necesarios.id";
+		$filtro_tipo_actividad = "!=";
+		$c2 = "-1";
+		$c3 = "recursos_necesarios.id";
+		$op2 = "!=";
+		$c4 = "-3";
+		$c5 = "recursos_necesarios.id";
+		$op3 = "!=";
+		$c6 = "-1";
+		$c7 = "recursos_necesarios.id";
+		$op4 = "!=";
+		$c8 = "-1";
+		$c9 = "recursos_necesarios.id";
+		$op5 = "!=";
+		$c10 = "-1";
+		$c11 = 'recursos_necesarios.id';
+		$op6 = '!=';
+		$c12 = '-1';
+		$filtroIdSiembra = 'recursos_necesarios.id';
+		$signoIdSiembra = '!=';
+		$c14 = '-1';
+
+		if ($request['tipo_actividad'] != '-1') {
+			$tipo_actividad = "tipo_actividad";
+			$filtro_tipo_actividad = '=';
+			$id_tipo_actividad = $request['tipo_actividad'];
+		} elseif ($request['tipo_actividad'] == '-1') {
+			$tipo_actividad = "tipo_actividad";
+			$filtro_tipo_actividad = '!=';
+			$id_tipo_actividad = '-1';
 		}
 
-		return [
-			'recursosNecesarios' => $recursosNecesarios,
-			'promedioRecursos' => $promedioRecursos,
-			'pagination' => [
-				'total'        => $recursosNecesarios->total(),
-				'current_page' => $recursosNecesarios->currentPage(),
-				'per_page'     => $recursosNecesarios->perPage(),
-				'last_page'    => $recursosNecesarios->lastPage(),
-				'from'         => $recursosNecesarios->firstItem(),
-				'to'           => $recursosNecesarios->lastItem(),
-			]
-		];
+		if ($request['fecha_ra1'] != '-3') {
+			$c3 = "fecha_ra";
+			$op2 = '>=';
+			$c4 = $request['fecha_ra1'];
+		}
+		if ($request['fecha_ra2'] != '-1') {
+			$c5 = "fecha_ra";
+			$op3 = '<=';
+			$c6 = $request['fecha_ra2'];
+		}
+		if ($request['f_siembra'] != '-1') {
+			$c7 = "siembras.id";
+			$op4 = '=';
+			$c8 = $request['f_siembra'];
+		}
+		if (isset($request['alimento_s']) && $request['alimento_s'] != '-1') {
+			$c9 = "id_alimento";
+			$op5 = '=';
+			$c10 = $request['alimento_s'];
+		}
+
+		if ($request['f_siembra'] != '-1') {
+			$filtroIdSiembra = "recursos_necesarios.siembra_id";
+			$signoIdSiembra = '=';
+			$valorIdSiembra = $request['f_siembra'];
+		}
+
+		$recursosNecesarios = RecursoNecesario::orderBy('fecha_ra', 'desc')
+			->select('*', 'recursos_necesarios.id as id')
+			->join('alimentos', 'recursos_necesarios.id_alimento', 'alimentos.id')
+			->join('siembras', 'recursos_necesarios.siembra_id', 'siembras.id')
+			->join('actividades', 'recursos_necesarios.tipo_actividad', 'actividades.id')
+			->where('tipo_actividad', '=', '1');
+
+		if ($request['see_all']) {
+			$recursosNecesarios = $recursosNecesarios->get();
+		} else {
+			$recursosNecesarios = $recursosNecesarios->paginate(20);
+		}
+
+		$promedioRecursos = array();
+
+		$counter = count($recursosNecesarios);
+
+		$copyRecursosNecesarios = $recursosNecesarios->toArray();
+
+		for ($i = 0; $i < count($recursosNecesarios); $i++) {
+
+			$recursosNecesarios[$i]->total_minutos_hombre = $recursosNecesarios[$i]->minutos_hombre * $minutos_hombre->costo;
+
+			$recursosNecesarios[$i]->costo_total_alimento = ($recursosNecesarios[$i]->cant_tarde + $recursosNecesarios[$i]->cant_manana) * $recursosNecesarios[$i]->costo_kg;
+			$recursosNecesarios[$i]->alimento_dia = $recursosNecesarios[$i]->cant_tarde + $recursosNecesarios[$i]->cant_manana;
+			if ($recursosNecesarios[$i]->conv_alimenticia > 0) {
+				$recursosNecesarios[$i]->incr_bio_acum_conver = $recursosNecesarios[$i]->alimento_dia / $recursosNecesarios[$i]->conv_alimenticia;
+				$recursosNecesarios[$i]->conv_alimenticia = number_format($recursosNecesarios[$i]->conv_alimenticia, 2, ',', '');
+			}
+		}
+
+		$promedioRecursos['tmh'] = array_sum(array_column($copyRecursosNecesarios, 'minutos_hombre'));
+		$promedioRecursos['ttmh'] = array_sum(array_column($copyRecursosNecesarios, 'total_minutos_hombre'));
+
+		$promedioRecursos['tc'] = array_sum(array_column($copyRecursosNecesarios, 'costo'));
+		$promedioRecursos['ctr'] = array_sum(array_column($copyRecursosNecesarios, 'costo_total_recurso'));
+		$promedioRecursos['cman'] =  array_sum(array_column($copyRecursosNecesarios, 'cant_manana'));
+		$promedioRecursos['ctar'] =  array_sum(array_column($copyRecursosNecesarios, 'cant_tarde'));
+		$promedioRecursos['alid'] = array_sum(array_column($copyRecursosNecesarios, 'alimento_dia'));
+		$promedioRecursos['coskg'] = array_sum(array_column($copyRecursosNecesarios, 'costo_kg'));
+		$promedioRecursos['cta'] = array_sum(array_column($copyRecursosNecesarios, 'costo_total_alimento'));
+		$promedioRecursos['icb'] = array_sum(array_column($copyRecursosNecesarios, 'incr_bio_acum_conver'));
+		$promedioRecursos['tc'] = $promedioRecursos['tc'];
+		$promedioRecursos['ctr'] = $promedioRecursos['ctr'];
+		$promedioRecursos['coskg'] = $promedioRecursos['coskg'] / $counter;
+		$promedioRecursos['cta'] = $promedioRecursos['cta'];
+
+		if ($request['see_all']) {
+			return [
+				'recursosNecesarios' => $recursosNecesarios,
+				'promedioRecursos' => $promedioRecursos
+
+			];
+		} else {
+			return [
+				'recursosNecesarios' => $recursosNecesarios,
+				'promedioRecursos' => $promedioRecursos,
+				'pagination' => [
+					'total'        => $recursosNecesarios->total(),
+					'current_page' => $recursosNecesarios->currentPage(),
+					'per_page'     => $recursosNecesarios->perPage(),
+					'last_page'    => $recursosNecesarios->lastPage(),
+					'from'         => $recursosNecesarios->firstItem(),
+					'to'           => $recursosNecesarios->lastItem(),
+				],
+			];
+		}
 	}
 	public function siembraxAlimentacion($id)
 	{
@@ -284,8 +352,8 @@ class RecursoNecesarioController extends Controller
 		$c11 = 'recursos_necesarios.id';
 		$op6 = '!=';
 		$c12 = '-1';
-		$c13 = 'recursos_necesarios.id';
-		$op7 = '!=';
+		$filtroIdSiembra = 'recursos_necesarios.id';
+		$signoIdSiembra = '!=';
 		$c14 = '-1';
 
 		if ($request['tipo_actividad'] != '-1') {
@@ -295,7 +363,7 @@ class RecursoNecesarioController extends Controller
 		} elseif ($request['tipo_actividad'] == '-1') {
 			$tipo_actividad = "tipo_actividad";
 			$filtro_tipo_actividad = '!=';
-			$id_tipo_actividad = '1';
+			$id_tipo_actividad = '-1';
 		}
 
 		if ($request['fecha_ra1'] != '-3') {
@@ -324,14 +392,13 @@ class RecursoNecesarioController extends Controller
 			$c12 = $request['recurso_s'];
 		}
 		if ($request['f_siembra'] != '-1') {
-			$c13 = "siembras.id";
-			$op7 = '=';
-			$c14 = $request['f_siembra'];
+			$filtroIdSiembra = "recursos_necesarios.siembra_id";
+			$signoIdSiembra = '=';
+			$valorIdSiembra = $request['f_siembra'];
 		}
 
 		$recursosNecesarios = RecursoNecesario::orderBy('fecha_ra', 'desc')
-			->select('*', 'recursos_necesarios.id as id')
-			->join('recursos_siembras', 'recursos_necesarios.id', 'recursos_siembras.id_registro');
+			->select('*', 'recursos_necesarios.id as id');
 
 		if ($request['tipo_actividad'] == 1) {
 			$recursosNecesarios = 	$recursosNecesarios->join('alimentos', 'recursos_necesarios.id_alimento', 'alimentos.id');
@@ -339,16 +406,15 @@ class RecursoNecesarioController extends Controller
 			$recursosNecesarios = 	$recursosNecesarios->join('recursos', 'recursos_necesarios.id_recurso', 'recursos.id');
 		}
 
-		$recursosNecesarios = 	$recursosNecesarios->join('siembras', 'recursos_siembras.id_siembra', 'siembras.id')
+		$recursosNecesarios = 	$recursosNecesarios->join('siembras', 'recursos_necesarios.siembra_id', 'siembras.id')
 			->join('actividades', 'recursos_necesarios.tipo_actividad', 'actividades.id')
 			->where($tipo_actividad, $filtro_tipo_actividad, $id_tipo_actividad)
 			->where($c3, $op2, $c4)
 			->where($c5, $op3, $c6)
-			->where($c7, $op4, $c8)
+			// ->where($c7, $op4, $c8)
 			->where($c9, $op5, $c10)
 			->where($c11, $op6, $c12)
-			->where($c13, $op7, $c14);
-
+			->where($filtroIdSiembra, $signoIdSiembra, $valorIdSiembra);
 
 		if ($request['see_all']) {
 			$recursosNecesarios = $recursosNecesarios->get();
@@ -357,17 +423,6 @@ class RecursoNecesarioController extends Controller
 		}
 
 		$promedioRecursos = array();
-		$summh = 0;
-		$sumtmh = 0;
-		$sumcr = 0;
-		$sumc = 0;
-		$sumctr = 0;
-		$cantm = 0;
-		$cantt = 0;
-		$alid = 0;
-		$coskg = 0;
-		$cta = 0;
-		$icb = 0;
 
 		$counter = count($recursosNecesarios);
 
@@ -383,40 +438,26 @@ class RecursoNecesarioController extends Controller
 					$recursosNecesarios[$i]->incr_bio_acum_conver = $recursosNecesarios[$i]->alimento_dia / $recursosNecesarios[$i]->conv_alimenticia;
 					$recursosNecesarios[$i]->conv_alimenticia = number_format($recursosNecesarios[$i]->conv_alimenticia, 2, ',', '');
 				}
-
-				$summh += $recursosNecesarios[$i]->minutos_hombre;
-				$sumtmh += $recursosNecesarios[$i]->total_minutos_hombre;
-				$sumcr += $recursosNecesarios[$i]->cantidad_recurso;
-				$sumc += $recursosNecesarios[$i]->costo;
-				$sumctr += $recursosNecesarios[$i]->costo_total_recurso;
-				$cantm += $recursosNecesarios[$i]->cant_manana;
-				$cantt += $recursosNecesarios[$i]->cant_tarde;
-				$alid += $recursosNecesarios[$i]->alimento_dia;
-				$coskg += $recursosNecesarios[$i]->costo_kg;
-				$cta += $recursosNecesarios[$i]->costo_total_alimento;
-				$icb += $recursosNecesarios[$i]->incr_bio_acum_conver;
-
-				$recursosNecesarios[$i]->incr_bio_acum_conver = number_format($recursosNecesarios[$i]->incr_bio_acum_conver, 2, ',', '');
-				$recursosNecesarios[$i]->costo_total_recurso = number_format($recursosNecesarios[$i]->costo_total_recurso, 2, ',', '');
-				$recursosNecesarios[$i]->costo_total_alimento = number_format($recursosNecesarios[$i]->costo_total_alimento, 2, ',', '');
 			}
-			$promedioRecursos['tmh'] =  number_format($summh, 2, ',', '');
-			$promedioRecursos['ttmh'] = $sumtmh;
-			$promedioRecursos['tcr'] = $sumcr;
-			$promedioRecursos['tc'] = $sumc;
-			$promedioRecursos['ctr'] = $sumctr;
-			$promedioRecursos['cman'] =  number_format($cantm, 2, ',', '');
-			$promedioRecursos['ctar'] =  number_format($cantt, 2, ',', '');;
-			$promedioRecursos['alid'] =  number_format($alid, 2, ',', '');;
-			$promedioRecursos['coskg'] = $coskg;
-			$promedioRecursos['cta'] = $cta;
-			$icb = number_format($icb, 2, ',', '');
-			$promedioRecursos['icb'] = $icb;
 
-			$promedioRecursos['tc'] = number_format($promedioRecursos['tc'], 2, ',', '');
-			$promedioRecursos['ctr'] = number_format($promedioRecursos['ctr'], 2, ',', '');
-			$promedioRecursos['coskg'] = number_format($promedioRecursos['coskg'] / $counter, 2, ',', '');
-			$promedioRecursos['cta'] = number_format($promedioRecursos['cta'], 2, ',', '');
+			$copyRecursosNecesarios = $recursosNecesarios->toArray();
+
+			// $totalizadoEspeciesSiembras['peso_inicial'] = array_sum(array_column($existencias, 'peso_inicial'));
+			$promedioRecursos['tmh'] = array_sum(array_column($copyRecursosNecesarios, 'minutos_hombre'));
+			$promedioRecursos['ttmh'] = array_sum(array_column($copyRecursosNecesarios, 'total_minutos_hombre'));
+			$promedioRecursos['tcr'] = array_sum(array_column($copyRecursosNecesarios, 'cantidad_recurso'));
+			$promedioRecursos['tc'] = array_sum(array_column($copyRecursosNecesarios, 'costo'));
+			$promedioRecursos['ctr'] = array_sum(array_column($copyRecursosNecesarios, 'costo_total_recurso'));
+			$promedioRecursos['cman'] =  array_sum(array_column($copyRecursosNecesarios, 'cant_manana'));
+			$promedioRecursos['ctar'] =  array_sum(array_column($copyRecursosNecesarios, 'cant_tarde'));
+			$promedioRecursos['alid'] = array_sum(array_column($copyRecursosNecesarios, 'alimento_dia'));
+			$promedioRecursos['coskg'] = array_sum(array_column($copyRecursosNecesarios, 'costo_kg'));
+			$promedioRecursos['cta'] = array_sum(array_column($copyRecursosNecesarios, 'costo_total_alimento'));
+			$promedioRecursos['icb'] = array_sum(array_column($copyRecursosNecesarios, 'incr_bio_acum_conver'));
+			$promedioRecursos['tc'] = $promedioRecursos['tc'];
+			$promedioRecursos['ctr'] = $promedioRecursos['ctr'];
+			$promedioRecursos['coskg'] = $promedioRecursos['coskg'] / $counter;
+			$promedioRecursos['cta'] = $promedioRecursos['cta'];
 		}
 
 
@@ -440,5 +481,48 @@ class RecursoNecesarioController extends Controller
 				],
 			];
 		}
+	}
+
+
+	public function recursosNecesariosPorSiembra($siembra_id)
+	{
+		$recursos_necesarios_siembra = RecursoNecesario::select(
+			DB::raw("SUM(cantidad_recurso) AS cantidad_recurso"),
+			DB::raw("SUM(minutos_hombre) AS minutos_hombre"),
+			DB::raw("SUM(horas_hombre) AS horas_hombre"),
+			DB::raw("SUM(cantidad_recurso*costo) AS costo_total_recurso"),
+			DB::raw("SUM(cant_manana) AS cant_manana"),
+			DB::raw("SUM(cant_tarde) AS cant_tarde"),
+			DB::raw("SUM((cant_manana + cant_tarde) / conv_alimenticia) AS incr_bio_acum_conver"),
+			DB::raw("SUM((cant_manana + cant_tarde) ) AS cantidad_total_alimento"),
+			DB::raw("SUM((cant_manana * costo_kg)+ (cant_tarde* costo_kg)) AS costo_total_alimento"),
+		)
+			->leftJoin('recursos', 'recursos_necesarios.id_recurso', 'recursos.id')
+			->leftJoin('alimentos', 'recursos_necesarios.id_alimento', 'alimentos.id')
+
+			->groupBy('siembra_id')
+			->where('siembra_id', $siembra_id)
+
+			->get();
+		return $recursos_necesarios_siembra;
+	}
+
+	public function alimentosPorSiembra($siembra_id)
+	{
+		$alimentos_siembra = RecursoNecesario::select(
+			DB::raw("SUM(cant_manana) AS cant_manana"),
+			DB::raw("SUM(cant_tarde) AS cant_tarde"),
+			DB::raw("SUM((cant_manana + cant_tarde) / conv_alimenticia) AS incr_bio_acum_conver"),
+			DB::raw("SUM((cant_manana + cant_tarde) ) AS cantidad_total_alimento"),
+			DB::raw("SUM((cant_manana * costo_kg)+ (cant_tarde* costo_kg)) AS costo_total_alimento"),
+		)
+			->join('alimentos', 'recursos_necesarios.id_alimento', 'alimentos.id')
+			->groupBy('siembra_id')
+			->where('siembra_id', $siembra_id)
+			->where('tipo_actividad', '1')
+			->get();
+
+
+		return $alimentos_siembra;
 	}
 }

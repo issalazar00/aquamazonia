@@ -53,7 +53,7 @@
                     </label>
                   </div>
                   <div class="form-group col-md-2">
-                    <button class="btn btn-primary rounded-circle mt-4" type="button" @click="buscarResultados()"><i
+                    <button class="btn btn-primary rounded-circle mt-4" type="button" @click="listar(1)"><i
                         class="fas fa-search"></i></button>
                   </div>
                 </form>
@@ -113,14 +113,14 @@
                     <th v-text="promedios.ctar"></th>
                     <th v-text="promedios.alid"></th>
                     <th>
-                      {{promedios.coskg | numeral('$0,0.00')}}
+                      {{ promedios.coskg | numeral('$0,0.00') }}
                     </th>
                     <th>
-                      {{promedios.cta | numeral('$0,0.00')}}
+                      {{ promedios.cta | numeral('$0,0.00') }}
                     </th>
                     <th></th>
-                    <th >
-                    {{promedios.icb | numeral('0,0.00') }}
+                    <th>
+                      {{ promedios.icb | numeral('0,0.00') }}
                     </th>
                   </tr>
 
@@ -333,8 +333,8 @@ export default {
       $('#modalRecursos').modal('show');
     },
 
-    buscarResultados() {
-      let me = this;
+    listar(page = 1) {
+
       if (this.f_siembra == '') { this.f_s = '-1' } else { this.f_s = this.f_siembra }
       if (this.see_all == '') { this.check = 0 } else { this.check = this.see_all }
       if (this.t_actividad == '') { this.actividad = '1' } else { this.actividad = this.t_actividad }
@@ -352,32 +352,23 @@ export default {
         'fecha_ra1': this.fecha1,
         'fecha_ra2': this.fecha2
       }
-      axios.post("api/searchResults", data)
-        .then(response => {
+      let me = this;
+      axios.get("api/lista-alimentacion?page=" + page, { params: data })
+        .then(function (response) {
 
           me.promedios = response.data.promedioRecursos;
 
           if (response.data.pagination) {
-            this.showPagination = 1;
+            me.showPagination = 1;
             me.listado = response.data.recursosNecesarios.data;
             me.pagination = response.data.pagination;
           }
           else {
-            this.showPagination = 0;
+            me.showPagination = 0;
             me.listado = response.data.recursosNecesarios;
             me.pagination = []
           }
 
-        })
-    },
-
-    listar(page = 1) {
-      let me = this;
-      axios.get("api/lista-alimentacion?page=" + page)
-        .then(function (response) {
-          me.listado = response.data.recursosNecesarios.data;
-          me.promedios = response.data.promedioRecursos;
-          me.pagination = response.data.pagination;
         })
     },
     listarSiembras() {
