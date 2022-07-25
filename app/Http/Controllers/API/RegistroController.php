@@ -18,16 +18,7 @@ class RegistroController extends Controller
 	{
 		//
 		$registros = Registro::select(
-			'registros.id as id',
-			'id_siembra',
-			'fecha_registro',
-			'tipo_registro',
-			'peso_ganado',
-			'mortalidad',
-			'cantidad',
-			'estado',
-			'biomasa',
-			'cantidad',
+			'registros.*',
 			'especies.especie as especie',
 			'especies.id as id_especie'
 		)
@@ -43,7 +34,7 @@ class RegistroController extends Controller
 	public function registrosxSiembra($id)
 	{
 		//
-		$registros = Registro::select('registros.id as id', 'id_siembra', 'fecha_registro', 'tipo_registro', 'peso_ganado', 'mortalidad', 'cantidad', 'estado', 'biomasa', 'cantidad', 'especies.especie as especie', 'especies.id as id_especie')
+		$registros = Registro::select('registros.*', 'especies.especie as especie', 'especies.id as id_especie')
 			->join('especies', 'registros.id_especie', 'especies.id')
 			->where('id_siembra', '=', $id)
 			->orderBy('registros.id', 'desc')
@@ -204,7 +195,7 @@ class RegistroController extends Controller
 		} else {
 			$peso_actual = $exs->peso_inicial;
 		}
-	
+
 		$cantidad = Registro::select()
 			->where('registros.id_siembra', '=', $id_siembra)
 			->where('registros.id_especie', '=', $id_especie)
