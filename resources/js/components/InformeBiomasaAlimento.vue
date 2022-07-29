@@ -11,11 +11,39 @@
             </div>
             <div class="row">
               <div class="form-group col-md-2">
-                <label for="siembra">Siembras</label>
-                <select class="form-control" id="siembra" v-model="f_siembra">
-                  <option value="-1">Seleccionar</option>
-                  <option :value="ls.id" v-for="(ls, index) in listadoSiembras" :key="index">{{ ls.nombre_siembra }}
-                  </option>
+                <label for="f_estado">
+                  Estado:
+                  <select class="custom-select" name="estado" id="estado" v-model="f_estado">
+                    <option value="-1">--Seleccionar--</option>
+                    <option value="0">Inactiva</option>
+                    <option value="1">Activa</option>
+                  </select>
+                </label>
+              </div>
+
+              <div class="form-group col-3">
+                <label for="siembra_activa">Siembras Activas</label>
+                <select name="siembra_activa" class="custom-select" id="siembra_activa" v-model="f_siembra"
+                  v-if="f_estado != '-1'">
+                  <template v-for="(siembra,
+                  index) in listadoSiembras">
+                    <option v-if="siembra.estado == f_estado" :key="index" :value="siembra.id">
+                      {{
+                          siembra.nombre_siembra
+                      }}
+                    </option>
+                  </template>
+                </select>
+                <select name="siembra_activa" class="custom-select" id="siembra_activa" v-model="f_siembra"
+                  v-if="f_estado == '-1'">
+                  <template>
+                    <option v-for="(siembra,
+                    index) in listadoSiembras" :key="index" :value="siembra.id">
+                      {{
+                          siembra.nombre_siembra
+                      }}
+                    </option>
+                  </template>
                 </select>
               </div>
 
@@ -71,8 +99,7 @@
                     <td>
                       {{ le.biomasa_disponible | numeral('0.00') }}
                     </td>
-                    <td v-if="le.salida_biomasa">{{ le.salida_biomasa | numeral('0.00') }} kg</td>
-                    <td v-else>0</td>
+                    <td>{{ le.salida_biomasa | numeral('0.00') }} kg</td>
                     <td>
                       {{ le.mortalidad | numeral('0.00') }}
                     </td>
@@ -94,6 +121,22 @@
                     <td>
                       {{ le.porc_supervivencia_final | numeral('0.00') }}
                     </td>
+                  </tr>
+                  <tr class="font-weight-bold">
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td>{{ totalizadoSiembras.biomasa_inicial | numeral('0.00') }}</td>
+                    <td>{{ totalizadoSiembras.biomasa_disponible | numeral('0.00') }}</td>
+                    <td>{{ totalizadoSiembras.salida_biomasa | numeral('0.00') }}</td>
+                    <td>{{ totalizadoSiembras.mortalidad | numeral('0.00') }}</td>
+                    <td>{{ totalizadoSiembras.mortalidad_kg | numeral('0.00') }}</td>
+                    <td>{{ totalizadoSiembras.cantidad_total_alimento | numeral('0.00') }}</td>
+                    <td>{{ totalizadoSiembras.incr_bio_acum_conver | numeral('0.00') }}</td>
+                    <td></td>
+                    <td>{{ totalizadoSiembras.bio_dispo_alimen | numeral('0.00') }}</td>
+                    <td></td>
                   </tr>
                 </tbody>
               </table>
@@ -120,24 +163,70 @@ export default {
             return numeral(value).format('0.00');
           }
         },
-        'Biomasa disponible muestreo \n (Kg)': 'biomasa_disponible',
-        'Biomasa cosechada \n (Kg)': 'salida_biomasa',
-        'Mortalidad': 'mortalidad',
-        'Mort. Kg': 'mortalidad_kg',
-        'Total alimento (Kg)': 'cantidad_total_alimento',
-        'Incremento de biomasa por alimento  \n (Kg)': 'incr_bio_acum_conver',
-        'Conversion alimenticia': 'conversion_alimenticia',
-        'Biomasa disponible por alimento \n (Kg)': 'bio_dispo_alimen',
-        '% Supervievencia final': 'porc_supervivencia_final'
+        'Biomasa disponible muestreo \n (Kg)': {
+          field: 'biomasa_disponible',
+          callback: (value) => {
+            return numeral(value).format('0.00');
+          }
+        },
+        'Biomasa cosechada \n (Kg)': {
+          field: 'salida_biomasa',
+          callback: (value) => {
+            return numeral(value).format('0.00');
+          }
+        },
+        'Mortalidad': {
+          field: 'mortalidad',
+          callback: (value) => {
+            return numeral(value).format('0.00');
+          }
+        },
+        'Mort. Kg': {
+          field: 'mortalidad_kg',
+          callback: (value) => {
+            return numeral(value).format('0.00');
+          }
+        },
+        'Total alimento (Kg)': {
+          field: 'cantidad_total_alimento',
+          callback: (value) => {
+            return numeral(value).format('0.00');
+          }
+        },
+        'Incremento de biomasa por alimento  \n (Kg)': {
+          field: 'incr_bio_acum_conver',
+          callback: (value) => {
+            return numeral(value).format('0.00');
+          }
+        },
+        'Conversion alimenticia': {
+          field: 'conversion_alimenticia',
+          callback: (value) => {
+            return numeral(value).format('0.00');
+          }
+        },
+        'Biomasa disponible por alimento \n (Kg)': {
+          field: 'bio_dispo_alimen',
+          callback: (value) => {
+            return numeral(value).format('0.00');
+          }
+        },
+        '% Supervievencia final': {
+          field: 'porc_supervivencia_final',
+          callback: (value) => {
+            return numeral(value).format('0.00');
+          }
+        }
       },
       listadoExistencias: [],
       listadoEspecies: [],
       listadoSiembras: [],
       imprimirRecursos: [],
-      f_siembra: '',
-      f_especie: '',
+      totalizadoSiembras: [],
+      f_siembra: '-1',
       f_inicio_d: '',
       f_inicio_h: '',
+      f_estado: "1",
 
     }
   },
@@ -153,6 +242,7 @@ export default {
 
       const data = {
         'f_siembra': this.f_siembra == '' ? '-1' : this.f_siembra,
+        'f_estado': this.f_estado == '-1' ? '-1' : this.f_estado,
         'f_inicio_d': this.f_inicio_d == '' ? '-1' : this.f_siembra,
         'f_inicio_h': this.f_inicio_h == '' ? '-1' : this.f_siembra,
       }
@@ -160,6 +250,7 @@ export default {
       axios.get("api/informes-biomasa-alimento", { params: data })
         .then(function (response) {
           me.listadoExistencias = response.data.existencias;
+          me.totalizadoSiembras = response.data.totalizadoSiembras;
         })
     },
     listarEspecies() {
@@ -171,9 +262,10 @@ export default {
     },
     listarSiembras() {
       let me = this;
-      axios.get("api/siembras")
+      axios.get("api/siembras/listado")
         .then(function (response) {
-          me.listadoSiembras = response.data.listado_siembras;
+          console.log(response)
+          me.listadoSiembras = response.data;
         })
     },
 

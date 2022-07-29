@@ -127,6 +127,7 @@ class SiembraController extends Controller
 		return ["siembra" => $detalles_siembra, "listado_siembras" => $listado_siembras_activas, "listado_siembras_inactivas" => $listado_siembras_inactivas, "pecesSiembra" =>  $peces, 'campos' => $campos, 'lotes' => $lotes, 'fecha_actual' => $fecha_actual];
 	}
 
+
 	public function listadoLotes()
 	{
 		return EspecieSiembra::select('lote')->orderBy('lote', 'asc')->distinct()->get();
@@ -355,5 +356,15 @@ class SiembraController extends Controller
 			$especies = Especie::orderBy('especie')->get();
 		}
 		return ['espxsiembra' => $aux_es, 'especies' => $especies];
+	}
+
+	
+	public function listadoSiembras()
+	{
+		$listado_siembras = Siembra::select()
+			// ->orderBy('siembras.id', 'desc')
+			->get();
+
+		return $listado_siembras;
 	}
 }
