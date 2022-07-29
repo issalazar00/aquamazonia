@@ -206,34 +206,170 @@ export default {
                 Siembra: "nombre_siembra",
                 'Area (m<sup>2</sup>)': "capacidad",
                 "Inicio siembra": "fecha_inicio",
-                "Tiempo de cultivo \n (Días)": "intervalo_tiempo",
-                "Cantidad Inicial \n (Animales) ": "cantidad_inicial",
-                "Biomasa inicial \n (Kg) ": "biomasa_inicial",
-                "Peso inicial  \n (g)": "peso_inicial",
-                "Carga inicial  \n (Kg / m<sup>2</sup> ) ": "carga_inicial",
-                "Animales final": "cant_actual",
-                "Peso actual \n (g)": "peso_actual",
-                // "Biomasa disponible": "biomasa_disponible",
-                "Biomasa cosechada \n (Kg)": "salida_biomasa",
-                'Mortalidad Animales': "mortalidad",
-                "Mortalidad kg": "mortalidad_kg",
-                "Mortalidad %": "mortalidad_porcentaje",
-                "Animales cosechados": "salida_animales_sin_mortalidad",
-                "Densidad inicial (Animales/m2)": "densidad_inicial",
-                "Densidad final (Animales/m2)": "densidad_final",
-                "Carga final (Kg/m2)": "carga_final",
-                "Horas hombre": "horas_hombre",
-                "Costo Horas": "costo_minutosh",
-                "Costo total recursos": "costo_total_recurso",
-                // "Costo horas": "costo_horas",
-                "Costo total alimentos": "costo_total_alimento",
-                "Total Kg Alimento": "cantidad_total_alimento",
-                "Costo total Siembra": "costo_tot",
-                "Costo producccion final": "costo_produccion_final",
-                "Conversión alimenticia parcial": "conversion_alimenticia_parcial",
-                "Conversion final": "conversion_final",
-                "Ganancia peso dia": "ganancia_peso_dia",
-                "% Supervivencia final": "porc_supervivencia_final"
+                "Tiempo de cultivo \n (Días)": {
+                    field: "intervalo_tiempo",
+                    callback: (value) => {
+                        return numeral(value).format('0.00');
+                    }
+                },
+                "Tiempo de cultivo \n (Meses)": {
+                    field: "intervalo_tiempo_months",
+                    callback: (value) => {
+                        return numeral(value).format('0.00');
+                    }
+                },
+                "Cantidad Inicial \n (Animales) ": {
+                    field: "cantidad_inicial",
+                    callback: (value) => {
+                        return numeral(value).format('0.00');
+                    }
+                },
+                "Biomasa inicial \n (Kg) ": {
+                    field: "biomasa_inicial",
+                    callback: (value) => {
+                        return numeral(value).format('0.00');
+                    }
+                },
+                "Peso inicial  \n (g)": {
+                    field: "peso_inicial",
+                    callback: (value) => {
+                        return numeral(value).format('0.00');
+                    }
+                },
+                "Carga inicial  \n (Kg / m<sup>2</sup> ) ": {
+                    field: "carga_inicial",
+                    callback: (value) => {
+                        return numeral(value).format('0.00');
+                    }
+                },
+                "Animales final": {
+                    field: "cant_actual",
+                    callback: (value) => {
+                        return numeral(value).format('0.00');
+                    }
+                },
+                "Peso actual \n (g)": {
+                    field: "peso_actual",
+                    callback: (value) => {
+                        return numeral(value).format('0.00');
+                    }
+                },
+
+                "Biomasa cosechada \n (Kg)": {
+                    field: "salida_biomasa",
+                    callback: (value) => {
+                        return numeral(value).format('0.00');
+                    }
+                },
+                'Mortalidad Animales': {
+                    field: "mortalidad",
+                    callback: (value) => {
+                        return numeral(value).format('0.00');
+                    }
+                },
+                "Mortalidad kg": {
+                    field: "mortalidad_kg",
+                    callback: (value) => {
+                        return numeral(value).format('0.00');
+                    }
+                },
+                "Mortalidad %": {
+                    field: "mortalidad_porcentaje",
+                    callback: (value) => {
+                        return numeral(value).format('0.00');
+                    }
+                },
+                "Animales cosechados": {
+                    field: "salida_animales_sin_mortalidad",
+                    callback: (value) => {
+                        return numeral(value).format('0.00');
+                    }
+                },
+                "Densidad inicial (Animales/m2)": {
+                    field: "densidad_inicial",
+                    callback: (value) => {
+                        return numeral(value).format('0.00');
+                    }
+                },
+                "Densidad final (Animales/m2)": {
+                    field: "densidad_final",
+                    callback: (value) => {
+                        return numeral(value).format('0.00');
+                    }
+                },
+                "Carga final (Kg/m2)": {
+                    field: "carga_final",
+                    callback: (value) => {
+                        return numeral(value).format('0.00');
+                    }
+                },
+                "Horas hombre": {
+                    field: "horas_hombre",
+                    callback: (value) => {
+                        return numeral(value).format('0.00');
+                    }
+                },
+                "Costo Horas": {
+                    field: "costo_minutosh",
+                    callback: (value) => {
+                        return numeral(value).format('0.00');
+                    }
+                },
+                "Costo total recursos": {
+                    field: "costo_total_recurso",
+                    callback: (value) => {
+                        return numeral(value).format('0.00');
+                    }
+                },
+
+                "Costo total alimentos": {
+                    field: "costo_total_alimento",
+                    callback: (value) => {
+                        return numeral(value).format('0.00');
+                    }
+                },
+                "Total Kg Alimento": {
+                    field: "cantidad_total_alimento",
+                    callback: (value) => {
+                        return numeral(value).format('0.00');
+                    }
+                },
+                "Costo total Siembra": {
+                    field: "costo_tot",
+                    callback: (value) => {
+                        return numeral(value).format('0.00');
+                    }
+                },
+                "Costo producccion final": {
+                    field: "costo_produccion_final",
+                    callback: (value) => {
+                        return numeral(value).format('0.00');
+                    }
+                },
+                "Conversión alimenticia parcial": {
+                    field: "conversion_alimenticia_parcial",
+                    callback: (value) => {
+                        return numeral(value).format('0.00');
+                    }
+                },
+                "Conversion final": {
+                    field: "conversion_final",
+                    callback: (value) => {
+                        return numeral(value).format('0.00');
+                    }
+                },
+                "Ganancia peso dia": {
+                    field: "ganancia_peso_dia",
+                    callback: (value) => {
+                        return numeral(value).format('0.00');
+                    }
+                },
+                "% Supervivencia final": {
+                    field: "porc_supervivencia_final",
+                    callback: (value) => {
+                        return numeral(value).format('0.00');
+                    }
+                }
             },
             listadoExistencias: [],
             listadoEspecies: [],

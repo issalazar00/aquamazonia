@@ -494,8 +494,8 @@ class RecursoNecesarioController extends Controller
 			DB::raw("SUM(cant_manana) AS cant_manana"),
 			DB::raw("SUM(cant_tarde) AS cant_tarde"),
 			DB::raw("SUM((cant_manana + cant_tarde) / conv_alimenticia) AS incr_bio_acum_conver"),
-			DB::raw("SUM((cant_manana + cant_tarde) ) AS cantidad_total_alimento"),
-			DB::raw("SUM((cant_manana * costo_kg)+ (cant_tarde* costo_kg)) AS costo_total_alimento"),
+			DB::raw("SUM(cant_manana * costo_kg) AS costo_manana"),
+			DB::raw("SUM(cant_tarde* costo_kg) AS costo_tarde"),
 		)
 			->leftJoin('recursos', 'recursos_necesarios.id_recurso', 'recursos.id')
 			->leftJoin('alimentos', 'recursos_necesarios.id_alimento', 'alimentos.id')
@@ -513,8 +513,9 @@ class RecursoNecesarioController extends Controller
 			DB::raw("SUM(cant_manana) AS cant_manana"),
 			DB::raw("SUM(cant_tarde) AS cant_tarde"),
 			DB::raw("SUM((cant_manana + cant_tarde) / conv_alimenticia) AS incr_bio_acum_conver"),
-			DB::raw("SUM((cant_manana + cant_tarde) ) AS cantidad_total_alimento"),
-			DB::raw("SUM((cant_manana * costo_kg)+ (cant_tarde* costo_kg)) AS costo_total_alimento"),
+			DB::raw("SUM((cant_manana + cant_tarde) / conv_alimenticia) AS incr_bio_acum_conver"),
+			DB::raw("SUM(cant_manana * costo_kg) AS costo_manana"),
+			DB::raw("SUM(cant_tarde* costo_kg) AS costo_tarde"),
 		)
 			->join('alimentos', 'recursos_necesarios.id_alimento', 'alimentos.id')
 			->groupBy('siembra_id')

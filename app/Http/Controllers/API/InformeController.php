@@ -578,6 +578,7 @@ class InformeController extends Controller
 							}
 						}
 						$siembra->intervalo_tiempo = $especies->intervalo_tiempo;
+						$siembra->intervalo_tiempo_months = $especies->intervalo_tiempo / 30;
 						$siembra->ganancia_peso_dia = $siembra->intervalo_tiempo > 0 ?  $siembra->peso_incremento / $siembra->intervalo_tiempo : 0;
 						$siembra->mortalidad_porcentaje = (($siembra->mortalidad * 100) / $siembra->cantidad_inicial);
 						$siembra->salida_biomasa = $especies_siembra->cantidadTotalEspeciesSiembraSinMortalidad($siembra->id)->biomasa ?? 0;
@@ -591,14 +592,13 @@ class InformeController extends Controller
 
 				$recursos_necesarios_controller = new RecursoNecesarioController();
 				$recursos_necesarios_siembra =	$recursos_necesarios_controller->recursosNecesariosPorSiembra($siembra->id);
-				// $alimentos_siembra =	$recursos_necesarios_controller->alimentosPorSiembra($siembra->id);
 
 				foreach ($recursos_necesarios_siembra as $recurso_necesario) {
 					$siembra->minutos_hombre = $recurso_necesario->minutos_hombre;
 					$siembra->horas_hombre = $siembra->minutos_hombre / 60;
 					$siembra->costo_total_recurso =  $recurso_necesario->costo_total_recurso;
-					$siembra->cantidad_total_alimento =  $recurso_necesario->cantidad_total_alimento;
-					$siembra->costo_total_alimento = $recurso_necesario->costo_total_alimento;
+					$siembra->cantidad_total_alimento =  $recurso_necesario->cant_tarde + $recurso_necesario->cant_manana;
+					$siembra->costo_total_alimento = $recurso_necesario->costo_manana + $recurso_necesario->costo_tarde;
 					$siembra->incr_bio_acum_conver =  $recurso_necesario->incr_bio_acum_conver;
 				}
 				// foreach ($alimentos_siembra as $alimento) {}
@@ -644,6 +644,7 @@ class InformeController extends Controller
 					// 'incr_bio_acum_conver' => $siembra->incr_bio_acum_conver,
 					// 'incremento_biomasa' => $siembra->incremento_biomasa,
 					'intervalo_tiempo' => $siembra->intervalo_tiempo,
+					'intervalo_tiempo_months' => $siembra->intervalo_tiempo_months,
 					"mortalidad" => $siembra->mortalidad,
 					"mortalidad_kg" => $siembra->mortalidad_kg,
 					"mortalidad_porcentaje" => $siembra->mortalidad_porcentaje,
