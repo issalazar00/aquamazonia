@@ -19,6 +19,7 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 });
 
 Route::get('siembras/listado-lotes', 'API\SiembraController@listadoLotes');
+Route::get('siembras/listado', 'API\SiembraController@listadoSiembras');
 
 Route::apiResources([
 	'contenedores' => 'API\ContenedorController',
@@ -45,7 +46,6 @@ Route::apiResources([
 ]);
 
 Route::namespace('API')->group(function () {
-
 	Route::post('registros-siembra/{id}', 'RegistroController@registrosxSiembra');
 	Route::post('filtro-registros', 'RegistroController@filtroRegistros');
 	Route::post('actualizarEstado/{id}', 'SiembraController@actualizarEstado');
@@ -58,14 +58,14 @@ Route::namespace('API')->group(function () {
 	Route::post('filtro-parametros-excel', 'ParametroCalidadController@filtroParametrosExcel');
 	Route::post('filtro-registros-siembras', 'InformeRegistroController@filtroRegistros');
 	Route::post('filtro-recursos', 'InformeRecursosNecesariosController@filtroRecursos');
-	Route::post('filtro-biomasa-alimento', 'InfomeBiomasaAlimentoController@filtroBiomasaAlimento');
+	// Route::post('filtro-biomasa-alimento', 'InfomeBiomasaAlimentoController@filtroBiomasaAlimento');
 	Route::post('parametro-x-contenedor/{id}', 'ParametroCalidadController@mostrarParametrosxContenedores');
 	Route::post('parametro-x-contenedor-excel/{id}', 'ParametroCalidadController@mostrarParametrosxContenedoresExcel');
 	Route::post('anadir-especie-siembra', 'SiembraController@anadirEspeciesxSiembra');
 	Route::post('siembras-alimentacion/{id}', 'RecursoNecesarioController@siembraxAlimentacion');
 	Route::post('filtro-registros-siembras', 'InformeRegistroController@filtroRegistros');
 	Route::post('filtro-recursos', 'InformeRecursosNecesariosController@filtroRecursos');
-	Route::post('filtro-biomasa-alimento', 'InfomeBiomasaAlimentoController@filtroBiomasaAlimento');
+	// Route::post('filtro-biomasa-alimento', 'InfomeBiomasaAlimentoController@filtroBiomasaAlimento');
 	Route::get('listadoContenedores', 'ContenedorController@listadoContenedores');
 	Route::get('especies-siembra-edita/{id}', 'SiembraController@getEspeciesSiembra');
 	Route::get('lista-alimentacion', 'RecursoNecesarioController@alimentacion');
