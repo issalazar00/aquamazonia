@@ -192,7 +192,11 @@ class InfomeBiomasaAlimentoController extends Controller
     $totalizadoSiembras['cantidad_total_alimento'] = array_sum(array_column($siembra_to_array, 'cantidad_total_alimento'));
     $totalizadoSiembras['incr_bio_acum_conver'] = array_sum(array_column($siembra_to_array, 'incr_bio_acum_conver'));
     $totalizadoSiembras['bio_dispo_alimen'] = array_sum(array_column($siembra_to_array, 'bio_dispo_alimen'));
-
+    $totalizadoSiembras['costo_minutos_hombre'] = array_sum(array_column($siembra_to_array, 'costo_minutos_hombre'));
+    $totalizadoSiembras['costo_total_recurso'] = array_sum(array_column($siembra_to_array, 'costo_total_recurso'));
+    $totalizadoSiembras['costo_total_alimento'] = array_sum(array_column($siembra_to_array, 'costo_total_alimento'));
+    $totalizadoSiembras['costo_total_siembra'] = array_sum(array_column($siembra_to_array, 'costo_total_siembra'));
+   
     return ['existencias' => $siembras, 'totalizadoSiembras' => $totalizadoSiembras];
   }
 }

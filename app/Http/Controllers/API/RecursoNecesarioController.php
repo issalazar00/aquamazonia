@@ -79,24 +79,22 @@ class RecursoNecesarioController extends Controller
 		$tipo_actividad = "recursos_necesarios.id";
 		$filtro_tipo_actividad = "!=";
 		$c2 = "-1";
-		$c3 = "recursos_necesarios.id";
-		$op2 = "!=";
-		$c4 = "-3";
-		$c5 = "recursos_necesarios.id";
-		$op3 = "!=";
-		$c6 = "-1";
-		$c7 = "recursos_necesarios.id";
-		$op4 = "!=";
-		$c8 = "-1";
-		$c9 = "recursos_necesarios.id";
-		$op5 = "!=";
-		$c10 = "-1";
-		$c11 = 'recursos_necesarios.id';
-		$op6 = '!=';
-		$c12 = '-1';
+
+		$filtroFechaRegistroAlimentoDesde = "recursos_necesarios.id";
+		$signoFechaRegistroAlimentoDesde = "!=";
+		$valorFechaRegistroAlimentoDesde = "-3";
+
+		$filtroFechaRegistroAlimentoHasta = "recursos_necesarios.id";
+		$signoFechaRegistroAlimentoHasta = "!=";
+		$valorFechaRegistroAlimentohasta = "-1";
+
+		$filtroIdAlimento = "recursos_necesarios.id_alimento";
+		$signoIdAlimento = "!=";
+		$valorIdAlimento = "-1";
+
 		$filtroIdSiembra = 'recursos_necesarios.id';
 		$signoIdSiembra = '!=';
-		$c14 = '-1';
+		$valorIdSiembra = '-1';
 
 		if ($request['tipo_actividad'] != '-1') {
 			$tipo_actividad = "tipo_actividad";
@@ -109,24 +107,20 @@ class RecursoNecesarioController extends Controller
 		}
 
 		if ($request['fecha_ra1'] != '-3') {
-			$c3 = "fecha_ra";
-			$op2 = '>=';
-			$c4 = $request['fecha_ra1'];
+			$filtroFechaRegistroAlimentoDesde = "fecha_ra";
+			$signoFechaRegistroAlimentoDesde = '>=';
+			$valorFechaRegistroAlimentoDesde = $request['fecha_ra1'];
 		}
 		if ($request['fecha_ra2'] != '-1') {
-			$c5 = "fecha_ra";
-			$op3 = '<=';
-			$c6 = $request['fecha_ra2'];
+			$filtroFechaRegistroAlimentoHasta = "fecha_ra";
+			$signoFechaRegistroAlimentoHasta = '<=';
+			$valorFechaRegistroAlimentohasta = $request['fecha_ra2'];
 		}
-		if ($request['f_siembra'] != '-1') {
-			$c7 = "siembras.id";
-			$op4 = '=';
-			$c8 = $request['f_siembra'];
-		}
+
 		if (isset($request['alimento_s']) && $request['alimento_s'] != '-1') {
-			$c9 = "id_alimento";
-			$op5 = '=';
-			$c10 = $request['alimento_s'];
+			$filtroIdAlimento = "id_alimento";
+			$signoIdAlimento = '=';
+			$valorIdAlimento = $request['alimento_s'];
 		}
 
 		if ($request['f_siembra'] != '-1') {
@@ -140,31 +134,29 @@ class RecursoNecesarioController extends Controller
 			->join('alimentos', 'recursos_necesarios.id_alimento', 'alimentos.id')
 			->join('siembras', 'recursos_necesarios.siembra_id', 'siembras.id')
 			->join('actividades', 'recursos_necesarios.tipo_actividad', 'actividades.id')
+			->where($filtroIdSiembra, $signoIdSiembra, $valorIdSiembra)
+			->where($filtroIdAlimento, $signoIdAlimento, $valorIdAlimento)
 			->where('tipo_actividad', '=', '1');
 
-		if ($request['see_all']) {
-			$recursosNecesarios = $recursosNecesarios->get();
-		} else {
-			$recursosNecesarios = $recursosNecesarios->paginate(20);
-		}
-
+		$recursosNecesarios = $request['see_all'] ? $recursosNecesarios->get() : $recursosNecesarios->paginate(20);
 		$promedioRecursos = array();
 
 		$counter = count($recursosNecesarios);
 
-		$copyRecursosNecesarios = $recursosNecesarios->toArray();
 
 		for ($i = 0; $i < count($recursosNecesarios); $i++) {
 
 			$recursosNecesarios[$i]->total_minutos_hombre = $recursosNecesarios[$i]->minutos_hombre * $minutos_hombre->costo;
-
 			$recursosNecesarios[$i]->costo_total_alimento = ($recursosNecesarios[$i]->cant_tarde + $recursosNecesarios[$i]->cant_manana) * $recursosNecesarios[$i]->costo_kg;
 			$recursosNecesarios[$i]->alimento_dia = $recursosNecesarios[$i]->cant_tarde + $recursosNecesarios[$i]->cant_manana;
+
 			if ($recursosNecesarios[$i]->conv_alimenticia > 0) {
 				$recursosNecesarios[$i]->incr_bio_acum_conver = $recursosNecesarios[$i]->alimento_dia / $recursosNecesarios[$i]->conv_alimenticia;
 				$recursosNecesarios[$i]->conv_alimenticia = number_format($recursosNecesarios[$i]->conv_alimenticia, 2, ',', '');
 			}
 		}
+
+		$copyRecursosNecesarios = $request['see_all'] ?  $recursosNecesarios->toArray() : $recursosNecesarios->toArray()['data'];
 
 		$promedioRecursos['tmh'] = array_sum(array_column($copyRecursosNecesarios, 'minutos_hombre'));
 		$promedioRecursos['ttmh'] = array_sum(array_column($copyRecursosNecesarios, 'total_minutos_hombre'));
@@ -203,6 +195,7 @@ class RecursoNecesarioController extends Controller
 			];
 		}
 	}
+	
 	public function siembraxAlimentacion($id)
 	{
 		//

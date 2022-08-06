@@ -23,7 +23,7 @@
               </div>
 
               <div class="form-group col-3">
-                <label for="siembra_activa">Siembras Activas</label>
+                <label for="siembra_activa">Siembras</label>
                 <select name="siembra_activa" class="custom-select" id="siembra_activa" v-model="f_siembra"
                   v-if="f_estado != '-1'">
                   <template v-for="(siembra,
@@ -78,14 +78,14 @@
                     <th>Costo Recursos</th>
                     <th>Costo Alimentos</th>
                     <th>Costo total de siembra</th>
-                    <th>Costo de producción parcial</th>
+                    <th>Costo total de producción parcial</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr class="text-right" v-for="(le, index) in listadoExistencias" :key="index">
                     <td v-text="index + 1"></td>
                     <td class="text-right">
-                      {{ le.nombre_siembra}}
+                      {{ le.nombre_siembra }}
                     </td>
                     <td>
                       {{ le.costo_minutos_hombre | numeral('$0,0.00') }}
@@ -102,6 +102,14 @@
                     <td>
                       {{ le.costo_produccion_parcial | numeral('$0,0.00') }}
                     </td>
+                  </tr>
+                  <tr class="font-weight-bold text-right">
+                    <td></td>
+                    <td></td>
+                    <td>{{ totalizadoSiembras.costo_minutos_hombre | numeral('0.00') }}</td>
+                    <td>{{ totalizadoSiembras.costo_total_recurso | numeral('0.00') }}</td>
+                    <td>{{ totalizadoSiembras.costo_total_alimento | numeral('0.00') }}</td>
+                    <td>{{ totalizadoSiembras.costo_total_siembra | numeral('0.00') }}</td>
                   </tr>
                 </tbody>
               </table>
@@ -120,13 +128,39 @@ export default {
     return {
       json_fields: {
         'Siembra': 'nombre_siembra',
-        'Costo Horas': 'costo_minutos_hombre',
-        'Costo recursos': 'costo_total_recurso',
-        'Costo alimentos': 'costo_total_alimento',
-        'Costo total siembra': 'costo_total_siembra',
-        'Costo producción parcial': 'costo_produccion_parcial'
+        'Costo Horas': {
+          field: 'costo_minutos_hombre',
+          callback: (value) => {
+            return numeral(value).format('0.00');
+          }
+        },
+        'Costo recursos': {
+          field: 'costo_total_recurso',
+          callback: (value) => {
+            return numeral(value).format('0.00');
+          }
+        },
+        'Costo alimentos': {
+          field: 'costo_total_alimento',
+          callback: (value) => {
+            return numeral(value).format('0.00');
+          }
+        },
+        'Costo total siembra': {
+          field: 'costo_total_siembra',
+          callback: (value) => {
+            return numeral(value).format('0.00');
+          }
+        },
+        'Costo total de producción parcial': {
+          field: 'costo_produccion_parcial',
+          callback: (value) => {
+            return numeral(value).format('0.00');
+          }
+        },
       },
       listadoExistencias: [],
+      totalizadoSiembras: [],
       listadoEspecies: [],
       listadoSiembras: [],
       imprimirRecursos: [],
@@ -157,6 +191,7 @@ export default {
       axios.get("api/informes-biomasa-alimento", { params: data })
         .then(function (response) {
           me.listadoExistencias = response.data.existencias;
+          me.totalizadoSiembras = response.data.totalizadoSiembras;
         })
     },
     listarEspecies() {
@@ -170,7 +205,7 @@ export default {
       let me = this;
       axios.get("api/siembras/listado")
         .then(function (response) {
-          me.listadoSiembras = response.data.listado_siembras;
+          me.listadoSiembras = response.data;
         })
     }
   },
