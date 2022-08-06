@@ -20,23 +20,40 @@
                     </select>
                   </div>
                   <div class="form-group col-md-2">
-                    <label for="Siembra">Siembra:</label>
-                    <select class="form-control" id="f_siembra" v-model="f_siembra">
-                      <option value="-1" selected>Seleccionar</option>
-                      <option :value="ls.id" v-for="(ls, index) in listadoSiembras" :key="index">
-                        {{ ls.nombre_siembra }}
-                      </option>
-                    </select>
-                  </div>
-                  <div class="form-group col-md-2">
                     <label for="f_estado">
-                      Estado siembra:
+                      Estado:
                       <select class="custom-select" name="estado" id="estado" v-model="f_estado">
-                        <option value="-1" disabled>--Seleccionar--</option>
+                        <option value="-1">--Seleccionar--</option>
                         <option value="0">Inactiva</option>
                         <option value="1">Activa</option>
                       </select>
                     </label>
+                  </div>
+
+                  <div class="form-group col-3">
+                    <label for="siembra_activa">Siembras</label>
+                    <select name="siembra_activa" class="custom-select" id="siembra_activa" v-model="f_siembra"
+                      v-if="f_estado != '-1'">
+                      <template v-for="(siembra,
+                      index) in listadoSiembras">
+                        <option v-if="siembra.estado == f_estado" :key="index" :value="siembra.id">
+                          {{
+                              siembra.nombre_siembra
+                          }}
+                        </option>
+                      </template>
+                    </select>
+                    <select name="siembra_activa" class="custom-select" id="siembra_activa" v-model="f_siembra"
+                      v-if="f_estado == '-1'">
+                      <template>
+                        <option v-for="(siembra,
+                        index) in listadoSiembras" :key="index" :value="siembra.id">
+                          {{
+                              siembra.nombre_siembra
+                          }}
+                        </option>
+                      </template>
+                    </select>
                   </div>
                   <div class="form-group col-md-2">
                     <label for="lote">Lotes:</label>
@@ -86,7 +103,7 @@
                   </div>
                   <div class="form-group col-md-1">
                     <label for="">Buscar</label>
-                    <button class="btn btn-primary form-control" type="button" @click="filtroResultados()">
+                    <button class="btn btn-primary form-control" type="button" @click="listarRegistros()">
                       <i class="fas fa-search"></i>
                     </button>
                   </div>
@@ -118,22 +135,39 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="(lr, index) in listadoRegistros" :key="index">
+                  <tr v-for="(lr, index) in listadoRegistros.data" :key="index">
                     <td v-text="index + 1"></td>
                     <td v-text="lr.nombre_siembra"></td>
                     <td v-text="lr.lote"></td>
                     <td v-text="lr.fecha_registro"></td>
                     <td v-text="lr.especie"></td>
                     <td v-text="lr.nombre_registro"></td>
-                    <td v-text="lr.peso_ganado"></td>
-                    <td v-text="lr.biomasa"></td>
-                    <td v-text="lr.biomasa_disponible"></td>
-                    <td v-text="lr.cantidad_actual"></td>
-                    <td v-text="lr.bio_dispo_alimen"></td>
-                    <td v-text="lr.salida_animales"></td>
+                    <td>
+                      {{ lr.peso_ganado | numeral('0.00') }}
+                    </td>
+                    <td>
+                      {{ lr.biomasa | numeral('0.00') }}
+                    </td>
+                    <td>
+                      {{ lr.biomasa_disponible | numeral('0.00') }}
+                    </td>
+                    <td>
+                      {{ lr.cantidad_actual | numeral('0.00') }}
+                    </td>
+                    <td>
+                      {{ lr.bio_dispo_alimen | numeral('0.00') }}
+                    </td>
+                    <td>
+                      {{ lr.salida_animales | numeral('0.00') }}
+                    </td>
                   </tr>
                 </tbody>
               </table>
+              <pagination :align="'center'" :data="listadoRegistros" :limit="8"
+                @pagination-change-page="listarRegistros">
+                <span slot="prev-nav">&lt; Anterior</span>
+                <span slot="next-nav">Siguiente &gt;</span>
+              </pagination>
             </div>
           </div>
         </div>
@@ -153,16 +187,46 @@ export default {
         "Fecha de registro": "fecha_registro",
         Especie: "especie",
         "Tipo actividad": "nombre_registro",
-        "Peso Actual \n (g)": "peso_ganado",
-        "KG cosecha": "biomasa",
-        "Biomasa muestreo\n (Kg)": "biomasa_disponible",
-        "Animales Actuales": "cantidad_actual",
-        "Biomasa por alimento": "bio_dispo_alimen",
-        "Animales Cosechados": "salida_animales",
+        "Peso Actual \n (g)": {
+          field: "peso_ganado",
+          callback: (value) => {
+            return numeral(value).format('0.00');
+          }
+        },
+        "KG cosecha": {
+          field: "biomasa",
+          callback: (value) => {
+            return numeral(value).format('0.00');
+          }
+        },
+        "Biomasa muestreo\n (Kg)": {
+          field: "biomasa_disponible",
+          callback: (value) => {
+            return numeral(value).format('0.00');
+          }
+        },
+        "Animales Actuales": {
+          field: "cantidad_actual",
+          callback: (value) => {
+            return numeral(value).format('0.00');
+          }
+        },
+        "Biomasa por alimento": {
+          field: "bio_dispo_alimen",
+          callback: (value) => {
+            return numeral(value).format('0.00');
+          }
+        },
+        "Animales Cosechados": {
+          field: "salida_animales",
+          callback: (value) => {
+            return numeral(value).format('0.00');
+          }
+        },
       },
 
       listadoSiembras: [],
-      listadoRegistros: [],
+      listadoRegistros: {},
       listadoEspecies: [],
       listadoLotes: [],
       listadoEstanques: [],
@@ -184,40 +248,17 @@ export default {
   },
   methods: {
     async fetchData() {
-      let me = this;
-      const response = await this.listadoRegistros;
       return this.listadoRegistros;
     },
-    listar() {
-      let me = this;
-      me.listarSiembras();
 
-    },
     listarSiembras() {
       let me = this;
-      axios.get("api/siembras").then(function (response) {
-        me.listadoSiembras = response.data.listado_siembras;
-      });
+      axios.get("api/siembras/listado")
+        .then(function (response) {
+          me.listadoSiembras = response.data;
+        })
     },
-    listarRegistros() {
-      let me = this;
-      axios.get("api/informes-registros").then(function (response) {
-        me.listadoRegistros = response.data;
-      });
-    },
-    listarEspecies() {
-      let me = this;
-      axios.get("api/especies").then(function (response) {
-        me.listadoEspecies = response.data;
-      });
-    },
-    listarLotes() {
-      let me = this;
-      axios.get("api/siembras/listado-lotes").then(function (response) {
-        me.listadoLotes = response.data;
-      });
-    },
-    filtroResultados() {
+    listarRegistros(page = 1) {
       let me = this;
 
       if (this.f_siembra == "") {
@@ -279,10 +320,24 @@ export default {
         f_fecha_h: this.fec2,
         id_contenedor: this.id_contenedor
       };
-      axios.post("api/filtro-registros-siembras", data).then((response) => {
+
+      axios.get(`api/informes-registros?page=${page}`, { params: data }).then(function (response) {
         me.listadoRegistros = response.data;
       });
     },
+    listarEspecies() {
+      let me = this;
+      axios.get("api/especies").then(function (response) {
+        me.listadoEspecies = response.data;
+      });
+    },
+    listarLotes() {
+      let me = this;
+      axios.get("api/siembras/listado-lotes").then(function (response) {
+        me.listadoLotes = response.data;
+      });
+    },
+
     listarEstanques() {
       let me = this;
       axios.get("api/contenedores").then(function (response) {
@@ -291,7 +346,7 @@ export default {
     },
   },
   mounted() {
-    this.listar();
+    this.listarSiembras();
     this.listarRegistros();
     this.listarEspecies();
     this.listarLotes();

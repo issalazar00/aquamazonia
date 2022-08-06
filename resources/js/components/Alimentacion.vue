@@ -100,7 +100,7 @@
                     <td>
                       {{ item.conv_alimenticia | numeral('0,0.00') }}
                     </td>
-                    <td v-text="item.incr_bio_acum_conver"></td>
+                    <td>{{ item.incr_bio_acum_conver | numeral('0,0.00') }}</td>
                     <td v-text="item.detalles"></td>
                   </tr>
                 </tbody>

@@ -425,7 +425,6 @@
                       <th scope="col" v-if="tipo_registro == 1">
                         Biomasa (kg)
                       </th>
-                      <!-- <th scope="col" v-if="tipo_registro == 1">Cantidad  idSiembraRegistro  </th> -->
                       <th scope="col" v-if="tipo_registro == 2">
                         Mortalidad Inicial
                       </th>
@@ -670,6 +669,7 @@ export default {
       })
     },
     abrirIngreso(id) {
+      this.especiesSiembra(id)
       this.idSiembraRegistro = id;
       let me = this;
       this.ver_registros = 1;
@@ -683,7 +683,6 @@ export default {
     crearRegistro(id) {
       let me = this;
       this.ver_registros = 0;
-      // this.idSiembraRegistro = id;
       let aux_campos = me.campos[id];
 
       const data = {
