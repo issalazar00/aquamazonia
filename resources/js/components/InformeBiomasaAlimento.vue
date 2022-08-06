@@ -264,7 +264,6 @@ export default {
       let me = this;
       axios.get("api/siembras/listado")
         .then(function (response) {
-          console.log(response)
           me.listadoSiembras = response.data;
         })
     },

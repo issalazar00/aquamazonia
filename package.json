@@ -27,6 +27,7 @@
     },
     "dependencies": {
         "admin-lte": "^3.2.0",
+        "laravel-vue-pagination": "^2.3.1",
         "numeral": "^2.0.6",
         "sweetalert": "^2.1.2",
         "sweetalert2": "^9.17.2",

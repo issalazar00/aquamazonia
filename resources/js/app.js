@@ -11,10 +11,11 @@ window.Vue = require('vue');
 import VueRouter from 'vue-router'
 import Swal from 'sweetalert2'
 import Vue from 'vue'
-import { Form, HasError, AlertError } from 'vform'
 
 import JsonExcel from 'vue-json-excel'
 Vue.component('downloadExcel', JsonExcel)
+Vue.component("pagination", require("laravel-vue-pagination"));
+
 window.Swal = Swal
 Vue.use(VueRouter)
 
