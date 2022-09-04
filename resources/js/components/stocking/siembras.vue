@@ -17,52 +17,27 @@
               <div class="form-row col-12">
                 <div class="form-group col-3">
                   <label for="estado_siembta">Estado de siembra</label>
-                  <select
-                    name="estado_siembra"
-                    class="custom-select"
-                    id="estado_siembra"
-                    v-model="estado_siembra"
-                  >
+                  <select name="estado_siembra" class="custom-select" id="estado_siembra" v-model="estado_siembra">
                     <option value="-1">Todas</option>
                     <option value="1">Activas</option>
                     <option value="0">Inactivas</option>
                   </select>
                 </div>
                 <div class="form-group col-3">
-                  <label for="siembra_activa"
-                    >Siembras
-                    {{ estado_siembra == 0 ? "inactivas" : "activas" }} :</label
-                  >
-                  <select
-                    name="siembra_activa"
-                    class="custom-select"
-                    id="siembra_activa"
-                    v-model="f_siembra"
-                    v-if="estado_siembra != '-1'"
-                  >
+                  <label for="siembra_activa">Siembras
+                    {{ estado_siembra == 0 ? "inactivas" : "activas" }} :</label>
+                  <select name="siembra_activa" class="custom-select" id="siembra_activa" v-model="f_siembra"
+                    v-if="estado_siembra != '-1'">
                     <template v-for="(siembra, index) in listadoSiembras">
-                      <option
-                        v-if="siembra.estado == estado_siembra"
-                        :key="index"
-                        :value="siembra.id"
-                      >
+                      <option v-if="siembra.estado == estado_siembra" :key="index" :value="siembra.id">
                         {{ siembra.nombre_siembra }}
                       </option>
                     </template>
                   </select>
-                  <select
-                    name="siembra_activa"
-                    class="custom-select"
-                    id="siembra_activa"
-                    v-model="f_siembra"
-                    v-if="estado_siembra == '-1'"
-                  >
+                  <select name="siembra_activa" class="custom-select" id="siembra_activa" v-model="f_siembra"
+                    v-if="estado_siembra == '-1'">
                     <template>
-                      <option
-                        v-for="(siembra, index) in listadoSiembras"
-                        :key="index"
-                        :value="siembra.id"
-                      >
+                      <option v-for="(siembra, index) in listadoSiembras" :key="index" :value="siembra.id">
                         {{ siembra.nombre_siembra }}
                       </option>
                     </template>
@@ -71,9 +46,7 @@
               </div>
             </div>
             <div>
-              <table
-                class="table table-bordered table-striped table-sm table-sticky"
-              >
+              <table class="table table-bordered table-striped table-sm table-sticky">
                 <thead class="thead-primary">
                   <tr>
                     <th>#</th>
@@ -82,16 +55,10 @@
                       siembra
                     </th>
                     <th>Estanque</th>
-                    <th
-                      class="text-center d-sm-none d-none d-md-block"
-                      style=""
-                    >
+                    <th class="text-center d-sm-none d-none d-md-block" style="">
                       <h5>Especie</h5>
 
-                      <div
-                        class="py-3"
-                        style="width: max-content; margin: auto"
-                      >
+                      <div class="py-3" style="width: max-content; margin: auto">
                         <span style="width: 80px; display: inline-block">
                           Especie
                         </span>
@@ -121,54 +88,35 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr
-                    v-for="(siembra, index) in listadoSiembras"
-                    :key="siembra.id"
-                  >
+                  <tr v-for="(siembra, index) in listadoSiembras" :key="siembra.id">
                     <th v-text="index + 1" scope="row"></th>
                     <td v-text="siembra.nombre_siembra" scope="row"></td>
                     <td v-text="siembra.contenedor"></td>
                     <td class="d-sm-none d-none d-md-block">
-                      <div
-                        v-for="pez in siembra.peces"
-                        :key="pez.id"
-                        class="border-0"
-                        style="width: max-content; margin: auto"
-                      >
-                        <span
-                          class="nav-item border-bottom"
-                          style="width: 80px; display: inline-block"
-                        >
+                      <div v-for="pez in siembra.peces" :key="pez.id" class="border-0"
+                        style="width: max-content; margin: auto">
+                        <span class="nav-item border-bottom" style="width: 80px; display: inline-block">
                           {{ pez.especie }}
                         </span>
-                        <span
-                          class="nav-item border-bottom"
-                          style="
+                        <span class="nav-item border-bottom" style="
                             width: 80px;
                             text-align: center;
                             display: inline-block;
-                          "
-                        >
+                          ">
                           {{ pez.lote }}
                         </span>
-                        <span
-                          class="nav-item border-bottom"
-                          style="
+                        <span class="nav-item border-bottom" style="
                             width: 80px;
                             text-align: center;
                             display: inline-block;
-                          "
-                        >
+                          ">
                           {{ Math.floor(pez.cant_actual) }}
                         </span>
-                        <span
-                          class="nav-item border-bottom"
-                          style="
+                        <span class="nav-item border-bottom" style="
                             width: 60px;
                             display: inline-block;
                             text-align: center;
-                          "
-                        >
+                          ">
                           {{ pez.peso_actual + "Gr" }}
                         </span>
                       </div>
@@ -176,57 +124,37 @@
                     <td v-text="siembra.fecha_inicio"></td>
 
                     <td>
-                      <span
-                        v-bind:class="[
-                          fechaActual <= siembra.fecha_alimento
-                            ? ''
-                            : 'badge badge-warning',
-                        ]"
-                      >
+                      <span v-bind:class="[
+                        fechaActual <= siembra.fecha_alimento
+                          ? ''
+                          : 'badge badge-warning',
+                      ]">
                         {{ siembra.fecha_alimento }}
                       </span>
                       <br />
-                      <button
-                        type="button"
-                        class="btn btn-success btn-sm"
-                        @click="abrirCrear(siembra.id)"
-                      >
+                      <button type="button" class="btn btn-success btn-sm" @click="abrirCrear(siembra.id)">
                         Añadir Alimentos
                       </button>
                     </td>
                     <td>
-                      <button
-                        class="btn btn-primary"
-                        @click="abrirIngreso(siembra.id)"
-                      >
+                      <button class="btn btn-primary" @click="abrirIngreso(siembra.id)">
                         <i class="fas fa-list-ul"></i>
                       </button>
                     </td>
 
                     <td>
-                      <button
-                        class="btn btn-success"
-                        @click="editarSiembra(siembra)"
-                      >
+                      <button class="btn btn-success" @click="editarSiembra(siembra)">
                         <i class="fas fa-edit"></i>
                       </button>
                     </td>
                     <td>
-                      <button
-                        class="btn btn-danger"
-                        @click="eliminarSiembra(siembra.id)"
-                      >
+                      <button class="btn btn-danger" @click="eliminarSiembra(siembra.id)">
                         <i class="fas fa-trash"></i>
                       </button>
                     </td>
                     <td>
-                      <button
-                        class="btn btn-warning"
-                        data-toggle="tooltip"
-                        title="Finalizar siembra"
-                        data-placement="top"
-                        @click="finalizarSiembra(siembra.id)"
-                      >
+                      <button class="btn btn-warning" data-toggle="tooltip" title="Finalizar siembra"
+                        data-placement="top" @click="finalizarSiembra(siembra.id)">
                         <i class="fas fa-power-off"></i>
                       </button>
                     </td>
@@ -242,19 +170,11 @@
         </div>
       </div>
     </div>
-    <create-edit-stocking
-      :listado-contenedores="listadoContenedores"
-      ref="createEditStocking"
-      :listado-especies="listadoEspecies"
-      :id="id"
-    />
+    <create-edit-stocking :listado-contenedores="listadoContenedores" ref="createEditStocking"
+      :listado-especies="listadoEspecies" :id="id" />
     <dialog-fish-food :siembra_id="id" ref="dialogFishFood"></dialog-fish-food>
-    <!--<dialog-registers></dialog-registers> -->
-    <finish-stocking
-      ref="finishStocking"
-      :id.sync="id"
-      @list-stocking="listar()"
-    />
+    <dialog-registers :siembra_id="id" ref="dialogRegister"></dialog-registers>
+    <finish-stocking ref="finishStocking" :id.sync="id" @list-stocking="listar()" />
   </div>
 </template>
 
@@ -284,29 +204,18 @@ export default {
       }),
 
       fechaActual: [],
-      ver_registros: 1,
-
       listadoEspecies: [],
       listadoContenedores: [],
       listado: [],
       listadoSiembras: [],
-      listadoRegistros: [],
       listadoRN: [],
-      pecesxSiembra: [],
       lotes: [],
-
-      idSiembraRegistro: "",
       estados: [],
       tipoRegistro: [],
-      campos: {},
-      // Filtros ingresos
-      f_siembra: "",
-      f_actividad: "",
-      f_fecha_d: "",
-      f_fecha_h: "",
 
       //Filtro siembras
       estado_siembra: "-1",
+      f_siembra: "",
     };
   },
 
@@ -335,6 +244,7 @@ export default {
       $("#modalSiembra").modal("show");
       this.listarContenedores();
       this.$refs.createEditStocking.editarSiembra(siembra);
+      this.listarEspecies();
     },
 
     abrirCrear(id) {
@@ -348,13 +258,12 @@ export default {
       axios
         .get(
           "api/siembras?estado_siembra=" +
-            me.estado_siembra +
-            "&id_siembra=" +
-            me.f_siembra
+          me.estado_siembra +
+          "&id_siembra=" +
+          me.f_siembra
         )
         .then(function (response) {
           me.listadoSiembras = response.data.siembra;
-          me.campos = response.data.campos;
           me.fechaActual = response.data.fecha_actual;
         });
     },
@@ -365,14 +274,6 @@ export default {
       });
     },
 
-    especiesSiembra(idSiembra) {
-      let me = this;
-      axios
-        .get("api/especies-siembra?idSiembra=" + idSiembra)
-        .then(function (response) {
-          me.pecesxSiembra = response.data;
-        });
-    },
     listarLotes() {
       let me = this;
       axios.get("api/siembras/listado-lotes").then(function (response) {
@@ -380,16 +281,9 @@ export default {
       });
     },
     abrirIngreso(id) {
-      this.especiesSiembra(id);
-      this.idSiembraRegistro = id;
-      let me = this;
-      this.ver_registros = 1;
+      this.id = id;
       $("#modalIngreso").modal("show");
-
-      this.tipo_registro = 0;
-      axios.post("api/registros-siembra/" + id).then(function (response) {
-        me.listadoRegistros = response.data;
-      });
+      this.$refs.dialogRegister.listarRegistros(id);
     },
 
     finalizarSiembra(id) {
@@ -422,9 +316,6 @@ export default {
     this.estados[1] = "Activo";
     this.estados[2] = "Ocupado";
     this.estados[3] = "Descanso";
-    this.tipoRegistro[0] = "Muestreo";
-    this.tipoRegistro[1] = "Pesca";
-    this.tipoRegistro[2] = "Mortalidad Inicial";
   },
 };
 </script>

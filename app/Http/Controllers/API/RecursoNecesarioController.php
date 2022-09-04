@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\API;
 
+use App\Alimento;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\RecursoNecesario;
@@ -199,12 +200,12 @@ class RecursoNecesarioController extends Controller
 		//
 		$minutos_hombre = Recursos::select()->where('recurso', 'Minutos hombre')->orWhere('recurso', 'Minuto hombre')->orWhere('recurso', 'Minutos')->first();
 		$recursosNecesarios = RecursoNecesario::orderBy('fecha_ra', 'desc')
-			// ->join('recursos_siembras', 'recursos_necesarios.id', 'recursos_siembras.id_registro')
 			->join('alimentos', 'recursos_necesarios.id_alimento', 'alimentos.id')
 			->join('siembras', 'recursos_necesarios.siembra_id', 'siembras.id')
 			->join('actividades', 'recursos_necesarios.tipo_actividad', 'actividades.id')
 			->where('recursos_necesarios.siembra_id', '=', $id)
 			->where('tipo_actividad', '=', '1')
+			->select('*', 'recursos_necesarios.id as id_registro', 'recursos_necesarios.siembra_id as id_siembra')
 			->get();
 		if (count($recursosNecesarios) > 0) {
 			for ($i = 0; $i < count($recursosNecesarios); $i++) {
@@ -228,6 +229,10 @@ class RecursoNecesarioController extends Controller
 		//
 		$c_alim = RecursoNecesario::select()->orderBy('id', 'desc')->first();
 
+		$recurso = Recursos::select('id', 'costo')->find($request['id_recurso']);
+		$alimento = Alimento::select('id', 'costo_kg')->find($request['id_alimento']);
+		$minutos_hombre = Recursos::select()->where('recurso', 'Minutos hombre')->orWhere('recurso', 'Minuto hombre')->orWhere('recurso', 'Minutos')->first();
+
 		$recursoNecesario = new RecursoNecesario();
 		$recursoNecesario->id_recurso = $request['id_recurso'];
 		$recursoNecesario->id_alimento =  $request['id_alimento'];
@@ -238,31 +243,32 @@ class RecursoNecesarioController extends Controller
 		$recursoNecesario->cantidad_recurso = $request['cantidad_recurso'];
 		$recursoNecesario->cant_manana = $request['cant_manana'];
 		$recursoNecesario->cant_tarde = $request['cant_tarde'];
-		
-		if ($request['conv_alimenticia'] == '') {
-			$recursoNecesario->conv_alimenticia = $c_alim->conv_alimenticia;
-		} else {
-			$recursoNecesario->conv_alimenticia = $request['conv_alimenticia'];
-		}
+		$recursoNecesario->costo_recurso = $recurso ?  $recurso->costo : 0;
+		$recursoNecesario->costo_alimento = $alimento ?  $alimento->costo_kg : 0;
+		$recursoNecesario->costo_minutos_hombre = $minutos_hombre->costo;
+		$recursoNecesario->conv_alimenticia =  $request['conv_alimenticia'] == '' ?  $c_alim->conv_alimenticia : $request['conv_alimenticia'];
+
 		$recursoNecesario->detalles = $request['detalles'];
 
 		if (!is_array($request['id_siembra'])) {
-
-			$recursoNecesario->siembra_id = $request['id_siembra'];
-			$recursoNecesario->save();
-
-			$siembras = Siembra::findOrFail($request['id_siembra']);
-			$siembras->fecha_alimento = $request['fecha_ra'];
-			$siembras->save();
-		} else {
-			foreach ($request->id_siembra as $siembra) {
-
-				$recursoNecesario->siembra_id = $siembra;
+			if ($request['id_siembra']) {
+				$recursoNecesario->siembra_id = $request['id_siembra'];
 				$recursoNecesario->save();
 
-				$siembras = Siembra::findOrFail($siembra);
+				$siembras = Siembra::findOrFail($request['id_siembra']);
 				$siembras->fecha_alimento = $request['fecha_ra'];
 				$siembras->save();
+			}
+		} else {
+			foreach ($request->id_siembra as $siembra_id) {
+				if ($siembra_id) {
+					$recursoNecesario->siembra_id = $siembra_id;
+					$recursoNecesario->save();
+
+					$siembras = Siembra::findOrFail($siembra_id);
+					$siembras->fecha_alimento = $request['fecha_ra'];
+					$siembras->save();
+				}
 			}
 		}
 
@@ -289,7 +295,10 @@ class RecursoNecesarioController extends Controller
 	 */
 	public function update(Request $request, $id)
 	{
-		//
+		$recurso = Recursos::select('id', 'costo')->find($request['id_recurso']);
+		$alimento = Alimento::select('id', 'costo_kg')->find($request['id_alimento']);
+		$minutos_hombre = Recursos::select()->where('recurso', 'Minutos hombre')->orWhere('recurso', 'Minuto hombre')->orWhere('recurso', 'Minutos')->first();
+
 		$minutos =  $request['minutos_hombre'] / 60;
 		$recursoNecesario = RecursoNecesario::findOrFail($id);
 		$recursoNecesario->update([
@@ -302,6 +311,9 @@ class RecursoNecesarioController extends Controller
 			'minutos_hombre' => $request['minutos_hombre'],
 			'horas_hombre' => $minutos,
 			'cantidad_recurso' => $request['cantidad_recurso'],
+			"costo_recurso" => $recurso ?  $recurso->costo : 0,
+			"costo_alimento" => $alimento ?  $alimento->costo_kg : 0,
+			"costo_minutos_hombre" => $minutos_hombre->costo
 		]);
 
 		return ['recursoNecesario' => $recursoNecesario];

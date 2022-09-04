@@ -20,6 +20,7 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 
 Route::get('siembras/listado-lotes', 'API\SiembraController@listadoLotes');
 Route::get('siembras/listado', 'API\SiembraController@listadoSiembras');
+Route::get('siembras/campos', 'API\SiembraController@campos');
 
 Route::apiResources([
 	'contenedores' => 'API\ContenedorController',
