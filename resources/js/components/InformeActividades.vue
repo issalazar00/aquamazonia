@@ -9,20 +9,21 @@
             <div class="row mb-1">
               <div class="col-md-12">
                 <h2>Filtrar por:</h2>
-                <form class="row" method="POST" action="informe-excel" target="_blank">
-                  <div class="form-group col-md-2">
-                    <label for="contenedor">Estanque:</label>
-                    <select class="custom-select" id="contenedor" v-model="id_contenedor">
-                      <option value="-1">Seleccionar</option>
-                      <option :value="cont.id" v-for="(cont, index) in listadoEstanques" :key="index">
-                        {{ cont.contenedor }}
-                      </option>
-                    </select>
-                  </div>
+                <form
+                  class="row"
+                  method="POST"
+                  action="informe-excel"
+                  target="_blank"
+                >
                   <div class="form-group col-md-2">
                     <label for="f_estado">
                       Estado:
-                      <select class="custom-select" name="estado" id="estado" v-model="f_estado">
+                      <select
+                        class="custom-select"
+                        name="estado"
+                        id="estado"
+                        v-model="f_estado"
+                      >
                         <option value="-1">--Seleccionar--</option>
                         <option value="0">Inactiva</option>
                         <option value="1">Activa</option>
@@ -31,51 +32,100 @@
                   </div>
 
                   <div class="form-group col-3">
-                    <label for="siembra_activa">Siembras</label>
-                    <select name="siembra_activa" class="custom-select" id="siembra_activa" v-model="f_siembra"
-                      v-if="f_estado != '-1'">
-                      <template v-for="(siembra,
-                      index) in listadoSiembras">
-                        <option v-if="siembra.estado == f_estado" :key="index" :value="siembra.id">
-                          {{
-                              siembra.nombre_siembra
-                          }}
+                    <label for="siembra_activa"
+                      >Siembras
+                      {{ f_estado == 0 ? "inactivas" : "activas" }} :</label
+                    >
+                    <select
+                      name="siembra_activa"
+                      class="custom-select"
+                      id="siembra_activa"
+                      v-model="f_siembra"
+                      v-if="f_estado != '-1'"
+                    >
+                      <template v-for="(siembra, index) in listadoSiembras">
+                        <option
+                          v-if="siembra.estado == f_estado"
+                          :key="index"
+                          :value="siembra.id"
+                        >
+                          {{ siembra.nombre_siembra }}
                         </option>
                       </template>
                     </select>
-                    <select name="siembra_activa" class="custom-select" id="siembra_activa" v-model="f_siembra"
-                      v-if="f_estado == '-1'">
+                    <select
+                      name="siembra_activa"
+                      class="custom-select"
+                      id="siembra_activa"
+                      v-model="f_siembra"
+                      v-if="f_estado == '-1'"
+                    >
                       <template>
-                        <option v-for="(siembra,
-                        index) in listadoSiembras" :key="index" :value="siembra.id">
-                          {{
-                              siembra.nombre_siembra
-                          }}
+                        <option
+                          v-for="(siembra, index) in listadoSiembras"
+                          :key="index"
+                          :value="siembra.id"
+                        >
+                          {{ siembra.nombre_siembra }}
                         </option>
                       </template>
+                    </select>
+                  </div>
+                  <div class="form-group col-md-2">
+                    <label for="contenedor">Estanque:</label>
+                    <select
+                      class="custom-select"
+                      id="contenedor"
+                      v-model="id_contenedor"
+                    >
+                      <option value="-1">Seleccionar</option>
+                      <option
+                        :value="cont.id"
+                        v-for="(cont, index) in listadoEstanques"
+                        :key="index"
+                      >
+                        {{ cont.contenedor }}
+                      </option>
                     </select>
                   </div>
                   <div class="form-group col-md-2">
                     <label for="lote">Lotes:</label>
                     <select class="custom-select" id="lote" v-model="f_lote">
                       <option value="-1">Seleccionar</option>
-                      <option :value="lote.lote" v-for="(lote, index) in listadoLotes" :key="index">
+                      <option
+                        :value="lote.lote"
+                        v-for="(lote, index) in listadoLotes"
+                        :key="index"
+                      >
                         {{ lote.lote }}
                       </option>
                     </select>
                   </div>
                   <div class="form-group col-md-2">
                     <label for="Especie">Especie</label>
-                    <select class="form-control" id="f_especie" v-model="f_especie">
+                    <select
+                      class="form-control"
+                      id="f_especie"
+                      v-model="f_especie"
+                    >
                       <option value="-1" selected>Seleccionar</option>
-                      <option :value="especie.id" v-for="especie in listadoEspecies" :key="especie.id">
+                      <option
+                        :value="especie.id"
+                        v-for="especie in listadoEspecies"
+                        :key="especie.id"
+                      >
                         {{ especie.especie }}
                       </option>
                     </select>
                   </div>
                   <div class="form-group col-md-2">
                     <label for="actividad">Tipo actividad: </label>
-                    <select class="form-control" id="actividad" v-model="f_actividad" name="tipo_actividad">
+                    <select
+                      class="form-control"
+                      id="actividad"
+                      v-model="f_actividad"
+                      name="tipo_actividad"
+                    >
                       <option selected value="">Seleccionar</option>
                       <option value="0">Muestreo</option>
                       <option value="1">Pesca</option>
@@ -85,31 +135,62 @@
                   </div>
                   <div class="form-group col-md-2">
                     <label for="peso desde">peso desde (gr): </label>
-                    <input type="number" step="any" class="form-control" id="f_peso_d" v-model="f_peso_d" />
+                    <input
+                      type="number"
+                      step="any"
+                      class="form-control"
+                      id="f_peso_d"
+                      v-model="f_peso_d"
+                    />
                   </div>
                   <div class="form-group col-md-2">
                     <label for="peso hasta">peso hasta (gr): </label>
-                    <input type="number" step="any" class="form-control" id="f_peso_h" v-model="f_peso_h" />
+                    <input
+                      type="number"
+                      step="any"
+                      class="form-control"
+                      id="f_peso_h"
+                      v-model="f_peso_h"
+                    />
                   </div>
                   <div class="form-group col-md-2">
                     <label for="search">Desde: </label>
-                    <input class="form-control" type="date" placeholder="Search" aria-label="f_fecha_d"
-                      v-model="f_fecha_d" />
+                    <input
+                      class="form-control"
+                      type="date"
+                      placeholder="Search"
+                      aria-label="f_fecha_d"
+                      v-model="f_fecha_d"
+                    />
                   </div>
                   <div class="form-group col-md-2">
                     <label for="search">Hasta: </label>
-                    <input class="form-control" type="date" placeholder="Search" aria-label="f_fecha_h"
-                      v-model="f_fecha_h" />
+                    <input
+                      class="form-control"
+                      type="date"
+                      placeholder="Search"
+                      aria-label="f_fecha_h"
+                      v-model="f_fecha_h"
+                    />
                   </div>
                   <div class="form-group col-md-1">
                     <label for="">Buscar</label>
-                    <button class="btn btn-primary form-control" type="button" @click="listarRegistros()">
+                    <button
+                      class="btn btn-primary form-control"
+                      type="button"
+                      @click="listarRegistros()"
+                    >
                       <i class="fas fa-search"></i>
                     </button>
                   </div>
                   <div class="form-group col-md-2">
-                    <downloadexcel class="btn btn-success" :fetch="fetchData" :fields="json_fields"
-                      name="informe-muestreos.xls" type="xls">
+                    <downloadexcel
+                      class="btn btn-success"
+                      :fetch="fetchData"
+                      :fields="json_fields"
+                      name="informe-muestreos.xls"
+                      type="xls"
+                    >
                       <i class="fa fa-fw fa-download"></i> Generar Excel
                     </downloadexcel>
                   </div>
@@ -117,7 +198,9 @@
               </div>
             </div>
             <div class="table-container" id="table-container2">
-              <table class="table-sticky table table-sm table-hover table-bordered">
+              <table
+                class="table-sticky table table-sm table-hover table-bordered"
+              >
                 <thead class="thead-primary">
                   <tr>
                     <th>#</th>
@@ -143,28 +226,32 @@
                     <td v-text="lr.especie"></td>
                     <td v-text="lr.nombre_registro"></td>
                     <td>
-                      {{ lr.peso_ganado | numeral('0.00') }}
+                      {{ lr.peso_ganado | numeral("0.00") }}
                     </td>
                     <td>
-                      {{ lr.biomasa | numeral('0.00') }}
+                      {{ lr.biomasa | numeral("0.00") }}
                     </td>
                     <td>
-                      {{ lr.biomasa_disponible | numeral('0.00') }}
+                      {{ lr.biomasa_disponible | numeral("0.00") }}
                     </td>
                     <td>
-                      {{ lr.cantidad_actual | numeral('0.00') }}
+                      {{ lr.cantidad_actual | numeral("0.00") }}
                     </td>
                     <td>
-                      {{ lr.bio_dispo_alimen | numeral('0.00') }}
+                      {{ lr.bio_dispo_alimen | numeral("0.00") }}
                     </td>
                     <td>
-                      {{ lr.salida_animales | numeral('0.00') }}
+                      {{ lr.salida_animales | numeral("0.00") }}
                     </td>
                   </tr>
                 </tbody>
               </table>
-              <pagination :align="'center'" :data="listadoRegistros" :limit="8"
-                @pagination-change-page="listarRegistros">
+              <pagination
+                :align="'center'"
+                :data="listadoRegistros"
+                :limit="8"
+                @pagination-change-page="listarRegistros"
+              >
                 <span slot="prev-nav">&lt; Anterior</span>
                 <span slot="next-nav">Siguiente &gt;</span>
               </pagination>
@@ -190,38 +277,38 @@ export default {
         "Peso Actual \n (g)": {
           field: "peso_ganado",
           callback: (value) => {
-            return numeral(value).format('0.00');
-          }
+            return numeral(value).format("0.00");
+          },
         },
         "KG cosecha": {
           field: "biomasa",
           callback: (value) => {
-            return numeral(value).format('0.00');
-          }
+            return numeral(value).format("0.00");
+          },
         },
         "Biomasa muestreo\n (Kg)": {
           field: "biomasa_disponible",
           callback: (value) => {
-            return numeral(value).format('0.00');
-          }
+            return numeral(value).format("0.00");
+          },
         },
         "Animales Actuales": {
           field: "cantidad_actual",
           callback: (value) => {
-            return numeral(value).format('0.00');
-          }
+            return numeral(value).format("0.00");
+          },
         },
         "Biomasa por alimento": {
           field: "bio_dispo_alimen",
           callback: (value) => {
-            return numeral(value).format('0.00');
-          }
+            return numeral(value).format("0.00");
+          },
         },
         "Animales Cosechados": {
           field: "salida_animales",
           callback: (value) => {
-            return numeral(value).format('0.00');
-          }
+            return numeral(value).format("0.00");
+          },
         },
       },
 
@@ -233,14 +320,14 @@ export default {
       // filtros
       f_siembra: "",
       f_lote: "",
-      f_estado: "",
+      f_estado: "1",
       f_especie: "",
       f_actividad: "",
       f_fecha_d: "",
       f_fecha_h: "",
       f_peso_d: 0,
       f_peso_h: 0,
-      id_contenedor: '-1',
+      id_contenedor: "-1",
     };
   },
   components: {
@@ -249,14 +336,6 @@ export default {
   methods: {
     async fetchData() {
       return this.listadoRegistros;
-    },
-
-    listarSiembras() {
-      let me = this;
-      axios.get("api/siembras/listado")
-        .then(function (response) {
-          me.listadoSiembras = response.data;
-        })
     },
     listarRegistros(page = 1) {
       let me = this;
@@ -318,11 +397,19 @@ export default {
         f_peso_h: this.pesoh,
         f_fecha_d: this.fec1,
         f_fecha_h: this.fec2,
-        id_contenedor: this.id_contenedor
+        id_contenedor: this.id_contenedor,
       };
 
-      axios.get(`api/informes-registros?page=${page}`, { params: data }).then(function (response) {
-        me.listadoRegistros = response.data;
+      axios
+        .get(`api/informes-registros?page=${page}`, { params: data })
+        .then(function (response) {
+          me.listadoRegistros = response.data;
+        });
+    },
+    listarSiembras() {
+      let me = this;
+      axios.get("api/siembras/listado").then(function (response) {
+        me.listadoSiembras = response.data;
       });
     },
     listarEspecies() {

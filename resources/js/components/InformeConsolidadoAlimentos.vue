@@ -237,7 +237,7 @@ export default {
         "Tipo actividad": "actividad",
         Alimento: "alimento",
         "Costo Kg": "costoUnitarioAlimento",
-        "Alimento Mañana\n (Kg)": "c_manana",
+        "Alimento Mañana\n (Kg)": "c_manana", 
         "Alimento Tarde\n (Kg)": "c_tarde",
         "Cantidad total alimento \n (Kg)": "cantidadTotalAlimento",
         "% Cantidad Alimento": "porcCantidadAlimento",

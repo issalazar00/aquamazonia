@@ -64,7 +64,6 @@ class RegistroController extends Controller
 				}
 				$exs->save();
 
-
 				if ($campo['peso_ganado'] == '' && $campo['mortalidad'] != '') {
 
 					$biomasa = ($campo['mortalidad'] * $exs->peso_actual) / 1000;
@@ -75,7 +74,6 @@ class RegistroController extends Controller
 						'tipo_registro' => $request['tipo_registro'],
 						'peso_ganado' => $exs['peso_actual'],
 						'mortalidad' => $campo['mortalidad'],
-						// 'cantidad' => $exs['cant_actual'],
 						'biomasa' => $biomasa
 					]);
 				} elseif ($campo['peso_ganado'] != '' || $campo['mortalidad'] != '') {
@@ -99,7 +97,6 @@ class RegistroController extends Controller
 						'tipo_registro' => $request['tipo_registro'],
 						'peso_ganado' => $campo['peso_ganado'],
 						'mortalidad' => $campo['mortalidad'],
-						// 'cantidad' => $exs['cant_actual'],
 						'biomasa' => $biomasa
 					]);
 				}
@@ -135,7 +132,6 @@ class RegistroController extends Controller
 						'tipo_registro' => $request['tipo_registro'],
 						'mortalidad' => $campo['mortalidad'],
 						'peso_ganado' => $exs['peso_inicial'],
-						// 'cantidad' => $exs['cant_actual'],
 						'biomasa' => $biomasa
 					]);
 				}
