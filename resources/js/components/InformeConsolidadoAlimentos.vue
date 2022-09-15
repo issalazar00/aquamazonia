@@ -144,9 +144,9 @@
                     <th>Tipo actividad</th>
                     <th>Alimento</th>
                     <th>Costo Kg</th>
-                    <th>Alimento Mañana</th>
-                    <th>Alimento Tarde</th>
-                    <th>Cantidad Total Alimento</th>
+                    <th>Alimento Mañana (kg)</th>
+                    <th>Alimento Tarde (kg) </th>
+                    <th>Cantidad Total Alimento (kg) </th>
                     <th>% Cantidad Alimento</th>
                     <th>Costo Alimento</th>
                   </tr>

@@ -73,7 +73,7 @@
                   <tr>
                     <th>#</th>
                     <th class="fixed-column">Siembra</th>
-                    <th>Area m<sup>3</sup> </th>
+                    <th>Area (m²)<sup>3</sup> </th>
                     <th>Cant Inicial (Animales) </th>
                     <th>Biomasa Inicial (Kg)</th>
                     <th>Biomasa disponible muestreo (Kg)</th>

@@ -209,9 +209,9 @@
                     <th>Fecha de registro</th>
                     <th>Especie</th>
                     <th>Tipo <br />actividad</th>
-                    <th>Peso actual</th>
+                    <th>Peso actual (g) </th>
                     <th>KG cosecha</th>
-                    <th>Biomasa muestreo</th>
+                    <th>Biomasa muestreo (kg)</th>
                     <th>Animales Actuales</th>
                     <th>Biomasa disponible por alimento</th>
                     <th>Animales Cosechados</th>

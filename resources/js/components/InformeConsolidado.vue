@@ -70,18 +70,18 @@
                                     <tr>
                                         <th>#</th>
                                         <th class="fixed-column">Siembra</th>
-                                        <th>Area</th>
+                                        <th>Area (m²)</th>
                                         <th>Inicio siembra</th>
                                         <th>Tiempo de cultivo <br> <small>(Días)</small></th>
                                         <th>Tiempo de cultivo <br> <small>(Meses)</small></th>
-                                        <th>Cant Inicial</th>
-                                        <th>Biomasa Inicial</th>
-                                        <th>Peso Inicial</th>
-                                        <th>Carga inicial</th>
+                                        <th>Cant Inicial (animales)</th>
+                                        <th>Biomasa Inicial (kg)</th>
+                                        <th>Peso Inicial (g)</th>
+                                        <th>Carga inicial (kg/m²) </th>
                                         <th>Animales final</th>
-                                        <th>Peso Actual</th>
+                                        <th>Peso Actual (g)</th>
                                         <th>Biomasa dispo</th>
-                                        <th>Biomasa Cosechada</th>
+                                        <th>Biomasa Cosechada (kg) </th>
                                         <th>Mortalidad Animales</th>
                                         <th>Mort. Kg</th>
                                         <th>% Mortalidad</th>
