@@ -43,6 +43,9 @@
                     </template>
                   </select>
                 </div>
+                <div class="form-group col-3" > 
+                  <button class="btn btn-success" @click="listar()">Buscar</button>
+                </div>
               </div>
             </div>
             <div>
