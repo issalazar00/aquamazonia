@@ -18,6 +18,9 @@ class RecursoNecesario extends Model{
         'cant_manana',
         'cant_tarde',
         'conv_alimenticia',
-        'detalles'
+        'detalles',
+        'costo_minutos_hombre',
+        'costo_recurso',
+        'costo_alimento'
     ];
 }

@@ -23,7 +23,7 @@
                     </option>
                   </template>
                 </select>
-                <input type="text" class="form-control" disabled readonly v-if="id" :value="form.contenedor">
+                <input type="text" class="form-control" disabled readonly v-if="id" :value="form.contenedor" />
               </div>
             </div>
             <div class="form-group row col-md-4">
@@ -45,8 +45,17 @@
                 <label for="">Fase</label>
                 <select v-model="form.phase_id" name="phase_id" class="form-control" id="phase_id">
                   <option v-for="(phase, index) in phaseListing.data" :value="phase.id" :key="index" selected>
-                    {{ form.phase = phase.phase }}
+                    {{ (form.phase = phase.phase) }}
                   </option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group row col-md-4">
+              <div class="col-sm-12 col-md-12 text-left">
+                <label for="">Tipo de cultivo</label>
+                <select v-model="form.tipo" name="tipo" class="form-control" id="tipo">
+                  <option value="Monocultivo" selected>Monocultivo</option>
+                  <option value="Policultivo">Policultivo</option>
                 </select>
               </div>
             </div>
@@ -80,12 +89,12 @@
                   <td>
                     <input type="number" min="0" class="form-control" id="peso_inicial" v-model="newPeso" required />
                     <span style="
-                          position: relative;
-                          float: right;
-                          right: 30px;
-                          color: #ccc;
-                          bottom: 30px;
-                        ">Gr
+                        position: relative;
+                        float: right;
+                        right: 30px;
+                        color: #ccc;
+                        bottom: 30px;
+                      ">Gr
                     </span>
                   </td>
 
@@ -145,7 +154,6 @@
                 <button v-else type="button" @click="guardarEdita(form.id_contenedor)" class="btn btn-primary">
                   Actualizar
                 </button>
-                <!-- <button type="submit" @click="guardar()" class="btn btn-primary">Crear</button> -->
               </div>
             </div>
           </div>
@@ -159,12 +167,12 @@
 import { Form, HasError, AlertError } from "vform";
 
 export default {
-  name: 'create-edit-stocking',
-  props: ['id', 'listado-contenedores', 'listado-especies'],
+  name: "create-edit-stocking",
+  props: ["id", "listado-contenedores", "listado-especies"],
   data() {
     return {
       form: new Form({
-        id: ""
+        id: "",
       }),
       listadoItems: [],
       nombresEspecies: [],
@@ -174,7 +182,7 @@ export default {
       newPeso: "",
       id_edit_item: "",
       phaseListing: {},
-    }
+    };
   },
   methods: {
     editItem(especie) {
@@ -253,14 +261,15 @@ export default {
     editarSiembra(siembra) {
       let me = this;
       me.form = siembra;
+      me.form.siembra_id = siembra.id
+
       axios
         .get("api/especies-siembra-edita/" + siembra.id)
         .then(function (response) {
-          // me.listadoEspecies = response.data.especies;
           me.listadoItems = response.data.espxsiembra;
         });
     },
-    guardarEdita(objeto) {
+    guardarEdita() {
       let me = this;
       const data = {
         siembra: this.form,
@@ -275,11 +284,26 @@ export default {
         this.newCantidad = "";
         this.newPeso = "";
         this.listadoItems = [];
-        this.listar();
         $("#modalSiembra").modal("hide");
       });
-
     },
+    guardaEditItem(id) {
+      let me = this;
+      const data = {
+        especie: this.id_edit_item,
+        lote: this.aux_lote,
+        cantidad: this.aux_cantidad,
+        cant_actual: this.aux_cantidad,
+        peso_inicial: this.aux_peso_inicial,
+      };
+      axios.put("api/siembras/" + id, data).then(({ data }) => {
+        (this.id_edit_item = ""),
+          (this.aux_lote = ""),
+          (this.aux_cantidad = ""),
+          (this.aux_peso_inicial = "");
+      });
+    },
+
     listPhases(page = 1) {
       let me = this;
       me.isLoading = true;
@@ -294,12 +318,10 @@ export default {
     },
   },
   mounted() {
-    this.nombreEspecie()
+    this.nombreEspecie();
     this.listPhases(1);
-
-  }
-
-}
+  },
+};
 </script>
 
 <style>

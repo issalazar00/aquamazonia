@@ -22,7 +22,7 @@
               </div>
 
               <div class="form-group col-3">
-                <label for="siembra_activa">Siembras Activas</label>
+                <label for="siembra_activa">Siembras {{f_estado == 0 ? 'inactivas' : 'activas'}} :</label>
                 <select name="siembra_activa" class="custom-select" id="siembra_activa" v-model="f_siembra"
                   v-if="f_estado != '-1'">
                   <template v-for="(siembra,
