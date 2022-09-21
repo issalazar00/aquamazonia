@@ -43,7 +43,7 @@
                     </template>
                   </select>
                 </div>
-                <div class="form-group col-3" > 
+                <div class="form-group col-3">
                   <button class="btn btn-success" @click="listar()">Buscar</button>
                 </div>
               </div>
@@ -156,9 +156,13 @@
                       </button>
                     </td>
                     <td>
-                      <button class="btn btn-warning" data-toggle="tooltip" title="Finalizar siembra"
-                        data-placement="top" @click="finalizarSiembra(siembra.id)">
-                        <i class="fas fa-power-off"></i>
+                      <button v-if="siembra.estado == 1" class="btn btn-danger text-white" data-toggle="tooltip"
+                        title="Finalizar siembra" data-placement="top" @click="finalizarSiembra(siembra.id)">
+                        <i class="fas fa-power-off"></i> Desactivar
+                      </button>
+                      <button v-if="siembra.estado == 0" class="btn btn-success text-white" data-toggle="tooltip"
+                        title="Finalizar siembra" data-placement="top" @click="activarSiembra(siembra.id)">
+                        <i class="fas fa-power-on"></i> Activar
                       </button>
                     </td>
                     <td>
@@ -292,6 +296,19 @@ export default {
     finalizarSiembra(id) {
       $("#modalFinalizar").modal("show");
       this.id = id;
+    },
+
+    activarSiembra(id) {
+      axios.post(`api/siembras/cambiar-estado/${this.id}`, NULL)
+        .then(({ response }) => {
+          swal({
+            title: "Estado de la siembra",
+            text: "¿Esta seguro de cambiar el estado?",
+            icon: "success",
+            dangerMode: true,
+          })
+          this.listar()
+        });
     },
 
     eliminarSiembra(index) {

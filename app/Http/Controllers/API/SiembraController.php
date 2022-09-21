@@ -154,7 +154,7 @@ class SiembraController extends Controller
 			$especieSiembra->save();
 
 
-		 Registro::create([
+			Registro::create([
 				'id_especie' => $especie['id_especie'],
 				'id_siembra' => $siembra->id,
 				'fecha_registro' => $request->siembra['fecha_inicio'],
@@ -231,6 +231,16 @@ class SiembraController extends Controller
 			$siembra->fin_descanso = $request['fin_descanso'];
 		}
 		$siembra->estado = 0;
+		$siembra->save();
+
+		return $request;
+	}
+
+	public function changeStatus(Request $request, $id)
+	{
+		$siembra = Siembra::findOrFail($id);
+		$siembra->fin_descanso = date('Y-m-d');
+		$siembra->estado = 1;
 		$siembra->save();
 
 		return $request;

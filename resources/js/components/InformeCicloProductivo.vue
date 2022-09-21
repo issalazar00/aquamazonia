@@ -10,30 +10,32 @@
               <h5>Filtrar por: </h5>
             </div>
             <div class="row">
-              <div class="form-group col-md-2">
-                <label for="f_estado">
-                  Estado:
-                  <select class="custom-select" name="estado" id="estado" v-model="f_estado">
-                    <option value="-1">--Seleccionar--</option>
-                    <option value="0">Inactiva</option>
-                    <option value="1">Activa</option>
-                  </select>
-                </label>
-              </div>
-              <div class="form-group col-3" v-show="f_estado == 1">
-                <label for="siembra_activa">Siembras Activas</label>
-                <select name="siembra_activa" class="custom-select" id="siembra_activa" v-model="f_siembra">
-                  <option value="-1">--Seleccionar--</option>
-                  <option v-for="(siembraActiva, index) in siembrasActivas" :key="index" :value="siembraActiva.id">
-                    {{ siembraActiva.nombre_siembra }}</option>
+              <div class="form-group col-3">
+                <label for="estado_siembta">Estado de siembra</label>
+                <select name="f_estado" class="custom-select" id="f_estado" v-model="f_estado">
+                  <option value="-1">Todas</option>
+                  <option value="1">Activas</option>
+                  <option value="0">Inactivas</option>
                 </select>
               </div>
-              <div class="form-group col-3" v-show="f_estado == 0">
-                <label for="siembra_inactiva">Siembras Inactivas</label>
-                <select name="siembra_inactiva" class="custom-select" id="siembra_inactiva" v-model="f_siembra">
-                  <option value="-1">--Seleccionar--</option>
-                  <option v-for="(siembraInactiva, index) in siembrasInactivas" :key="index"
-                    :value="siembraInactiva.id">{{ siembraInactiva.nombre_siembra }}</option>
+              <div class="form-group col-3">
+                <label for="siembra_activa">Siembras
+                  {{ f_estado == 0 ? "inactivas" : "activas" }} :</label>
+                <select name="siembra_activa" class="custom-select" id="siembra_activa" v-model="f_siembra"
+                  v-if="f_estado != '-1'">
+                  <template v-for="(siembra, index) in listadoSiembras">
+                    <option v-if="siembra.estado == f_estado" :key="index" :value="siembra.id">
+                      {{ siembra.nombre_siembra }}
+                    </option>
+                  </template>
+                </select>
+                <select name="siembra_activa" class="custom-select" id="siembra_activa" v-model="f_siembra"
+                  v-if="f_estado == '-1'">
+                  <template>
+                    <option v-for="(siembra, index) in listadoSiembras" :key="index" :value="siembra.id">
+                      {{ siembra.nombre_siembra }}
+                    </option>
+                  </template>
                 </select>
               </div>
               <div class="form-group col-md-2">
@@ -153,7 +155,7 @@
                     <td> {{ le.mortalidad_kg | numeral('0.00') }} kg</td>
                     <td>{{ le.mortalidad_porcentaje | numeral('0.00') }}</td>
                     <td>{{ le.salida_animales_sin_mortalidad |
-                        numeral('0.00')
+                    numeral('0.00')
                     }}</td>
                     <td>
                       {{ le.incremento_biomasa | numeral('0.00') }}
@@ -287,8 +289,6 @@ export default {
       listadoSiembras: [],
       imprimirRecursos: [],
       listadoLotes: [],
-      siembrasActivas: [],
-      siembrasInactivas: [],
       f_siembra: '-1',
       f_estado: '1',
       f_lote: '-1',
@@ -334,13 +334,11 @@ export default {
           me.listadoEspecies = response.data
         })
     },
-    listarSiembras(estado_siembra) {
+    listarSiembras() {
       let me = this;
-      axios.get('api/siembras?estado_siembra=' + estado_siembra)
-        .then(function (response) {
-          me.siembrasActivas = response.data.listado_siembras;
-          me.siembrasInactivas = response.data.listado_siembras_inactivas;
-        })
+      axios.get("api/siembras/listado").then(function (response) {
+        me.listadoSiembras = response.data;
+      });
     },
     listarLotes() {
       let me = this;
