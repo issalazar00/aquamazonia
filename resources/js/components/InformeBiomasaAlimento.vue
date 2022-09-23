@@ -29,7 +29,7 @@
                   index) in listadoSiembras">
                     <option v-if="siembra.estado == f_estado" :key="index" :value="siembra.id">
                       {{
-                          siembra.nombre_siembra
+                      siembra.nombre_siembra
                       }}
                     </option>
                   </template>
@@ -40,7 +40,7 @@
                     <option v-for="(siembra,
                     index) in listadoSiembras" :key="index" :value="siembra.id">
                       {{
-                          siembra.nombre_siembra
+                      siembra.nombre_siembra
                       }}
                     </option>
                   </template>
@@ -76,6 +76,7 @@
                     <th>Area (m²)<sup>3</sup> </th>
                     <th>Cant Inicial (Animales) </th>
                     <th>Biomasa Inicial (Kg)</th>
+                    <th>Cantidad actual</th>
                     <th>Biomasa disponible muestreo (Kg)</th>
                     <th>Biomasa cosechada (Kg)</th>
                     <th>Mortalidad</th>
@@ -96,6 +97,7 @@
                     <td>
                       {{ le.biomasa_inicial | numeral('0.00') }}
                     </td>
+                    <td> {{le.cantidad_actual | numeral('0.00') }}</td>
                     <td>
                       {{ le.biomasa_disponible | numeral('0.00') }}
                     </td>

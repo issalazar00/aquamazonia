@@ -72,7 +72,7 @@ class InformeAlimentosController extends Controller
 
     if (isset($request['id_alimento'])  && $request['id_alimento'] != '') {
       if ($request['id_alimento'] == '-1') {
-        $recursosNecesarios = $recursosNecesarios->where('alimento_id', '!=', -1);
+        $recursosNecesarios = $recursosNecesarios->where('id_alimento', '!=', -1);
       } else {
         $recursosNecesarios = $recursosNecesarios->where('alimentos.id', '=', $request['id_alimento']);
       }

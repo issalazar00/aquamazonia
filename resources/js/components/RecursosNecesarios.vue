@@ -35,7 +35,7 @@
                       index) in listadoActividades" v-bind:value="actividad.id">
                         <option :key="index" v-if="actividad.actividad != 'Alimentación'">
                           {{
-                              actividad.actividad
+                          actividad.actividad
                           }}</option>
                       </template>
 
@@ -70,7 +70,7 @@
                     </label>
                   </div>
                   <div class="form-group col-md-2">
-                    <button class="btn btn-primary rounded-circle mt-4" type="button" @click="buscarResultados()">
+                    <button class="btn btn-primary rounded-circle mt-4" type="button" @click="listar()">
                       <i class="fas fa-search"></i>
                     </button>
                   </div>
@@ -208,8 +208,8 @@
                     <option selected>--Seleccionar--</option>
                     <option v-for="(actividad,
                     index) in listadoActividades" :key="index" v-bind:value="actividad.id">{{
-      actividad.actividad
-  }}</option>
+                    actividad.actividad
+                    }}</option>
                   </select>
                 </div>
                 <div class="form-group">
@@ -229,8 +229,8 @@
                     <option selected>--Seleccionar--</option>
                     <option v-for="(recurso,
                     index) in listadoRecursos" :key="index" v-bind:value="recurso.id">{{
-      recurso.recurso
-  }}</option>
+                    recurso.recurso
+                    }}</option>
                   </select>
                 </div>
                 <div class="form-row my-2" style="background:#f0ffff;" v-show="form.tipo_actividad == 12">
@@ -341,7 +341,7 @@ export default {
       hora_inicio: "07:00",
       fecha_fin: "",
       hora_fin: "07:00",
-      t_actividad: "",
+      t_actividad: "-1",
       fecha_ra1: "",
       fecha_ra2: "",
       f_siembra: "",
@@ -412,7 +412,8 @@ export default {
       let me = this;
       $("#modalRecursos").modal("show");
     },
-    buscarResultados() {
+
+    listar(page = 1) {
       let me = this;
       if (this.f_siembra == "") {
         this.f_s = "-1";
@@ -451,6 +452,7 @@ export default {
       }
 
       const data = {
+        page: page,
         f_siembra: this.f_s,
         tipo_actividad: this.actividad,
         recurso_s: this.rec,
@@ -459,34 +461,26 @@ export default {
         fecha_ra2: this.fecha2,
         see_all: this.check
       };
-      axios.post("api/searchResults", data).then(response => {
-        if (response.data.pagination) {
-          this.showPagination = 1;
-          me.listado = response.data.recursosNecesarios.data;
-          me.promedios = response.data.promedioRecursos;
-          me.pagination = response.data.pagination;
-        } else {
-          this.showPagination = 0;
-          me.listado = response.data.recursosNecesarios;
-          me.promedios = response.data.promedioRecursos;
-          me.pagination = [];
-        }
-      });
-    },
-    listar(page) {
-      let me = this;
       axios
-        .get("api/recursos-necesarios?page=" + page)
+        .get("api/recursos-necesarios", { params: data })
         .then(function (response) {
-          me.listado = response.data.recursosNecesarios.data;
-          me.promedios = response.data.promedioRecursos;
-          me.pagination = response.data.pagination;
+          if (response.data.pagination) {
+            me.showPagination = 1;
+            me.listado = response.data.recursosNecesarios.data;
+            me.promedios = response.data.promedioRecursos;
+            me.pagination = response.data.pagination;
+          } else {
+            me.showPagination = 0;
+            me.listado = response.data.recursosNecesarios;
+            me.promedios = response.data.promedioRecursos;
+            me.pagination = [];
+          }
         });
     },
     listarSiembras() {
       let me = this;
-      axios.get("api/siembras").then(function (response) {
-        me.listadoSiembras = response.data.listado_siembras;
+      axios.get("api/siembras/listado").then(function (response) {
+        me.listadoSiembras = response.data;
       });
     },
     listarAlimentos() {
