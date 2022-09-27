@@ -12,11 +12,7 @@
                         <div class="row  text-right mb-3">
                             <div class="col-md-12">
                                 <!-- Button trigger modal -->
-                                <button
-                                    type="button"
-                                    class="btn btn-success"
-                                    @click="crearParametros()"
-                                >
+                                <button type="button" class="btn btn-success" @click="crearParametros()">
                                     Añadir párametros
                                 </button>
                             </div>
@@ -26,49 +22,26 @@
                                 <h5>Filtrar por:</h5>
                                 <div class="row">
                                     <div class="form-group col-md-3">
-                                        <label for="Fecha desde"
-                                            >Fecha inicio desde:
+                                        <label for="Fecha desde">Fecha inicio desde:
                                         </label>
-                                        <input
-                                            type="date"
-                                            class="form-control"
-                                            id="f_inicio_d"
-                                            v-model="f_inicio_d"
-                                        />
+                                        <input type="date" class="form-control" id="f_inicio_d" v-model="f_inicio_d" />
                                     </div>
                                     <div class="form-group col-md-3">
-                                        <label for="fecha hasta"
-                                            >Fecha inicio hasta:
+                                        <label for="fecha hasta">Fecha inicio hasta:
                                         </label>
-                                        <input
-                                            type="date"
-                                            class="form-control"
-                                            id="f_inicio_h"
-                                            v-model="f_inicio_h"
-                                        />
+                                        <input type="date" class="form-control" id="f_inicio_h" v-model="f_inicio_h" />
                                     </div>
                                     <div class="form-group col-md-1">
-                                        <label for="fecha hasta"
-                                            >Buscar:
+                                        <label for="fecha hasta">Buscar:
                                         </label>
-                                        <button
-                                            class="btn btn-primary form-control"
-                                            @click="filtrarParametros()"
-                                        >
+                                        <button class="btn btn-primary form-control" @click="filtrarParametros()">
                                             <i class="fas fa-search"></i>
                                         </button>
                                     </div>
                                     <div class="form-group  col-md-3">
-                                        <label for="Generar excel"
-                                            >Generar Excel:</label
-                                        >
-                                        <downloadexcel
-                                            class="btn btn-success form-control"
-                                            :fetch="fetchData"
-                                            :fields="json_fields"
-                                            name="informe-parametros-calidad-agua.xls"
-                                            type="xls"
-                                        >
+                                        <label for="Generar excel">Generar Excel:</label>
+                                        <downloadexcel class="btn btn-success form-control" :fetch="fetchData"
+                                            :fields="json_fields" name="informe-parametros-calidad-agua.xls" type="xls">
                                             <i class="fa fa-fw fa-download"></i>
                                             Exportar Excel
                                         </downloadexcel>
@@ -76,10 +49,7 @@
                                 </div>
                             </div>
                             <div class="col-md-12 text-right">
-                                <button
-                                    class="btn btn-primary"
-                                    @click="ocultarParametros()"
-                                >
+                                <button class="btn btn-primary" @click="ocultarParametros()">
                                     Regresar
                                 </button>
                             </div>
@@ -87,14 +57,12 @@
                                 <h2>
                                     Registros de párametros de agua
                                     {{
-                                        listadoParametros[0]
-                                            ? listadoParametros[0].contenedor
-                                            : ""
+                                    listadoParametros[0]
+                                    ? listadoParametros[0].contenedor
+                                    : ""
                                     }}
                                 </h2>
-                                <table
-                                    class="table-sticky table table-sm table-hover table-bordered"
-                                >
+                                <table class="table-sticky table table-sm table-hover table-bordered">
                                     <thead class="thead-primary">
                                         <tr>
                                             <th rowspan="2" data-field="id">
@@ -130,10 +98,7 @@
                                             </th>
                                         </tr>
                                         <tr>
-                                            <th
-                                                data-field=""
-                                                data-not-first-th=""
-                                            >
+                                            <th data-field="" data-not-first-th="">
                                                 12:00 am
                                             </th>
                                             <th data-field="">4:00 am</th>
@@ -143,17 +108,11 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <tr
-                                            v-for="(lp,
-                                            index) in listadoParametros"
-                                            :key="index"
-                                            v-if="lp.id != null"
-                                        >
+                                        <tr v-for="(lp,
+                                        index) in listadoParametros" :key="index" v-if="lp.id != null">
                                             <th v-text="index + 1"></th>
                                             <th v-text="lp.id"></th>
-                                            <td
-                                                v-text="lp.fecha_parametro"
-                                            ></td>
+                                            <td v-text="lp.fecha_parametro"></td>
                                             <td v-text="lp['12_am']"></td>
                                             <td v-text="lp['4_am']"></td>
                                             <td v-text="lp['7_am']"></td>
@@ -166,88 +125,52 @@
                                             <td v-text="lp.nitrato"></td>
                                             <td v-text="lp.otros"></td>
                                             <td>
-                                                <button
-                                                    class="btn btn-success"
-                                                    type="button"
-                                                    @click="
-                                                        editarParametros(lp)
-                                                    "
-                                                >
+                                                <button class="btn btn-success" type="button" @click="
+                                                    editarParametros(lp)
+                                                ">
                                                     <i class="fas fa-edit"></i>
                                                 </button>
-                                                <button
-                                                    class="btn btn-danger"
-                                                    type="button"
-                                                    @click="
-                                                        eliminarParametros(
-                                                            lp.id
-                                                        )
-                                                    "
-                                                >
+                                                <button class="btn btn-danger" type="button" @click="
+                                                    eliminarParametros(
+                                                        lp.id
+                                                    )
+                                                ">
                                                     <i class="fas fa-trash"></i>
                                                 </button>
                                             </td>
                                         </tr>
                                         <tr class="bg-secondary text-white">
                                             <th colspan="3">PROMEDIO:</th>
-                                            <td
-                                                v-text="
-                                                    promedios.promedio_12_am
-                                                "
-                                            ></td>
-                                            <td
-                                                v-text="promedios.promedio_4_am"
-                                            ></td>
-                                            <td
-                                                v-text="promedios.promedio_7_am"
-                                            ></td>
-                                            <td
-                                                v-text="promedios.promedio_4_pm"
-                                            ></td>
-                                            <td
-                                                v-text="promedios.promedio_8_pm"
-                                            ></td>
-                                            <td
-                                                v-text="
-                                                    promedios.promedio_temperatura
-                                                "
-                                            ></td>
-                                            <td
-                                                v-text="promedios.promedio_ph"
-                                            ></td>
-                                            <td
-                                                v-text="
-                                                    promedios.promedio_amonio
-                                                "
-                                            ></td>
-                                            <td
-                                                v-text="
-                                                    promedios.promedio_nitrito
-                                                "
-                                            ></td>
-                                            <td
-                                                v-text="
-                                                    promedios.promedio_nitrato
-                                                "
-                                            ></td>
-                                            <td
-                                                v-text="
-                                                    promedios.promedio_otros
-                                                "
-                                            ></td>
+                                            <td v-text="
+                                                promedios.promedio_12_am
+                                            "></td>
+                                            <td v-text="promedios.promedio_4_am"></td>
+                                            <td v-text="promedios.promedio_7_am"></td>
+                                            <td v-text="promedios.promedio_4_pm"></td>
+                                            <td v-text="promedios.promedio_8_pm"></td>
+                                            <td v-text="
+                                                promedios.promedio_temperatura
+                                            "></td>
+                                            <td v-text="promedios.promedio_ph"></td>
+                                            <td v-text="
+                                                promedios.promedio_amonio
+                                            "></td>
+                                            <td v-text="
+                                                promedios.promedio_nitrito
+                                            "></td>
+                                            <td v-text="
+                                                promedios.promedio_nitrato
+                                            "></td>
+                                            <td v-text="
+                                                promedios.promedio_otros
+                                            "></td>
                                         </tr>
                                     </tbody>
                                 </table>
                             </div>
                         </div>
-                        <div
-                            class="table-container"
-                            id="table-container2"
-                            v-if="mostrar == 0"
-                        >
-                            <table
-                                class="table-sticky table table-sm table-hover table-bordered"
-                            >
+                        <div class="table-container" id="table-container2" v-if="mostrar == 0">
+                            <table class="table-sticky table table-sm table-hover table-bordered">
                                 <thead class="thead-primary">
                                     <tr>
                                         <th scope="col">Estanque</th>
@@ -259,25 +182,17 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr
-                                        v-for="(contenedor,
-                                        index) in listadoParametrosEstanques"
-                                        :key="index"
-                                    >
+                                    <tr v-for="(contenedor,
+                                    index) in listadoParametrosEstanques" :key="index">
                                         <td v-text="contenedor.contenedor"></td>
                                         <td v-text="contenedor.capacidad"></td>
-                                        <td
-                                            v-text="estados[contenedor.estado]"
-                                        ></td>
+                                        <td v-text="estados[contenedor.estado]"></td>
                                         <td>
-                                            <button
-                                                class="btn btn-primary"
-                                                @click="
-                                                    mostrarParametros(
-                                                        contenedor.id
-                                                    )
-                                                "
-                                            >
+                                            <button class="btn btn-primary" @click="
+                                                mostrarParametros(
+                                                    contenedor.id
+                                                )
+                                            ">
                                                 <i class="far fa-eye"></i>
                                             </button>
                                         </td>
@@ -290,55 +205,33 @@
             </div>
         </div>
         <!-- Modal añadir Parametros a siembras -->
-        <div
-            class="modal fade"
-            id="modalParametros"
-            tabindex="-1"
-            role="dialog"
-            aria-labelledby="exampleModalLabel"
-            aria-hidden="true"
-        >
+        <div class="modal fade" id="modalParametros" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+            aria-hidden="true">
             <div class="modal-dialog modal-lg" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
                         <h3 class="modal-title">
                             Párametros de calidad del agua
                         </h3>
-                        <button
-                            type="button"
-                            class="close"
-                            data-dismiss="modal"
-                            aria-label="Close"
-                        >
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
                     </div>
                     <div class="modal-body">
-                        <form
-                            class="container"
-                            @submit.prevent="
-                                editando == 0 ? guardar() : editar()
-                            "
-                        >
+                        <form class="container" @submit.prevent="
+                            editando == 0 ? guardar() : editar()
+                        ">
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group row">
-                                        <label
-                                            for="Fecha"
-                                            class="col-sm-6 col-form-label"
-                                            ><i class="far fa-calendar-alt"></i>
+                                        <label for="Fecha" class="col-sm-6 col-form-label"><i
+                                                class="far fa-calendar-alt"></i>
                                             Fecha registro:
                                         </label>
                                         <div class="col-sm-6">
-                                            <input
-                                                type="date"
-                                                class="form-control"
-                                                id="fecha_registro"
-                                                placeholder="Fecha de registro"
-                                                step="any"
-                                                v-model="form.fecha_parametro"
-                                                required
-                                            />
+                                            <input type="date" class="form-control" id="fecha_registro"
+                                                placeholder="Fecha de registro" step="any"
+                                                v-model="form.fecha_parametro" required />
                                         </div>
                                     </div>
                                     <div class="col-sm-12 text-center">
@@ -346,236 +239,120 @@
                                     </div>
                                     <div class="border rounded p-3 mb-3">
                                         <div class="form-group row">
-                                            <label
-                                                for=""
-                                                class="col-sm-6 col-form-label"
-                                                ><i class="far fa-clock"></i>
+                                            <label for="" class="col-sm-6 col-form-label"><i class="far fa-clock"></i>
                                                 12:00 am:
                                             </label>
                                             <div class="col-sm-6">
-                                                <input
-                                                    type="number"
-                                                    class="form-control"
-                                                    id="12am"
-                                                    placeholder="Párametros 12am "
-                                                    step="any"
-                                                    v-model="form['12_am']"
-                                                />
+                                                <input type="number" class="form-control" id="12am"
+                                                    placeholder="Párametros 12am " step="any" v-model="form['12_am']" />
                                             </div>
                                         </div>
                                         <div class="form-group row">
-                                            <label
-                                                for=""
-                                                class="col-sm-6 col-form-label"
-                                                ><i class="far fa-clock"></i>
+                                            <label for="" class="col-sm-6 col-form-label"><i class="far fa-clock"></i>
                                                 4:00 am:
                                             </label>
                                             <div class="col-sm-6">
-                                                <input
-                                                    type="number"
-                                                    class="form-control"
-                                                    id="4am"
-                                                    placeholder="Párametros 4am"
-                                                    step="any"
-                                                    v-model="form['4_am']"
-                                                />
+                                                <input type="number" class="form-control" id="4am"
+                                                    placeholder="Párametros 4am" step="any" v-model="form['4_am']" />
                                             </div>
                                         </div>
                                         <div class="form-group row">
-                                            <label
-                                                for=""
-                                                class="col-sm-6 col-form-label"
-                                                ><i class="far fa-clock"></i>
+                                            <label for="" class="col-sm-6 col-form-label"><i class="far fa-clock"></i>
                                                 7:00 am:
                                             </label>
                                             <div class="col-sm-6">
-                                                <input
-                                                    type="number"
-                                                    class="form-control"
-                                                    id="7am"
-                                                    placeholder="Párametros 7am"
-                                                    step="any"
-                                                    v-model="form['7_am']"
-                                                />
+                                                <input type="number" class="form-control" id="7am"
+                                                    placeholder="Párametros 7am" step="any" v-model="form['7_am']" />
                                             </div>
                                         </div>
                                         <div class="form-group row">
-                                            <label
-                                                for=""
-                                                class="col-sm-6 col-form-label"
-                                                ><i class="far fa-clock"></i>
+                                            <label for="" class="col-sm-6 col-form-label"><i class="far fa-clock"></i>
                                                 4:00pm:
                                             </label>
                                             <div class="col-sm-6">
-                                                <input
-                                                    type="number"
-                                                    class="form-control"
-                                                    id="4pm"
-                                                    placeholder="Párametros 4pm"
-                                                    step="any"
-                                                    v-model="form['4_pm']"
-                                                />
+                                                <input type="number" class="form-control" id="4pm"
+                                                    placeholder="Párametros 4pm" step="any" v-model="form['4_pm']" />
                                             </div>
                                         </div>
                                         <div class="form-group row">
-                                            <label
-                                                for="8pm"
-                                                class="col-sm-6 col-form-label"
-                                                ><i class="far fa-clock"></i>
+                                            <label for="8pm" class="col-sm-6 col-form-label"><i
+                                                    class="far fa-clock"></i>
                                                 8:00pm:
                                             </label>
                                             <div class="col-sm-6">
-                                                <input
-                                                    type="number"
-                                                    class="form-control"
-                                                    id="8pm"
-                                                    placeholder="Párametros 8pm"
-                                                    step="any"
-                                                    v-model="form['8_pm']"
-                                                />
+                                                <input type="number" class="form-control" id="8pm"
+                                                    placeholder="Párametros 8pm" step="any" v-model="form['8_pm']" />
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group row">
-                                        <label
-                                            for="Temperatura"
-                                            class="col-sm-6 col-form-label"
-                                            >Temperatura:
+                                        <label for="Temperatura" class="col-sm-6 col-form-label">Temperatura:
                                         </label>
                                         <div class="col-sm-6">
-                                            <input
-                                                type="number"
-                                                class="form-control"
-                                                id="temperatura"
-                                                placeholder="Temperatura"
-                                                step="any"
-                                                v-model="form.temperatura"
-                                            />
+                                            <input type="number" class="form-control" id="temperatura"
+                                                placeholder="Temperatura" step="any" v-model="form.temperatura" />
                                         </div>
                                     </div>
                                     <div class="form-group row">
-                                        <label
-                                            for="ph"
-                                            class="col-sm-6 col-form-label"
-                                            >PH:
+                                        <label for="ph" class="col-sm-6 col-form-label">PH:
                                         </label>
                                         <div class="col-sm-6">
-                                            <input
-                                                type="number"
-                                                class="form-control"
-                                                id="ph"
-                                                placeholder="ph"
-                                                step="any"
-                                                v-model="form.ph"
-                                            />
+                                            <input type="number" class="form-control" id="ph" placeholder="ph"
+                                                step="any" v-model="form.ph" />
                                         </div>
                                     </div>
                                     <div class="form-group row">
-                                        <label
-                                            for="Amonio"
-                                            class="col-sm-6 col-form-label"
-                                            >Amonio:
+                                        <label for="Amonio" class="col-sm-6 col-form-label">Amonio:
                                         </label>
                                         <div class="col-sm-6">
-                                            <input
-                                                type="number"
-                                                class="form-control"
-                                                id="amonio"
-                                                placeholder="Amonio"
-                                                step="any"
-                                                v-model="form.amonio"
-                                            />
+                                            <input type="number" class="form-control" id="amonio" placeholder="Amonio"
+                                                step="any" v-model="form.amonio" />
                                         </div>
                                     </div>
                                     <div class="form-group row">
-                                        <label
-                                            for="Nitrito"
-                                            class="col-sm-6 col-form-label"
-                                            >Nitrito:
+                                        <label for="Nitrito" class="col-sm-6 col-form-label">Nitrito:
                                         </label>
                                         <div class="col-sm-6">
-                                            <input
-                                                type="number"
-                                                class="form-control"
-                                                id="nitrito"
-                                                placeholder="Nitrito"
-                                                step="any"
-                                                v-model="form.nitrito"
-                                            />
+                                            <input type="number" class="form-control" id="nitrito" placeholder="Nitrito"
+                                                step="any" v-model="form.nitrito" />
                                         </div>
                                     </div>
                                     <div class="form-group row">
-                                        <label
-                                            for="Nitrato"
-                                            class="col-sm-6 col-form-label"
-                                            >Nitrato:
+                                        <label for="Nitrato" class="col-sm-6 col-form-label">Nitrato:
                                         </label>
                                         <div class="col-sm-6">
-                                            <input
-                                                type="number"
-                                                class="form-control"
-                                                id="nitrato"
-                                                placeholder="Nitrato"
-                                                step="any"
-                                                v-model="form.nitrato"
-                                            />
+                                            <input type="number" class="form-control" id="nitrato" placeholder="Nitrato"
+                                                step="any" v-model="form.nitrato" />
                                         </div>
                                     </div>
                                     <div class="form-group row">
-                                        <label
-                                            for=""
-                                            class="col-sm-6 col-form-label"
-                                            >Otros:
+                                        <label for="" class="col-sm-6 col-form-label">Otros:
                                         </label>
                                         <div class="col-sm-6">
-                                            <input
-                                                type="number"
-                                                class="form-control"
-                                                id="otros"
-                                                placeholder="Otros"
-                                                step="any"
-                                                v-model="form.otros"
-                                            />
+                                            <input type="number" class="form-control" id="otros" placeholder="Otros"
+                                                step="any" v-model="form.otros" />
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
                             <div class="row">
-                                <h4
-                                    class="col-12 text-center text-primary my-4"
-                                >
+                                <h4 class="col-12 text-center text-primary my-4">
                                     Listado de estanques
                                 </h4>
-                                <div
-                                    v-if="form.id_contenedor == ''"
-                                    class="text-danger ml-2 col-12"
-                                >
+                                <div v-if="form.id_contenedor == ''" class="text-danger ml-2 col-12">
                                     Seleccionar al menos un estanque
                                 </div>
-                                <div
-                                    v-for="(lc, index) in listadoEstanques"
-                                    :key="index"
-                                    class="col-lg-3 col-md-4 col-sm-6"
-                                >
+                                <div v-for="(lc, index) in listadoEstanques" :key="index"
+                                    class="col-lg-3 col-md-4 col-sm-6">
                                     <div v-for="cont in lc" :key="cont.id">
-                                        <div
-                                            v-if="editando == 0"
-                                            class="form-check form-check-inline mb-2"
-                                        >
-                                            <input
-                                                type="checkbox"
-                                                class="form-check-input"
-                                                :id="'contenedor-' + cont.id"
-                                                v-bind:value="cont.id"
-                                                v-model="form.id_contenedor"
-                                            />
-                                            <label
-                                                :for="'contenedor-' + cont.id"
-                                                class="form-check-label"
-                                            >
+                                        <div v-if="editando == 0" class="form-check form-check-inline mb-2">
+                                            <input type="checkbox" class="form-check-input"
+                                                :id="'contenedor-' + cont.id" v-bind:value="cont.id"
+                                                v-model="form.id_contenedor" />
+                                            <label :for="'contenedor-' + cont.id" class="form-check-label">
                                                 <span></span>
                                                 {{ cont.contenedor }}
                                             </label>
@@ -586,23 +363,15 @@
                             </div>
                             <div class="form-group row">
                                 <div class="col-sm-12 text-right">
-                                    <button
-                                        type="button"
-                                        class="btn btn-secondary"
-                                        data-dismiss="modal"
-                                    >
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
                                         Cancelar
                                     </button>
-                                    <button
-                                        type="submit"
-                                        class="btn btn-primary"
-                                        v-if="form.id_contenedor != ''"
+                                    <button type="submit" class="btn btn-primary" v-if="form.id_contenedor != ''"
                                         v-text="
                                             editando == 0
                                                 ? 'Crear'
                                                 : 'Actualizar'
-                                        "
-                                    ></button>
+                                        "></button>
                                 </div>
                             </div>
                         </form>
@@ -714,19 +483,19 @@ export default {
         },
         listarSiembras() {
             let me = this;
-            axios.get("api/siembras").then(function(response) {
-                me.listadoSiembras = response.data.listado_siembras;
+            axios.get("api/siembras/listado").then(function (response) {
+                me.listadoSiembras = response.data;
             });
         },
         listarParametrosEstanques() {
             let me = this;
-            axios.get("api/parametros-contenedores").then(function(response) {
+            axios.get("api/parametros-contenedores").then(function (response) {
                 me.listadoParametrosEstanques = response.data;
             });
         },
         listarEstanques() {
             let me = this;
-            axios.get("api/listadoContenedores").then(function(response) {
+            axios.get("api/listadoContenedores").then(function (response) {
                 me.listadoEstanques = response.data;
             });
         },

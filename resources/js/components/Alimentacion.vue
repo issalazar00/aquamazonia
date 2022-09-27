@@ -19,6 +19,7 @@
                 <h5>Filtrar por:</h5>
                 <form class="row">
                   <input type="hidden" value="1" v-model="t_actividad">
+
                   <div class="form-group col-md-2">
                     <label for="Siembra">Siembra:</label>
                     <select class="form-control" id="f_siembra" v-model="f_siembra">
@@ -373,10 +374,9 @@ export default {
     },
     listarSiembras() {
       let me = this;
-      axios.get("api/siembras")
-        .then(function (response) {
-          me.listadoSiembras = response.data.listado_siembras;
-        })
+      axios.get("api/siembras/listado").then(function (response) {
+        me.listadoSiembras = response.data;
+      });
     },
     listarAlimentos() {
       let me = this;

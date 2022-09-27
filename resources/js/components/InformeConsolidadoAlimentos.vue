@@ -7,6 +7,15 @@
           <div class="card-body">
             <div class="row">
               <div class="form-row col-12">
+                <div class="form-group col-md-3">
+                  <label for="contenedor">Estanque:</label>
+                  <select class="custom-select" id="contenedor" v-model="id_contenedor">
+                    <option value="-1">Seleccionar</option>
+                    <option :value="cont.id" v-for="(cont, index) in listadoEstanques" :key="index">
+                      {{ cont.contenedor }}
+                    </option>
+                  </select>
+                </div>
                 <div class="form-group col-3">
                   <label for="estado_siembta">Estado de siembra</label>
                   <select name="f_estado" class="custom-select" id="f_estado" v-model="f_estado">
@@ -33,15 +42,6 @@
                         {{ siembra.nombre_siembra }}
                       </option>
                     </template>
-                  </select>
-                </div>
-                <div class="form-group col-md-2">
-                  <label for="contenedor">Estanque:</label>
-                  <select class="custom-select" id="contenedor" v-model="id_contenedor">
-                    <option value="-1">Seleccionar</option>
-                    <option :value="cont.id" v-for="(cont, index) in listadoEstanques" :key="index">
-                      {{ cont.contenedor }}
-                    </option>
                   </select>
                 </div>
                 <div class="form-group col-md-2">

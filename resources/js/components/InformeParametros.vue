@@ -8,13 +8,14 @@
           <div class="card-body">
             <div class="row mb-1">
               <div class="col-md-10">
-                <h5>Filtrar por:</h5>     
-                <div class="row">             
+                <h5>Filtrar por:</h5>
+                <div class="row">
                   <div class="form-group col-md-2">
                     <label for="Siembra">Estanque:</label>
                     <select class="form-control" id="f_siembra" v-model="f_contenedor">
-                      <option value="-1" selected>Seleccionar</option>                             
-                      <option :value="lc.id" v-for="(lc, index) in listadoEstanques" :key="index">{{lc.contenedor}}</option>
+                      <option value="-1" selected>Seleccionar</option>
+                      <option :value="lc.id" v-for="(lc, index) in listadoEstanques" :key="index">{{lc.contenedor}}
+                      </option>
                     </select>
                   </div>
                   <div class="form-group col-md-3">
@@ -27,18 +28,14 @@
                   </div>
                   <div class="form-group col-md-1">
                     <label for="fecha hasta">Buscar: </label>
-                    <button class="btn btn-primary form-control" @click="filtrarParametros()"> <i class="fas fa-search"></i></button>
+                    <button class="btn btn-primary form-control" @click="filtrarParametros()"> <i
+                        class="fas fa-search"></i></button>
                   </div>
                   <div class="form-group  col-md-3">
                     <label for="Generar excel">Generar Excel:</label>
-                    <downloadexcel
-                      
-                      class = "btn btn-success form-control"
-                      :fetch   = "fetchData"
-                      :fields = "json_fields"                      
-                      name    = "informe-parametros-calidad-agua.xls"
-                      type    = "xls">
-                        <i class="fa fa-fw fa-download"></i> Exportar Excel 
+                    <downloadexcel class="btn btn-success form-control" :fetch="fetchData" :fields="json_fields"
+                      name="informe-parametros-calidad-agua.xls" type="xls">
+                      <i class="fa fa-fw fa-download"></i> Exportar Excel
                     </downloadexcel>
                   </div>
                 </div>
@@ -47,11 +44,11 @@
             <div class="table-container" id="table-container2">
               <table class="table-sticky table table-sm table-hover table-bordered">
                 <thead class="thead-primary">
-                  <tr>                    
-                    <th rowspan="2" data-field="id">#</th>                    
+                  <tr>
+                    <th rowspan="2" data-field="id">#</th>
                     <th rowspan="2">ID registro</th>
-                    <th rowspan="2" data-field="id">Estanque</th>      
-                    <th rowspan="2" data-field="id">Fecha</th>      
+                    <th rowspan="2" data-field="id">Estanque</th>
+                    <th rowspan="2" data-field="id">Fecha</th>
                     <th colspan="5" class="text-center">% Saturación de oxígeno</th>
                     <th rowspan="2" data-field="id">Temperatura</th>
                     <th rowspan="2" data-field="id">PH</th>
@@ -66,7 +63,7 @@
                     <th data-field="">7:00 am </th>
                     <th data-field="">4:00 pm </th>
                     <th data-field="">8:00 pm </th>
-                  </tr>                  
+                  </tr>
                 </thead>
                 <tbody>
                   <tr v-for="(lp, index) in listadoParametros" :key="index">
@@ -99,7 +96,7 @@
                     <td v-text="promedios.promedio_nitrito"></td>
                     <td v-text="promedios.promedio_nitrato"></td>
                     <td v-text="promedios.promedio_otros"></td>
-                  </tr>                  
+                  </tr>
                 </tbody>
               </table>
             </div>
@@ -107,175 +104,174 @@
         </div>
       </div>
     </div>
-    
+
   </div>
 </template>
 
 <script>
-  import downloadexcel from "vue-json-excel";
-  import { Form, HasError, AlertError } from 'vform'
-  export default {
-    data(){
-    
-      return {
-        json_fields: {   
-          '#' : 'id',
-          'Fecha ' : 'fecha_parametro',
-          'Estanque' : 'contenedor',
-          '12:00 a.m' : '12_am',
-          '4:00 a.m' : '4_am',
-          '7:00 a.m' : '7_am',
-          '4:00 p.m' : '4_pm',
-          '8:00 p.m' : '8_pm',
-          'Temperatura' : 'temperatura', 
-          'PH' : 'ph',
-          'Amonio' : 'amonio',
-          'Nitrito' : 'nitrito', 
-          'Nitrato' : 'nitrato',
-          'Otros' : 'otros'
-          
-        },     
-        editando : 0,
-        form : new Form({
-          id : '',
-          id_siembra : [],
-          id_especie : '',
-          fecha_parametro : '',
-          '12_am' : '',
-          '4_am' : '',
-          '7_am' : '',
-          '4_pm' : '',
-          '8_pm': '',
-          temperatura : '',
-          ph: '',
-          amonio : '',
-          nitrito : '',
-          nitrato : '',
-          otros : ''
-        }),
-        listadoExistencias : [],
-        listadoEstanques:[],
-        listadoEspecies : [],
-        listadoSiembras: [],
-        listadoParametros : [],
-        promedios : [],
-        f_contenedor: '',
-        f_inicio_d : '',
-        f_inicio_h : '',
-      }
-    },
-    components: {
-      downloadexcel,
-    },
-    methods:{
-      async fetchData(){
-        let me = this;
-        const response = await this.listadoParametros;
-        return this.listadoParametros;
-      },
-      filtrarParametros(){
-        let me = this;
-        if(this.f_contenedor == ''){this.f_c = '-1'}else{this.f_c = this.f_contenedor}
-        if(this.f_inicio_d == ''){this.f_d = '-1'}else{this.f_d = this.f_inicio_d}
-        if(this.f_inicio_h == ''){this.f_h = '-1'}else{this.f_h = this.f_inicio_h}
-        
-        const data = {
-            'id_contenedor' : this.f_c,
-            'f_inicio_d' : this.f_d,
-            'f_inicio_h' : this.f_h
-        }
-        axios.post("api/filtro-parametros", data)
-        .then(response=>{
-          me.listadoParametros = response.data.calidad_agua;
-          me.promedios = response.data.promedios
-        })
-        
-      },
-      listar(){
-        let me = this;      
-        this.listarParametros();
-        this.listarSiembras();
-        this.listarEstanques();
-      },
-      listarParametros(){
-        let me = this;
-        axios.get("api/parametros-calidad")
-        .then(function (response){
-          me.listadoParametros = response.data.calidad_agua;
-          me.promedios = response.data.promedios
-        })
-      },
+import downloadexcel from "vue-json-excel";
+import { Form, HasError, AlertError } from 'vform'
+export default {
+  data() {
 
-      listarSiembras(){
-        let me = this;
-        axios.get("api/siembras")
-        .then(function (response){
-          me.listadoSiembras = response.data.listado_siembras;         
+    return {
+      json_fields: {
+        '#': 'id',
+        'Fecha ': 'fecha_parametro',
+        'Estanque': 'contenedor',
+        '12:00 a.m': '12_am',
+        '4:00 a.m': '4_am',
+        '7:00 a.m': '7_am',
+        '4:00 p.m': '4_pm',
+        '8:00 p.m': '8_pm',
+        'Temperatura': 'temperatura',
+        'PH': 'ph',
+        'Amonio': 'amonio',
+        'Nitrito': 'nitrito',
+        'Nitrato': 'nitrato',
+        'Otros': 'otros'
+
+      },
+      editando: 0,
+      form: new Form({
+        id: '',
+        id_siembra: [],
+        id_especie: '',
+        fecha_parametro: '',
+        '12_am': '',
+        '4_am': '',
+        '7_am': '',
+        '4_pm': '',
+        '8_pm': '',
+        temperatura: '',
+        ph: '',
+        amonio: '',
+        nitrito: '',
+        nitrato: '',
+        otros: ''
+      }),
+      listadoExistencias: [],
+      listadoEstanques: [],
+      listadoEspecies: [],
+      listadoSiembras: [],
+      listadoParametros: [],
+      promedios: [],
+      f_contenedor: '',
+      f_inicio_d: '',
+      f_inicio_h: '',
+    }
+  },
+  components: {
+    downloadexcel,
+  },
+  methods: {
+    async fetchData() {
+      let me = this;
+      const response = await this.listadoParametros;
+      return this.listadoParametros;
+    },
+    filtrarParametros() {
+      let me = this;
+      if (this.f_contenedor == '') { this.f_c = '-1' } else { this.f_c = this.f_contenedor }
+      if (this.f_inicio_d == '') { this.f_d = '-1' } else { this.f_d = this.f_inicio_d }
+      if (this.f_inicio_h == '') { this.f_h = '-1' } else { this.f_h = this.f_inicio_h }
+
+      const data = {
+        'id_contenedor': this.f_c,
+        'f_inicio_d': this.f_d,
+        'f_inicio_h': this.f_h
+      }
+      axios.post("api/filtro-parametros", data)
+        .then(response => {
+          me.listadoParametros = response.data.calidad_agua;
+          me.promedios = response.data.promedios
         })
-      },
-       listarEstanques(){
-        let me = this;
-        axios.get("api/contenedores")
+
+    },
+    listar() {
+      let me = this;
+      this.listarParametros();
+      this.listarSiembras();
+      this.listarEstanques();
+    },
+    listarParametros() {
+      let me = this;
+      axios.get("api/parametros-calidad")
         .then(function (response) {
-            me.listadoEstanques = response.data
+          me.listadoParametros = response.data.calidad_agua;
+          me.promedios = response.data.promedios
+        })
+    },
+
+    listarSiembras() {
+      let me = this;
+      axios.get("api/siembras/listado").then(function (response) {
+        me.listadoSiembras = response.data;
+      });
+    },
+    listarEstanques() {
+      let me = this;
+      axios.get("api/contenedores")
+        .then(function (response) {
+          me.listadoEstanques = response.data
         });
-      },
-      crearParametros(){
-        this.editando = 0;
-        let me = this;
-        $('#modalParametros').modal('show');
-      },
-      
-      guardar(){
-        let me = this;        
-        this.form.post("api/parametros-calidad")
-        .then(({data})=>{
+    },
+    crearParametros() {
+      this.editando = 0;
+      let me = this;
+      $('#modalParametros').modal('show');
+    },
+
+    guardar() {
+      let me = this;
+      this.form.post("api/parametros-calidad")
+        .then(({ data }) => {
           editando: 0;
           me.listar();
-         $('#modalParametros').modal('hide');
+          $('#modalParametros').modal('hide');
         })
-      },
-      editarParametros(objeto){
-        let me = this;
-        this.form.fill(objeto);
-        this.editando = 1;
-          $('#modalParametros').modal('show');
-      },
-      editar(){
-        let me = this;
-            this.form.put('api/parametros-calidad/'+this.form.id)
-            .then(({data})=>{
-              $('#modalParametros').modal('hide');
-              me.listar();
-              this.form.reset();
-            })          
-        
-      },
-      eliminarParametros(objeto){
-        let me = this;
-        Swal.fire({
-          title: "Estás seguro?",
-          text: "Una vez eliminado, no se puede recuperar los registros asociados a este ID",
-          icon: "warning",
-          showCancelButton: true,
-          confirmButtonColor: '#c7120c',
-          cancelButtonText: 'Cancelar',
-          confirmButtonText: 'Aceptar!',
-          reverseButtons: true
+    },
+    editarParametros(objeto) {
+      let me = this;
+      this.form.fill(objeto);
+      this.editando = 1;
+      $('#modalParametros').modal('show');
+    },
+    editar() {
+      let me = this;
+      this.form.put('api/parametros-calidad/' + this.form.id)
+        .then(({ data }) => {
+          $('#modalParametros').modal('hide');
+          me.listar();
+          this.form.reset();
         })
+
+    },
+    eliminarParametros(objeto) {
+      let me = this;
+      Swal.fire({
+        title: "Estás seguro?",
+        text: "Una vez eliminado, no se puede recuperar los registros asociados a este ID",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: '#c7120c',
+        cancelButtonText: 'Cancelar',
+        confirmButtonText: 'Aceptar!',
+        reverseButtons: true
+      })
         .then((result) => {
-            if (result.isConfirmed) {
-            axios.delete('api/parametros-calidad/'+objeto)
-            .then(({data})=>{
-              me.listar();
-              
-            })
+          if (result.isConfirmed) {
+            axios.delete('api/parametros-calidad/' + objeto)
+              .then(({ data }) => {
+                me.listar();
+
+              })
           }
         });
-      }
-    },
-    mounted() {
-      this.listar();
     }
+  },
+  mounted() {
+    this.listar();
   }
+}
 </script>
