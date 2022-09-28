@@ -299,13 +299,12 @@ export default {
     },
 
     activarSiembra(id) {
-      axios.post(`api/siembras/cambiar-estado/${this.id}`, NULL)
+      axios.post(`api/siembras/cambiar-estado/${id}`, null)
         .then(({ response }) => {
-          swal({
-            title: "Estado de la siembra",
-            text: "¿Esta seguro de cambiar el estado?",
+          Swal.fire({
+            title: "Exitoso",
+            text: "El estado se ha cambiado correctamente",
             icon: "success",
-            dangerMode: true,
           })
           this.listar()
         });
@@ -313,7 +312,7 @@ export default {
 
     eliminarSiembra(index) {
       let me = this;
-      swal({
+      Swal.fire({
         title: "Estás seguro?",
         text: "Una vez eliminado, no se puede recuperar este registro",
         icon: "warning",
