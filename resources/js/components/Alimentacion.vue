@@ -19,14 +19,26 @@
                 <h5>Filtrar por:</h5>
                 <form class="row">
                   <input type="hidden" value="1" v-model="t_actividad">
-
-                  <div class="form-group col-md-2">
-                    <label for="Siembra">Siembra:</label>
-                    <select class="form-control" id="f_siembra" v-model="f_siembra">
-                      <option value="-1" selected>Seleccionar</option>
-                      <option :value="ls.id" v-for="(ls, index) in listadoSiembras" :key="index">{{ ls.nombre_siembra }}
-                      </option>
+                  <div class="form-group col-3">
+                    <label for="estado_siembta">Estado de siembra</label>
+                    <select name="f_estado" class="custom-select" id="f_estado" v-model="f_estado">
+                      <option value="-1">Todas</option>
+                      <option value="1">Activas</option>
+                      <option value="0">Inactivas</option>
                     </select>
+                  </div>
+                  <div class="form-group col-3">
+                    <label for="siembra_activa">Siembras
+                      {{ f_estado == 0 ? "inactivas" : "activas" }} :
+                    </label>
+                    <template v-if="f_estado != '-1'">
+                      <v-select :options="filteredItems" label="nombre_siembra" :reduce="(siembra) => siembra.id"
+                        v-model="f_siembra" />
+                    </template>
+                    <template v-if="f_estado == '-1'">
+                      <v-select :options="listadoSiembras" label="nombre_siembra" :reduce="(siembra) => siembra.id"
+                        v-model="f_siembra" />
+                    </template>
                   </div>
                   <div class="form-group col-md-2">
                     <label for="alimento">Alimento: </label>
@@ -275,6 +287,7 @@ export default {
       fecha_ra1: '',
       fecha_ra2: '',
       f_siembra: '',
+      f_estado: '1',
       see_all: 0,
       alimento_s: '',
       recurso_s: '',
@@ -321,6 +334,9 @@ export default {
         from++;
       }
       return pagesArray;
+    },
+    filteredItems() {
+      return this.listadoSiembras.filter((item) => item.estado == this.f_estado);
     }
   },
   methods: {

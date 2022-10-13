@@ -20,23 +20,16 @@
               </div>
               <div class="form-group col-3">
                 <label for="siembra_activa">Siembras
-                  {{ f_estado == 0 ? "inactivas" : "activas" }} :</label>
-                <select name="siembra_activa" class="custom-select" id="siembra_activa" v-model="f_siembra"
-                  v-if="f_estado != '-1'">
-                  <template v-for="(siembra, index) in listadoSiembras">
-                    <option v-if="siembra.estado == f_estado" :key="index" :value="siembra.id">
-                      {{ siembra.nombre_siembra }}
-                    </option>
-                  </template>
-                </select>
-                <select name="siembra_activa" class="custom-select" id="siembra_activa" v-model="f_siembra"
-                  v-if="f_estado == '-1'">
-                  <template>
-                    <option v-for="(siembra, index) in listadoSiembras" :key="index" :value="siembra.id">
-                      {{ siembra.nombre_siembra }}
-                    </option>
-                  </template>
-                </select>
+                  {{ f_estado == 0 ? "inactivas" : "activas" }} :
+                </label>
+                <template v-if="f_estado != '-1'">
+                  <v-select :options="filteredItems" label="nombre_siembra" :reduce="(siembra) => siembra.id"
+                    v-model="f_siembra" />
+                </template>
+                <template v-if="f_estado == '-1'">
+                  <v-select :options="listadoSiembras" label="nombre_siembra" :reduce="(siembra) => siembra.id"
+                    v-model="f_siembra" />
+                </template>
               </div>
               <div class="form-group col-md-2">
                 <label for="lote">Lotes:</label>
@@ -301,6 +294,11 @@ export default {
   },
   components: {
     downloadexcel,
+  },
+  computed: {
+    filteredItems() {
+      return this.listadoSiembras.filter((item) => item.estado == this.f_estado);
+    }
   },
   methods: {
     async fetchData() {

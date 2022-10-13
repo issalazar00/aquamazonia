@@ -18,12 +18,8 @@
                 <form class="row">
                   <div class="form-group col-md-2">
                     <label for="Siembra">Siembra:</label>
-                    <select class="form-control" id="f_siembra" v-model="f_siembra">
-                      <option value="-1" selected>Seleccionar</option>
-                      <option :value="ls.id" v-for="(ls,
-                      index) in listadoSiembras" :key="index">{{ ls.nombre_siembra }}
-                      </option>
-                    </select>
+                    <v-select :options="listadoSiembras" label="nombre_siembra" :reduce="(siembra) => siembra.id"
+                      v-model="f_siembra" />
                   </div>
                   <div class="form-group col-md-2">
                     <label for="t_actividad">Tipo de Actividad:

@@ -9,118 +9,58 @@
               <form class="row">
                 <div class="form-group col-md-2">
                   <label for="estado"> Estado: </label>
-                  <select
-                    class="custom-select"
-                    name="estado"
-                    id="estado"
-                    v-model="f_estado"
-                  >
+                  <select class="custom-select" name="estado" id="estado" v-model="f_estado">
                     <option value="-1" disabled>--Seleccionar--</option>
                     <option value="0">Inactiva</option>
                     <option value="1">Activa</option>
                   </select>
                 </div>
                 <div class="form-group col-3">
-                  <label for="siembra_activa"
-                    >Siembras
-                    {{ f_estado == 0 ? "inactivas" : "activas" }} :</label
-                  >
-                  <select
-                    name="siembra_activa"
-                    class="custom-select"
-                    id="siembra_activa"
-                    v-model="f_siembra"
-                    v-if="f_estado != '-1'"
-                  >
-                    <template v-for="(siembra, index) in listadoSiembras">
-                      <option
-                        v-if="siembra.estado == f_estado"
-                        :key="index"
-                        :value="siembra.id"
-                      >
-                        {{ siembra.nombre_siembra }}
-                      </option>
-                    </template>
-                  </select>
-                  <select
-                    name="siembra_activa"
-                    class="custom-select"
-                    id="siembra_activa"
-                    v-model="f_siembra"
-                    v-if="f_estado == '-1'"
-                  >
-                    <template>
-                      <option
-                        v-for="(siembra, index) in listadoSiembras"
-                        :key="index"
-                        :value="siembra.id"
-                      >
-                        {{ siembra.nombre_siembra }}
-                      </option>
-                    </template>
-                  </select>
+                  <label for="siembra_activa">Siembras
+                    {{ f_estado == 0 ? "inactivas" : "activas" }} :
+                  </label>
+                  <template v-if="f_estado != '-1'">
+                    <v-select :options="filteredItems" label="nombre_siembra" :reduce="(siembra) => siembra.id"
+                      v-model="f_siembra" />
+                  </template>
+                  <template v-if="f_estado == '-1'">
+                    <v-select :options="listadoSiembras" label="nombre_siembra" :reduce="(siembra) => siembra.id"
+                      v-model="f_siembra" />
+                  </template>
                 </div>
                 <div class="form-group col-md-2">
                   <label for="contenedor">Estanque:</label>
-                  <select
-                    class="custom-select"
-                    id="contenedor"
-                    v-model="f_contenedor"
-                  >
+                  <select class="custom-select" id="contenedor" v-model="f_contenedor">
                     <option value="-1">Seleccionar</option>
-                    <option
-                      :value="cont.id"
-                      v-for="(cont, index) in listadoEstanques"
-                      :key="index"
-                    >
+                    <option :value="cont.id" v-for="(cont, index) in listadoEstanques" :key="index">
                       {{ cont.contenedor }}
                     </option>
                   </select>
                 </div>
                 <div class="form-group col-md-2">
                   <label for="f_actividad">Tipo de Actividad: </label>
-                  <select
-                    class="custom-select"
-                    id="f_actividad"
-                    v-model="f_actividad"
-                    @click="cambiarActividad()"
-                  >
+                  <select class="custom-select" id="f_actividad" v-model="f_actividad" @click="cambiarActividad()">
                     <option value="-1" selected>Seleccionar</option>
-                    <option
-                      v-for="(actividad, index) in listadoActividades"
-                      :key="index"
-                      v-bind:value="actividad.id"
-                    >
+                    <option v-for="(actividad, index) in listadoActividades" :key="index" v-bind:value="actividad.id">
                       {{ actividad.actividad }}
                     </option>
                   </select>
                 </div>
                 <div class="form-group col-md-2">
-                  <button
-                    class="btn btn-primary rounded-circle mt-4"
-                    type="button"
-                    @click="buscarResultados()"
-                  >
+                  <button class="btn btn-primary rounded-circle mt-4" type="button" @click="buscarResultados()">
                     <i class="fas fa-search"></i>
                   </button>
                 </div>
                 <div class="col-md-2">
-                  <downloadexcel
-                    class="btn btn-success form-control"
-                    :fetch="fetchData"
-                    :fields="json_fields"
-                    name="informe-consolidado-recursos-necesarios.xls"
-                    type="xls"
-                  >
+                  <downloadexcel class="btn btn-success form-control" :fetch="fetchData" :fields="json_fields"
+                    name="informe-consolidado-recursos-necesarios.xls" type="xls">
                     <i class="fa fa-fw fa-download"></i> Generar Excel
                   </downloadexcel>
                 </div>
               </form>
             </div>
             <div class="table-container" id="table-container2">
-              <table
-                class="table-sticky table table-sm table-hover table-bordered"
-              >
+              <table class="table-sticky table table-sm table-hover table-bordered">
                 <thead class="thead-primary">
                   <tr>
                     <th>#</th>
@@ -154,30 +94,11 @@
                     <td v-text="lrn.actividad"></td>
                     <td v-text="lrn.minutos_hombre + ' min'"></td>
                     <td class="text-right" v-text="lrn.costo_minutos"></td>
-                    <td
-                      class="text-right"
-                      v-text="lrn.cantidad_recurso"
-                      v-if="tipoActividad != 'Alimentación'"
-                    ></td>
-                    <td
-                      class="text-right"
-                      v-text="lrn.costo_recurso"
-                      v-if="tipoActividad != 'Alimentación'"
-                    ></td>
-                    <td
-                      class="text-right"
-                      v-text="lrn.cantidad_alimento"
-                      v-if="tipoActividad == 'Alimentación'"
-                    ></td>
-                    <td
-                      class="text-right"
-                      v-text="lrn.costo_alimento"
-                      v-if="tipoActividad == 'Alimentación'"
-                    ></td>
-                    <td
-                      class="text-right"
-                      v-text="lrn.costo_total_actividad"
-                    ></td>
+                    <td class="text-right" v-text="lrn.cantidad_recurso" v-if="tipoActividad != 'Alimentación'"></td>
+                    <td class="text-right" v-text="lrn.costo_recurso" v-if="tipoActividad != 'Alimentación'"></td>
+                    <td class="text-right" v-text="lrn.cantidad_alimento" v-if="tipoActividad == 'Alimentación'"></td>
+                    <td class="text-right" v-text="lrn.costo_alimento" v-if="tipoActividad == 'Alimentación'"></td>
+                    <td class="text-right" v-text="lrn.costo_total_actividad"></td>
                     <td class="text-right">
                       <!-- {{ lrn.por_total_produccion = ((lrn.costo_total_actividad * 100)/(lrn.costoTotalSiembra)) }} -->
                       <span v-if="lrn.porcentaje_total_produccion">
@@ -228,7 +149,11 @@ export default {
   components: {
     downloadexcel,
   },
-
+  computed: {
+    filteredItems() {
+      return this.listadoSiembras.filter((item) => item.estado == this.f_estado);
+    }
+  },
   methods: {
     async fetchData() {
       let me = this;

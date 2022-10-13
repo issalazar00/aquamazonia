@@ -164,6 +164,11 @@ export default {
   components: {
     downloadexcel,
   },
+  computed: {
+    filteredItems() {
+  return this.listadoSiembras.filter((item) => item.estado == this.f_estado);
+}
+  },
   methods: {
     async fetchData() {
       let me = this;

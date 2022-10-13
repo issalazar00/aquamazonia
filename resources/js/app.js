@@ -11,16 +11,20 @@ window.Vue = require('vue');
 import VueRouter from 'vue-router'
 import Swal from 'sweetalert2'
 import Vue from 'vue'
-
+import vSelect from 'vue-select'
+import 'vue-select/dist/vue-select.css';
+// import 'vue-select/dist/vue-select'
 import JsonExcel from 'vue-json-excel'
+import vueNumeralFilterInstaller from 'vue-numeral-filter';
+
 Vue.component('downloadExcel', JsonExcel)
 Vue.component("pagination", require("laravel-vue-pagination"));
+Vue.component('v-select', vSelect)
 
 window.Swal = Swal
 Vue.use(VueRouter)
-
-import vueNumeralFilterInstaller from 'vue-numeral-filter';
 Vue.use(vueNumeralFilterInstaller, { locale: 'es' });
+
 
 let routes = [
     { path: '/', component: require('./components/Dashboard.vue').default },

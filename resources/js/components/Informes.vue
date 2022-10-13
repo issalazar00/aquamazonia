@@ -11,174 +11,86 @@
             <div class="row mb-1">
               <div class="col-md-12">
                 <h2>Filtrar por:</h2>
-                <form
-                  class="row"
-                  method="POST"
-                  action="informe-excel"
-                  target="_blank"
-                >
+                <form class="row" method="POST" action="informe-excel" target="_blank">
                   <div class="form-group col-md-2">
                     <label for="Estado">Estado siembra </label>
-                    <select
-                      class="form-control"
-                      id="estado_s"
-                      v-model="estado_s"
-                      name="estado_s"
-                    >
+                    <select class="form-control" id="estado_s" v-model="estado_s" name="estado_s">
                       <option value="-1">Todos</option>
                       <option value="0">Inactivo</option>
                       <option value="1" selected>Activo</option>
                     </select>
                   </div>
                   <div class="form-group col-3">
-                    <label for="siembra_activa"
-                      >Siembras
-                      {{ estado_s == 0 ? "inactivas" : "activas" }} :</label
-                    >
-                    <select
-                      name="siembra_activa"
-                      class="custom-select"
-                      id="siembra_activa"
-                      v-model="f_siembra"
-                      v-if="estado_s != '-1'"
-                    >
-                      <template v-for="(siembra, index) in listadoSiembras">
-                        <option
-                          v-if="siembra.estado == estado_s"
-                          :key="index"
-                          :value="siembra.id"
-                        >
-                          {{ siembra.nombre_siembra }}
-                        </option>
-                      </template>
-                    </select>
-                    <select
-                      name="siembra_activa"
-                      class="custom-select"
-                      id="siembra_activa"
-                      v-model="f_siembra"
-                      v-if="estado_s == '-1'"
-                    >
-                      <template>
-                        <option
-                          v-for="(siembra, index) in listadoSiembras"
-                          :key="index"
-                          :value="siembra.id"
-                        >
-                          {{ siembra.nombre_siembra }}
-                        </option>
-                      </template>
-                    </select>
+                    <label for="siembra_activa">Siembras
+                      {{ estado_s == 0 ? "inactivas" : "activas" }} :
+                    </label>
+                    <template v-if="estado_s != '-1'">
+                      <v-select :options="filteredItems" label="nombre_siembra" :reduce="(siembra) => siembra.id"
+                        v-model="f_siembra" />
+                    </template>
+                    <template v-if="estado_s == '-1'">
+                      <v-select :options="listadoSiembras" label="nombre_siembra" :reduce="(siembra) => siembra.id"
+                        v-model="f_siembra" />
+                    </template>
                   </div>
+
 
                   <div class="form-group col-md-2">
                     <label for="contenedor">Estanque:</label>
-                    <select
-                      class="custom-select"
-                      id="contenedor"
-                      v-model="f_contenedor"
-                    >
+                    <select class="custom-select" id="contenedor" v-model="f_contenedor">
                       <option value="-1">Seleccionar</option>
-                      <option
-                        :value="cont.id"
-                        v-for="(cont, index) in listadoEstanques"
-                        :key="index"
-                      >
+                      <option :value="cont.id" v-for="(cont, index) in listadoEstanques" :key="index">
                         {{ cont.contenedor }}
                       </option>
                     </select>
                   </div>
                   <div class="form-group col-md-2">
                     <label for="actividad">Tipo actividad: </label>
-                    <select
-                      class="form-control"
-                      id="actividad"
-                      v-model="actividad_s"
-                      name="tipo_actividad"
-                      @click="cambiarActividad()"
-                    >
+                    <select class="form-control" id="actividad" v-model="actividad_s" name="tipo_actividad"
+                      @click="cambiarActividad()">
                       <option value="-1" selected>Seleccionar</option>
-                      <option
-                        v-for="(actividad, index) in listadoActividades"
-                        :key="index"
-                        v-bind:value="actividad.id"
-                      >
+                      <option v-for="(actividad, index) in listadoActividades" :key="index" v-bind:value="actividad.id">
                         {{ actividad.actividad }}
                       </option>
                     </select>
                   </div>
                   <div class="form-group col-md-2">
                     <label for="alimento">Alimento: </label>
-                    <select
-                      class="form-control"
-                      id="alimento"
-                      v-model="alimento_s"
-                    >
+                    <select class="form-control" id="alimento" v-model="alimento_s">
                       <option value="-1" selected>Seleccionar</option>
-                      <option
-                        v-for="(alimento, index) in listadoAlimentos"
-                        :key="index"
-                        v-bind:value="alimento.id"
-                      >
+                      <option v-for="(alimento, index) in listadoAlimentos" :key="index" v-bind:value="alimento.id">
                         {{ alimento.alimento }}
                       </option>
                     </select>
                   </div>
                   <div class="form-group col-md-2">
                     <label for="recurso">Recurso: </label>
-                    <select
-                      class="form-control"
-                      id="recurso"
-                      v-model="recurso_s"
-                    >
+                    <select class="form-control" id="recurso" v-model="recurso_s">
                       <option value="-1" selected>Seleccionar</option>
-                      <option
-                        v-for="(recurso, index) in listadoRecursos"
-                        :key="index"
-                        v-bind:value="recurso.id"
-                      >
+                      <option v-for="(recurso, index) in listadoRecursos" :key="index" v-bind:value="recurso.id">
                         {{ recurso.recurso }}
                       </option>
                     </select>
                   </div>
                   <div class="form-group col-md-2">
                     <label for="search">Desde: </label>
-                    <input
-                      class="form-control"
-                      type="date"
-                      placeholder="Search"
-                      aria-label="fecha_ra1"
-                      v-model="fecha_ra1"
-                    />
+                    <input class="form-control" type="date" placeholder="Search" aria-label="fecha_ra1"
+                      v-model="fecha_ra1" />
                   </div>
                   <div class="form-group col-md-2">
                     <label for="search">Hasta: </label>
-                    <input
-                      class="form-control"
-                      type="date"
-                      placeholder="Search"
-                      aria-label="fecha_ra2"
-                      v-model="fecha_ra2"
-                    />
+                    <input class="form-control" type="date" placeholder="Search" aria-label="fecha_ra2"
+                      v-model="fecha_ra2" />
                   </div>
                   <div class="form-group col-md-1">
                     <label for="">Buscar</label>
-                    <button
-                      class="btn btn-primary form-control"
-                      type="button"
-                      @click="listar()"
-                    >
+                    <button class="btn btn-primary form-control" type="button" @click="listar()">
                       <i class="fas fa-search"></i>
                     </button>
                   </div>
                   <div class="form-group col-md-2">
-                    <downloadexcel
-                      class="btn btn-success form-control"
-                      :fetch="fetchData"
-                      :fields="json_fields"
-                      name="informe-recursos.xls"
-                      type="xls"
-                    >
+                    <downloadexcel class="btn btn-success form-control" :fetch="fetchData" :fields="json_fields"
+                      name="informe-recursos.xls" type="xls">
                       <i class="fa fa-fw fa-download"></i> Generar Excel
                     </downloadexcel>
                   </div>
@@ -186,9 +98,7 @@
               </div>
             </div>
             <div class="table-responsive">
-              <table
-                class="table table-bordered table-hover table-sticky table-sm"
-              >
+              <table class="table table-bordered table-hover table-sticky table-sm">
                 <thead class="thead-primary">
                   <tr>
                     <th>#</th>
@@ -264,36 +174,14 @@
             <nav v-show="showPagination" class="mt-5 navigation">
               <ul class="pagination justify-content-center">
                 <li class="page-item" v-if="pagination.current_page > 1">
-                  <a
-                    class="page-link"
-                    href="#"
-                    @click.prevent="cambiarPagina(pagination.current_page - 1)"
-                    >Ant</a
-                  >
+                  <a class="page-link" href="#" @click.prevent="cambiarPagina(pagination.current_page - 1)">Ant</a>
                 </li>
-                <li
-                  class="page-item"
-                  v-for="page in pagesNumber"
-                  :key="page"
-                  :class="[page == isActived ? 'active' : '']"
-                >
-                  <a
-                    class="page-link"
-                    href="#"
-                    @click.prevent="cambiarPagina(page)"
-                    v-text="page"
-                  ></a>
+                <li class="page-item" v-for="page in pagesNumber" :key="page"
+                  :class="[page == isActived ? 'active' : '']">
+                  <a class="page-link" href="#" @click.prevent="cambiarPagina(page)" v-text="page"></a>
                 </li>
-                <li
-                  class="page-item"
-                  v-if="pagination.current_page < pagination.last_page"
-                >
-                  <a
-                    class="page-link"
-                    href="#"
-                    @click.prevent="cambiarPagina(pagination.current_page + 1)"
-                    >Sig</a
-                  >
+                <li class="page-item" v-if="pagination.current_page < pagination.last_page">
+                  <a class="page-link" href="#" @click.prevent="cambiarPagina(pagination.current_page + 1)">Sig</a>
                 </li>
               </ul>
             </nav>
@@ -386,6 +274,9 @@ export default {
       }
       return pagesArray;
     },
+    filteredItems() {
+      return this.listadoSiembras.filter((item) => item.estado == this.estado_s);
+    }
   },
   methods: {
     async fetchData() {
