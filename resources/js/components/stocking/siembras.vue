@@ -25,7 +25,7 @@
                 </div>
                 <div class="form-group col-3">
                   <label for="siembra_activa">Siembras
-                    {{ estado_siembra == 0 ? "inactivas" : "activas" }} :
+                    {{ (estado_siembra == "-1") ? "" : (estado_siembra == 0 ? "inactivas":"activas") }} :
                   </label>
                   <template v-if="estado_siembra != '-1'">
                     <v-select :options="filteredItems" label="nombre_siembra" :reduce="(siembra) => siembra.id"
@@ -34,6 +34,14 @@
                   <template v-if="estado_siembra == '-1'">
                     <v-select :options="listadoSiembras" label="nombre_siembra" :reduce="(siembra) => siembra.id"
                       v-model="f_siembra" />
+                  </template>
+                </div>
+                <div class="form-group col-3">
+                  <label for="siembra_activa">Contenedor :
+                  </label>
+                  <template>
+                    <v-select :options="listadoContenedores" label="contenedor" :reduce="(contenedor) => contenedor.id"
+                      v-model="contenedor_id" />
                   </template>
                 </div>
                 <div class="form-group col-3">
@@ -84,7 +92,7 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="(siembra, index) in listadoSiembras" :key="siembra.id">
+                  <tr v-for="(siembra, index) in listado" :key="siembra.id">
                     <th v-text="index + 1" scope="row"></th>
                     <td v-text="siembra.nombre_siembra" scope="row"></td>
                     <td v-text="siembra.contenedor"></td>
@@ -216,6 +224,7 @@ export default {
       //Filtro siembras
       estado_siembra: "-1",
       f_siembra: "",
+      contenedor_id: "-1"
     };
   },
   computed: {
@@ -265,10 +274,11 @@ export default {
           "api/siembras?estado_siembra=" +
           me.estado_siembra +
           "&id_siembra=" +
-          me.f_siembra
+          me.f_siembra +
+          '&contenedor_id=' + me.contenedor_id
         )
         .then(function (response) {
-          me.listadoSiembras = response.data.siembra;
+          me.listado = response.data.siembra;
           me.fechaActual = response.data.fecha_actual;
         });
     },
@@ -328,6 +338,7 @@ export default {
   mounted() {
     this.listar(1, "");
     this.listarSiembras();
+    this.listarContenedores();
     this.listarLotes();
     this.estados[0] = "Inactivo";
     this.estados[1] = "Activo";

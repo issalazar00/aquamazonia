@@ -11495,6 +11495,14 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
 
 
 
@@ -11527,7 +11535,8 @@ Vue.component(vform__WEBPACK_IMPORTED_MODULE_4__["AlertError"].name, vform__WEBP
       tipoRegistro: [],
       //Filtro siembras
       estado_siembra: "-1",
-      f_siembra: ""
+      f_siembra: "",
+      contenedor_id: "-1"
     };
   },
   computed: {
@@ -11572,8 +11581,8 @@ Vue.component(vform__WEBPACK_IMPORTED_MODULE_4__["AlertError"].name, vform__WEBP
     },
     listar: function listar() {
       var me = this;
-      axios.get("api/siembras?estado_siembra=" + me.estado_siembra + "&id_siembra=" + me.f_siembra).then(function (response) {
-        me.listadoSiembras = response.data.siembra;
+      axios.get("api/siembras?estado_siembra=" + me.estado_siembra + "&id_siembra=" + me.f_siembra + '&contenedor_id=' + me.contenedor_id).then(function (response) {
+        me.listado = response.data.siembra;
         me.fechaActual = response.data.fecha_actual;
       });
     },
@@ -11633,6 +11642,7 @@ Vue.component(vform__WEBPACK_IMPORTED_MODULE_4__["AlertError"].name, vform__WEBP
   mounted: function mounted() {
     this.listar(1, "");
     this.listarSiembras();
+    this.listarContenedores();
     this.listarLotes();
     this.estados[0] = "Inactivo";
     this.estados[1] = "Activo";
@@ -70487,7 +70497,11 @@ var render = function() {
                         _vm._v(
                           "Siembras\n                  " +
                             _vm._s(
-                              _vm.estado_siembra == 0 ? "inactivas" : "activas"
+                              _vm.estado_siembra == "-1"
+                                ? ""
+                                : _vm.estado_siembra == 0
+                                ? "inactivas"
+                                : "activas"
                             ) +
                             " :\n                "
                         )
@@ -70538,6 +70552,36 @@ var render = function() {
                     2
                   ),
                   _vm._v(" "),
+                  _c(
+                    "div",
+                    { staticClass: "form-group col-3" },
+                    [
+                      _c("label", { attrs: { for: "siembra_activa" } }, [
+                        _vm._v("Contenedor :\n                ")
+                      ]),
+                      _vm._v(" "),
+                      [
+                        _c("v-select", {
+                          attrs: {
+                            options: _vm.listadoContenedores,
+                            label: "contenedor",
+                            reduce: function(contenedor) {
+                              return contenedor.id
+                            }
+                          },
+                          model: {
+                            value: _vm.contenedor_id,
+                            callback: function($$v) {
+                              _vm.contenedor_id = $$v
+                            },
+                            expression: "contenedor_id"
+                          }
+                        })
+                      ]
+                    ],
+                    2
+                  ),
+                  _vm._v(" "),
                   _c("div", { staticClass: "form-group col-3" }, [
                     _c(
                       "button",
@@ -70567,7 +70611,7 @@ var render = function() {
                     _vm._v(" "),
                     _c(
                       "tbody",
-                      _vm._l(_vm.listadoSiembras, function(siembra, index) {
+                      _vm._l(_vm.listado, function(siembra, index) {
                         return _c("tr", { key: siembra.id }, [
                           _c("th", {
                             attrs: { scope: "row" },
