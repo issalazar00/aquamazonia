@@ -544,7 +544,7 @@ class InformeController extends Controller
 
 					$siembra->contador_esp = $especies->nro_especies;
 					$siembra->cantidad_inicial = $especies->cantidad_inicial;
-					$siembra->peso_ini = $especies->peso_inicial;
+					$siembra->peso_inicial = $especies->peso_inicial;
 					$siembra->peso_actual = $especies->peso_actual;
 					$siembra->peso_incremento = $especies->peso_actual - $especies->peso_inicial;
 					$siembra->biomasa_inicial = $especies->biomasa_inicial;
