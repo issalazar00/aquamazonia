@@ -93,8 +93,7 @@ class InformeController extends Controller
 		$recursosNecesarios = RecursoNecesario::orderBy('fecha_ra', 'desc')
 			->leftJoin('recursos', 'recursos_necesarios.id_recurso', 'recursos.id')
 			->leftJoin('alimentos', 'recursos_necesarios.id_alimento', 'alimentos.id')
-			->join('recursos_siembras', 'recursos_necesarios.id', 'recursos_siembras.id_registro')
-			->join('siembras', 'recursos_siembras.id_siembra', 'siembras.id')
+			->join('siembras', 'recursos_necesarios.siembra_id', 'siembras.id')
 			->join('actividades', 'recursos_necesarios.tipo_actividad', 'actividades.id')
 			->select('recursos.id as idr', 'alimentos.id as ida', 'recursos_necesarios.id as id', 'actividad', 'minutos_hombre', 'id_recurso', 'id_alimento', 'fecha_ra', 'minutos_hombre', 'cant_manana', 'cant_tarde', 'detalles', 'tipo_actividad', 'recurso', 'alimento', 'recursos.costo as costo_r', 'alimentos.costo_kg as costo_a', 'nombre_siembra', 'estado', 'cantidad_recurso', 'siembras.id_contenedor')
 			->where($c1, $op1, $c2)
@@ -105,7 +104,7 @@ class InformeController extends Controller
 			->where($c11, $op6, $c12)
 			->where($simbra_id, $op7, $filtro_siembra)
 			->where('siembras.id_contenedor', $signCont, $idContenedor)
-			->orderBy('nombre_siembra', 'desc')
+			->orderBy('recursos_necesarios.created_at', 'desc')
 			->paginate(30);
 
 		$acumula = 0;
@@ -150,8 +149,7 @@ class InformeController extends Controller
 		$recursosNecesarios = RecursoNecesario::orderBy('fecha_ra', 'desc')
 			->leftJoin('recursos', 'recursos_necesarios.id_recurso', 'recursos.id')
 			->leftJoin('alimentos', 'recursos_necesarios.id_alimento', 'alimentos.id')
-			->join('recursos_siembras', 'recursos_necesarios.id', 'recursos_siembras.id_registro')
-			->join('siembras', 'recursos_siembras.id_siembra', 'siembras.id')
+			->join('siembras', 'recursos_necesarios.siembra_id', 'siembras.id')
 			->join('actividades', 'recursos_necesarios.tipo_actividad', 'actividades.id')
 			->select('recursos.id as idr', 'alimentos.id as ida', 'recursos_necesarios.id as id', 'actividad', 'id_recurso', 'id_alimento', 'fecha_ra', 'minutos_hombre', 'cant_manana', 'cant_tarde', 'detalles', 'tipo_actividad', 'recurso', 'alimento', 'recursos.costo as costo_r', 'alimentos.costo_kg as costo_a', 'nombre_siembra', 'estado', 'cantidad_recurso')
 			->orderBy('nombre_siembra', 'desc')
@@ -253,8 +251,7 @@ class InformeController extends Controller
 		$recursosNecesarios = RecursoNecesario::orderBy('fecha_ra', 'desc')
 			->leftJoin('recursos', 'recursos_necesarios.id_recurso', 'recursos.id')
 			->leftJoin('alimentos', 'recursos_necesarios.id_alimento', 'alimentos.id')
-			->join('recursos_siembras', 'recursos_necesarios.id', 'recursos_siembras.id_registro')
-			->join('siembras', 'recursos_siembras.id_siembra', 'siembras.id')
+			->join('siembras', 'recursos_necesarios.siembra_id', 'siembras.id')
 			->join('actividades', 'recursos_necesarios.tipo_actividad', 'actividades.id')
 			->select('recursos.id as idr', 'alimentos.id as ida', 'recursos_necesarios.id as id', 'actividad', 'minutos_hombre', 'id_recurso', 'id_alimento', 'fecha_ra', 'minutos_hombre', 'cant_manana', 'cant_tarde', 'detalles', 'tipo_actividad', 'recurso', 'alimento', 'recursos.costo as costo_r', 'alimentos.costo_kg as costo_a', 'nombre_siembra', 'siembras.estado as estado', 'cantidad_recurso')
 			->where($c1, $op1, $c2)

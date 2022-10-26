@@ -38,12 +38,10 @@ class InformeRecursosNecesariosController extends Controller
         DB::raw('SUM(minutos_hombre) as minutos_hombre'),
         DB::raw('SUM(horas_hombre) as horas_hombre'),
       )
-      ->join('recursos_siembras', 'recursos_necesarios.id', 'recursos_siembras.id_registro')
-      ->join('siembras', 'recursos_siembras.id_siembra', 'siembras.id')
+      ->join('siembras', 'recursos_necesarios.siembra_id', 'siembras.id')
       ->join('actividades', 'recursos_necesarios.tipo_actividad', 'actividades.id')
       ->groupBy('siembras.nombre_siembra')
       ->groupBy('siembras.estado')
-      ->groupBy('recursos_siembras.id_siembra')
       ->groupBy('siembras.id_contenedor')
       ->groupBy('recursos_necesarios.tipo_actividad')
       ->groupBy('actividades.actividad')
@@ -55,10 +53,9 @@ class InformeRecursosNecesariosController extends Controller
 
       $costo_recursos = RecursoNecesario::select()
         ->join('actividades', 'recursos_necesarios.tipo_actividad', 'actividades.id')
-        ->join('recursos_siembras', 'recursos_necesarios.id', 'recursos_siembras.id_registro')
         ->leftJoin('alimentos', 'recursos_necesarios.id_alimento', 'alimentos.id')
         ->leftJoin('recursos', 'recursos_necesarios.id_recurso', 'recursos.id')
-        ->join('siembras', 'recursos_siembras.id_siembra', 'siembras.id')
+        ->join('siembras', 'recursos_necesarios.siembra_id', 'siembras.id')
         ->get();
 
       foreach ($costo_recursos as $costo_recurso) {
@@ -145,13 +142,11 @@ class InformeRecursosNecesariosController extends Controller
         DB::raw('SUM(minutos_hombre) as minutos_hombre'),
         DB::raw('SUM(horas_hombre) as horas_hombre'),
       )
-      ->join('recursos_siembras', 'recursos_necesarios.id', 'recursos_siembras.id_registro')
-      ->join('siembras', 'recursos_siembras.id_siembra', 'siembras.id')
+      ->join('siembras', 'recursos_necesarios.siembra_id', 'siembras.id')
       ->join('actividades', 'recursos_necesarios.tipo_actividad', 'actividades.id')
       ->groupBy('siembras.nombre_siembra')
       ->groupBy('siembras.estado')
       ->groupBy('siembras.id_contenedor')
-      ->groupBy('recursos_siembras.id_siembra')
       ->groupBy('recursos_necesarios.tipo_actividad')
       ->groupBy('actividades.actividad')
       ->where($id_siembra, $operador_siembra, $filtro_siembra)
@@ -165,10 +160,9 @@ class InformeRecursosNecesariosController extends Controller
 
       $costo_recursos = RecursoNecesario::select()
         ->join('actividades', 'recursos_necesarios.tipo_actividad', 'actividades.id')
-        ->join('recursos_siembras', 'recursos_necesarios.id', 'recursos_siembras.id_registro')
         ->leftJoin('alimentos', 'recursos_necesarios.id_alimento', 'alimentos.id')
         ->leftJoin('recursos', 'recursos_necesarios.id_recurso', 'recursos.id')
-        ->join('siembras', 'recursos_siembras.id_siembra', 'siembras.id')
+        ->join('siembras', 'recursos_necesarios.siembra_id', 'siembras.id')
         ->get();
 
       foreach ($costo_recursos as $costo_recurso) {
