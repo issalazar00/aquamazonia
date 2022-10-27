@@ -241,7 +241,7 @@ export default {
   },
   methods: {
     async fetchData() {
-      return this.listadoRegistros;
+      return this.listadoRegistros.data;
     },
     listarRegistros(page = 1) {
       let me = this;
