@@ -28,8 +28,8 @@
                       <option value="-1" selected>
                         Seleccionar</option>
                       <template v-for="(actividad,
-                      index) in listadoActividades" v-bind:value="actividad.id">
-                        <option :key="index" v-if="actividad.actividad != 'Alimentación'">
+                      index) in listadoActividades">
+                        <option :key="index"  :value="actividad.id" v-if="actividad.actividad != 'Alimentación'">
                           {{
                           actividad.actividad
                           }}</option>

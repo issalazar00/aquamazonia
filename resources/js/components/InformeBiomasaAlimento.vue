@@ -116,6 +116,7 @@
                     <td></td>
                     <td></td>
                     <td>{{ totalizadoSiembras.biomasa_inicial | numeral('0.00') }}</td>
+                    <td></td>
                     <td>{{ totalizadoSiembras.biomasa_disponible | numeral('0.00') }}</td>
                     <td>{{ totalizadoSiembras.salida_biomasa | numeral('0.00') }}</td>
                     <td>{{ totalizadoSiembras.mortalidad | numeral('0.00') }}</td>
@@ -123,6 +124,7 @@
                     <td>{{ totalizadoSiembras.cantidad_total_alimento | numeral('0.00') }}</td>
                     <td>{{ totalizadoSiembras.incr_bio_acum_conver | numeral('0.00') }}</td>
                     <td></td>
+                    
                     <td>{{ totalizadoSiembras.bio_dispo_alimen | numeral('0.00') }}</td>
                     <td></td>
                   </tr>

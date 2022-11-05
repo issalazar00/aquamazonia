@@ -68,6 +68,7 @@ class InfomeBiomasaAlimentoController extends Controller
       ->get();
 
     $mh = Recursos::select()->where('recurso', 'Minutos hombre')->orWhere('recurso', 'Minuto hombre')->orWhere('recurso', 'Minutos')->first();
+
     $especies_siembra = new EspeciesSiembraController;
 
     $aux_regs = array();
@@ -75,21 +76,7 @@ class InfomeBiomasaAlimentoController extends Controller
 
     if (count($siembras) > 0) {
       foreach ($siembras as $siembra) {
-
-        $especies = EspecieSiembra::select(
-          'id_siembra',
-          DB::raw("count(id_especie) as nro_especies"),
-          DB::raw("sum(cant_actual) as cant_actual"),
-          DB::raw("sum(cantidad) as cantidad_inicial"),
-          DB::raw("sum(peso_inicial) as peso_inicial"),
-          DB::raw("sum(peso_actual) as peso_actual"),
-          DB::raw("sum((peso_actual*cant_actual)/1000) as biomasa_disponible"),
-          DB::raw("sum((peso_inicial*cantidad)/1000) as biomasa_inicial"),
-        )
-          ->orderBy('especies_siembra.id_siembra')
-          ->where('id_siembra', $siembra->id)
-          ->groupBy('id_siembra')
-          ->first();
+        $especies = $especies_siembra->generalInfoEspeciesSiembra($siembra->id);
 
         // Especies en la siembra
         if (($especies)) {
@@ -162,7 +149,8 @@ class InfomeBiomasaAlimentoController extends Controller
         $siembra->conversion_alimenticia_siembra = $siembra->incremento_biomasa > 0 ? $siembra->cantidad_total_alimento /  $siembra->incremento_biomasa : 0;
         $siembra->conversion_alimenticia_parcial = (($siembra->biomasa_disponible - $siembra->biomasa_inicial) > 0) ? $siembra->cantidad_total_alimento / ($siembra->biomasa_disponible - $siembra->biomasa_inicial) : 0;
 
-        $siembra->bio_dispo_alimen = (($siembra->incr_bio_acum_conver + $siembra->biomasa_inicial) - ($siembra->salida_biomasa + $siembra->mortalidad_kg));
+        // $siembra->bio_dispo_alimen = (($siembra->incr_bio_acum_conver + $siembra->biomasa_inicial) - ($siembra->salida_biomasa + $siembra->mortalidad_kg));
+        $siembra->bio_dispo_alimen =$especies->bio_dispo_alimen;
 
         $siembra->costo_produccion_parcial = $siembra->bio_dispo_alimen > 0 ? $siembra->costo_total_siembra / ($siembra->bio_dispo_alimen + $siembra->salida_biomasa) : 0;
 
@@ -196,7 +184,7 @@ class InfomeBiomasaAlimentoController extends Controller
     $totalizadoSiembras['costo_total_recurso'] = array_sum(array_column($siembra_to_array, 'costo_total_recurso'));
     $totalizadoSiembras['costo_total_alimento'] = array_sum(array_column($siembra_to_array, 'costo_total_alimento'));
     $totalizadoSiembras['costo_total_siembra'] = array_sum(array_column($siembra_to_array, 'costo_total_siembra'));
-   
+
     return ['existencias' => $siembras, 'totalizadoSiembras' => $totalizadoSiembras];
   }
 }
