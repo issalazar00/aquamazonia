@@ -19,8 +19,6 @@ class InformeAlimentosController extends Controller
   public function index(Request $request)
   {
     //
-    $minutos_hombre = Recursos::select()->where('recurso', 'Minutos hombre')->orWhere('recurso', 'Minuto hombre')->orWhere('recurso', 'Minutos')->first();
-
     $recursosNecesarios = RecursoNecesario::select(
       'alimentos.alimento',
       'alimentos.id as alimento_id',
@@ -86,8 +84,6 @@ class InformeAlimentosController extends Controller
       $recursoNecesario->costoAlimento = $costo_recursos->costo_kg * $recursoNecesario->cantidadTotalAlimento;
       $recursoNecesario->costoUnitarioAlimento = $costo_recursos->costo_kg;
       $recursoNecesario->porcCantidadAlimento = ($recursoNecesario->cantidadTotalAlimento * 100) / $cantidadAlimentoSiembra;
-      $recursoNecesario->porcCantidadAlimento = (number_format(($recursoNecesario->porcCantidadAlimento), 2, ',', ''));
-      $recursoNecesario->costoAlimento = (number_format(($recursoNecesario->costoAlimento), 2, ',', ''));
     }
 
     return [

@@ -115,7 +115,7 @@
                     <th>Especie</th>
                     <th>Tipo <br />actividad</th>
                     <th>Peso actual (g) </th>
-                    <th>KG cosecha</th>
+                    <th>Biomasa cosecha Kg</th>
                     <th>Biomasa muestreo (kg)</th>
                     <th>Animales Actuales</th>
                     <th>Biomasa disponible por alimento</th>
@@ -146,7 +146,7 @@
                       {{ lr.bio_dispo_alimen | numeral("0.00") }}
                     </td>
                     <td>
-                      {{ lr.salida_animales | numeral("0.00") }}
+                      {{ lr.salida_animales_general | numeral("0.00") }}
                     </td>
                   </tr>
                 </tbody>
@@ -181,7 +181,7 @@ export default {
             return numeral(value).format("0.00");
           },
         },
-        "KG cosecha": {
+        "Biomasa cosecha \n Kg": {
           field: "biomasa",
           callback: (value) => {
             return numeral(value).format("0.00");

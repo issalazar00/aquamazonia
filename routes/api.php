@@ -57,14 +57,10 @@ Route::namespace('API')->group(function () {
 	Route::post('informe-recursos-totales', 'InformeController@informeRecursosTotales');
 	Route::post('filtro-parametros', 'ParametroCalidadController@filtroParametros');
 	Route::post('filtro-parametros-excel', 'ParametroCalidadController@filtroParametrosExcel');
-
-	Route::post('filtro-recursos', 'InformeRecursosNecesariosController@filtroRecursos');
 	Route::post('parametro-x-contenedor/{id}', 'ParametroCalidadController@mostrarParametrosxContenedores');
 	Route::post('parametro-x-contenedor-excel/{id}', 'ParametroCalidadController@mostrarParametrosxContenedoresExcel');
 	Route::post('anadir-especie-siembra', 'SiembraController@anadirEspeciesxSiembra');
 	Route::post('siembras-alimentacion/{id}', 'RecursoNecesarioController@siembraxAlimentacion');
-	
-	Route::post('filtro-recursos', 'InformeRecursosNecesariosController@filtroRecursos');
 	Route::get('listadoContenedores', 'ContenedorController@listadoContenedores');
 	Route::get('especies-siembra-edita/{id}', 'SiembraController@getEspeciesSiembra');
 	Route::get('lista-alimentacion', 'RecursoNecesarioController@alimentacion');

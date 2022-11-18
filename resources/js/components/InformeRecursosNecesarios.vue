@@ -47,7 +47,7 @@
                   </select>
                 </div>
                 <div class="form-group col-md-2">
-                  <button class="btn btn-primary rounded-circle mt-4" type="button" @click="buscarResultados()">
+                  <button class="btn btn-primary rounded-circle mt-4" type="button" @click="listar()">
                     <i class="fas fa-search"></i>
                   </button>
                 </div>
@@ -149,6 +149,7 @@ export default {
   components: {
     downloadexcel,
   },
+
   computed: {
     filteredItems() {
       return this.listadoSiembras.filter((item) => item.estado == this.f_estado);
@@ -160,19 +161,14 @@ export default {
       const response = await this.listado;
       return this.listado;
     },
+
     cambiarActividad() {
       if (this.f_actividad == 1) {
         this.tipoActividad = "Alimentación";
       } else this.tipoActividad = "";
     },
+
     listar() {
-      let me = this;
-      axios.get("api/informes-recursos-necesarios").then(function (response) {
-        me.listado = response.data.recursosNecesarios.data;
-        me.promedios = response.data.promedioRecursos;
-      });
-    },
-    buscarResultados() {
       let me = this;
       if (this.f_siembra == "") {
         this.f_s = "-1";
@@ -201,29 +197,33 @@ export default {
         f_actividad: this.actividad,
         f_contenedor: this.cont,
       };
-      axios.post("api/filtro-recursos", data).then((response) => {
+      axios.post("api/informes-recursos-necesarios", data).then((response) => {
         me.listado = response.data.recursosNecesarios.data;
         me.promedios = response.data.promedioRecursos;
       });
     },
+
     listarSiembras() {
       let me = this;
       axios.get("api/siembras/listado").then(function (response) {
         me.listadoSiembras = response.data;
       });
     },
+
     listarActividades() {
       let me = this;
       axios.get("api/actividades").then(function (response) {
         me.listadoActividades = response.data;
       });
     },
+
     listarEstanques() {
       let me = this;
       axios.get("api/contenedores").then(function (response) {
         me.listadoEstanques = response.data;
       });
     },
+    
   },
   mounted() {
     this.listar();

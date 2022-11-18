@@ -67,13 +67,9 @@ class InfomeBiomasaAlimentoController extends Controller
       ->join('siembras', 'registros.id_siembra', 'siembras.id')
       ->get();
 
-    $mh = Recursos::select()->where('recurso', 'Minutos hombre')->orWhere('recurso', 'Minuto hombre')->orWhere('recurso', 'Minutos')->first();
-
     $especies_siembra = new EspeciesSiembraController;
 
-    $aux_regs = array();
     $diff = 0;
-
     if (count($siembras) > 0) {
       foreach ($siembras as $siembra) {
         $especies = $especies_siembra->generalInfoEspeciesSiembra($siembra->id);
@@ -139,18 +135,19 @@ class InfomeBiomasaAlimentoController extends Controller
           $siembra->costo_total_recurso =  $recurso_necesario->costo_total_recurso;
           $siembra->cantidad_total_alimento =  $recurso_necesario->cant_tarde + $recurso_necesario->cant_manana;
           $siembra->costo_total_alimento = $recurso_necesario->costo_manana + $recurso_necesario->costo_tarde;
-          $siembra->incr_bio_acum_conver =  $recurso_necesario->incr_bio_acum_conver;
+          $siembra->incr_bio_acum_conver =  $recurso_necesario->incr_bio_acum_conver_m + $recurso_necesario->incr_bio_acum_conver_t;
+          $siembra->costo_minutos_hombre = ($recurso_necesario->minutos_hombre * $recurso_necesario->costo_minutos_hombre);
         }
 
-        $siembra->costo_minutos_hombre = ($siembra->minutos_hombre * $mh->costo);
+        // $siembra->costo_minutos_hombre = ($siembra->minutos_hombre * $mh->costo);
         $siembra->costo_total_siembra = ($siembra->costo_minutos_hombre + $siembra->costo_total_alimento + $siembra->costo_total_recurso);
         $siembra->costo_produccion_final = $siembra->salida_biomasa > 0 ?  $siembra->costo_total_siembra / $siembra->salida_biomasa : 0;
         $siembra->conversion_alimenticia = $siembra->incr_bio_acum_conver > 0 ?  ($siembra->cantidad_total_alimento) / ($siembra->incr_bio_acum_conver) : 0;
         $siembra->conversion_alimenticia_siembra = $siembra->incremento_biomasa > 0 ? $siembra->cantidad_total_alimento /  $siembra->incremento_biomasa : 0;
         $siembra->conversion_alimenticia_parcial = (($siembra->biomasa_disponible - $siembra->biomasa_inicial) > 0) ? $siembra->cantidad_total_alimento / ($siembra->biomasa_disponible - $siembra->biomasa_inicial) : 0;
 
-        // $siembra->bio_dispo_alimen = (($siembra->incr_bio_acum_conver + $siembra->biomasa_inicial) - ($siembra->salida_biomasa + $siembra->mortalidad_kg));
-        $siembra->bio_dispo_alimen =$especies->bio_dispo_alimen;
+        $siembra->bio_dispo_alimen = (($siembra->incr_bio_acum_conver + $siembra->biomasa_inicial) - ($siembra->salida_biomasa + $siembra->mortalidad_kg));
+        // $siembra->bio_dispo_alimen =$especies->bio_dispo_alimen;
 
         $siembra->costo_produccion_parcial = $siembra->bio_dispo_alimen > 0 ? $siembra->costo_total_siembra / ($siembra->bio_dispo_alimen + $siembra->salida_biomasa) : 0;
 

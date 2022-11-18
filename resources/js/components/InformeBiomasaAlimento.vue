@@ -65,7 +65,7 @@
                     <th>Cantidad actual</th>
                     <th>Biomasa disponible muestreo (Kg)</th>
                     <th>Biomasa cosechada (Kg)</th>
-                    <th>Mortalidad</th>
+                    <th>Mortalidad <br> (Animales) </th>
                     <th>Mort. Kg</th>
                     <th>Total alimento (Kg)</th>
                     <th>Incremento de biomasa por alimento (Kg)</th>
@@ -165,7 +165,7 @@ export default {
             return numeral(value).format('0.00');
           }
         },
-        'Mortalidad': {
+        'Mortalidad \n (Animales)': {
           field: 'mortalidad',
           callback: (value) => {
             return numeral(value).format('0.00');
