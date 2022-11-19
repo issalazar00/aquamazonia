@@ -644,7 +644,7 @@ class InformeController extends Controller
 					"salida_animales" => $siembra->salida_animales,
 					"salida_biomasa" => $siembra->salida_biomasa,
 					"porc_supervivencia_final" => $siembra->porc_supervivencia_final,
-					"salida_animales_sin_mortalidad" => number_format($siembra->salida_animales_sin_mortalidad, 0, ',', '')
+					"salida_animales_sin_mortalidad" =>$siembra->salida_animales_sin_mortalidad
 				];
 			}
 		}

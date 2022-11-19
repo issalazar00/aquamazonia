@@ -161,8 +161,7 @@ class EspeciesSiembraController extends Controller
       'peso_inicial',
       'peso_actual',
     )
-      ->join('siembras', 'especies_siembra.id_siembra', 'siembras.id')
-      ->where('siembras.id', $id_siembra)
+      ->where('id_siembra', $id_siembra)
       ->get();
 
     $registros = Registro::select()
@@ -170,17 +169,16 @@ class EspeciesSiembraController extends Controller
       ->get();
 
     $recursos_necesarios = RecursoNecesario::select(
-      'recursos_necesarios.id as id',
-      'recursos_siembras.id_registro as id_registro',
-      'id_siembra',
+      'recursos_necesarios.id as id_registro',
+      'siembra_id',
       'id_alimento',
       'cant_manana',
       'cant_tarde',
       'conv_alimenticia',
     )
-      ->join('recursos_siembras', 'recursos_necesarios.id', 'recursos_siembras.id_registro')
       ->leftJoin('alimentos', 'recursos_necesarios.id_alimento', 'alimentos.id')
-      ->where('id_siembra', $id_siembra)
+      ->leftJoin('recursos', 'recursos_necesarios.id_recurso', 'recursos.id')
+      ->where('siembra_id', $id_siembra)
       ->get();
 
     $especies_siembra = new EspeciesSiembraController;
@@ -194,35 +192,34 @@ class EspeciesSiembraController extends Controller
             $siembra->peso_actual += $existencia->peso_actual;
             // $siembra->cantidad_inicial += $existencia->cantidad_inicial;
             $existencia->biomasa_inicial =  ((($existencia->peso_inicial) * ($existencia->cantidad_inicial)) / 1000);
-              $siembra->biomasa_inicial += $existencia->biomasa_inicial;
+            $siembra->biomasa_inicial += $existencia->biomasa_inicial;
 
-              foreach ($registros as $registro) {
+            foreach ($registros as $registro) {
                 if ($existencia->id_siembra == $registro->id_siembra) {
-                  $existencia->salida_biomasa += $registro->biomasa;
-                  if ($existencia->id_especie == $registro->id_especie) {
-                    $registro->mortalidad_kg = (($registro->mortalidad * $registro->peso_ganado) / 1000);
-                    $existencia->mortalidad += $registro->mortalidad;
-                    $existencia->mortalidad_kg += $registro->mortalidad_kg;
-                    $existencia->salida_biomasa_especie += $registro->biomasa;
-                  }
-                }
+              $existencia->salida_biomasa += $registro->biomasa;
+              if ($existencia->id_especie == $registro->id_especie) {
+                $registro->mortalidad_kg = (($registro->mortalidad * $registro->peso_ganado) / 1000);
+                $existencia->mortalidad += $registro->mortalidad;
+                $existencia->mortalidad_kg += $registro->mortalidad_kg;
+                $existencia->salida_biomasa_especie += $registro->biomasa;
               }
-              $siembra->mortalidad += $existencia->mortalidad;
-              $siembra->mortalidad_kg += $existencia->mortalidad_kg;
-              $siembra->salida_biomasa = $especies_siembra->cantidadTotalEspeciesSiembraSinMortalidad($siembra->id)->biomasa ?? 0;
+            }
+              }
+            $siembra->mortalidad += $existencia->mortalidad;
+            $siembra->mortalidad_kg += $existencia->mortalidad_kg;
+            $siembra->salida_biomasa = $especies_siembra->cantidadTotalEspeciesSiembraSinMortalidad($siembra->id)->biomasa ?? 0;
           }
         }
 
         foreach ($recursos_necesarios as $recurso_necesario) {
-          if ($siembra->id == $recurso_necesario->id_siembra) {
+          $recurso_necesario->cantidad_total_alimento = $recurso_necesario->cant_tarde + $recurso_necesario->cant_manana;
+          $siembra->cantidad_total_alimento +=  $recurso_necesario->cantidad_total_alimento;
+          $siembra->cant_tarde +=  $recurso_necesario->cant_tarde;
+          $siembra->cant_manana +=  $recurso_necesario->cant_manana;
 
-            $recurso_necesario->cantidad_total_alimento = $recurso_necesario->cant_tarde + $recurso_necesario->cant_manana;
-            $siembra->cantidad_total_alimento +=  $recurso_necesario->cantidad_total_alimento;
-
-            if ($recurso_necesario->conv_alimenticia > 0) {
-              $recurso_necesario->incr_bio_acum_conver = $recurso_necesario->cantidad_total_alimento / $recurso_necesario->conv_alimenticia;
-              $siembra->incr_bio_acum_conver +=  $recurso_necesario->incr_bio_acum_conver;
-            }
+          if ($recurso_necesario->conv_alimenticia > 0) {
+            $recurso_necesario->incr_bio_acum_conver = $recurso_necesario->cantidad_total_alimento / $recurso_necesario->conv_alimenticia;
+            $siembra->incr_bio_acum_conver +=  $recurso_necesario->incr_bio_acum_conver;
           }
         }
 

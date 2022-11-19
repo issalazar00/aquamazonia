@@ -5618,7 +5618,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
             return numeral(value).format("0.00");
           }
         },
-        "KG cosecha": {
+        "Biomasa cosecha \n Kg": {
           field: "biomasa",
           callback: function callback(value) {
             return numeral(value).format("0.00");
@@ -5688,7 +5688,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
           while (1) {
             switch (_context.prev = _context.next) {
               case 0:
-                return _context.abrupt("return", _this2.listadoRegistros);
+                return _context.abrupt("return", _this2.listadoRegistros.data);
 
               case 1:
               case "end":
@@ -5966,6 +5966,8 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 //
 //
 //
+//
+//
 
 /* harmony default export */ __webpack_exports__["default"] = ({
   data: function data() {
@@ -5992,7 +5994,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
             return numeral(value).format('0.00');
           }
         },
-        'Mortalidad': {
+        'Mortalidad \n (Animales)': {
           field: 'mortalidad',
           callback: function callback(value) {
             return numeral(value).format('0.00');
@@ -8067,13 +8069,6 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
     },
     listar: function listar() {
       var me = this;
-      axios.get("api/informes-recursos-necesarios").then(function (response) {
-        me.listado = response.data.recursosNecesarios.data;
-        me.promedios = response.data.promedioRecursos;
-      });
-    },
-    buscarResultados: function buscarResultados() {
-      var me = this;
 
       if (this.f_siembra == "") {
         this.f_s = "-1";
@@ -8105,7 +8100,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         f_actividad: this.actividad,
         f_contenedor: this.cont
       };
-      axios.post("api/filtro-recursos", data).then(function (response) {
+      axios.post("api/informes-recursos-necesarios", data).then(function (response) {
         me.listado = response.data.recursosNecesarios.data;
         me.promedios = response.data.promedioRecursos;
       });
@@ -60800,7 +60795,10 @@ var render = function() {
                             _vm._v(
                               "\n                    " +
                                 _vm._s(
-                                  _vm._f("numeral")(lr.salida_animales, "0.00")
+                                  _vm._f("numeral")(
+                                    lr.salida_animales_general,
+                                    "0.00"
+                                  )
                                 ) +
                                 "\n                  "
                             )
@@ -60866,7 +60864,7 @@ var staticRenderFns = [
         _vm._v(" "),
         _c("th", [_vm._v("Peso actual (g) ")]),
         _vm._v(" "),
-        _c("th", [_vm._v("KG cosecha")]),
+        _c("th", [_vm._v("Biomasa cosecha Kg")]),
         _vm._v(" "),
         _c("th", [_vm._v("Biomasa muestreo (kg)")]),
         _vm._v(" "),
@@ -61313,6 +61311,8 @@ var render = function() {
                             )
                           ]),
                           _vm._v(" "),
+                          _c("td"),
+                          _vm._v(" "),
                           _c("td", [
                             _vm._v(
                               _vm._s(
@@ -61439,7 +61439,7 @@ var staticRenderFns = [
         _vm._v(" "),
         _c("th", [_vm._v("Biomasa cosechada (Kg)")]),
         _vm._v(" "),
-        _c("th", [_vm._v("Mortalidad")]),
+        _c("th", [_vm._v("Mortalidad "), _c("br"), _vm._v(" (Animales) ")]),
         _vm._v(" "),
         _c("th", [_vm._v("Mort. Kg")]),
         _vm._v(" "),
@@ -64640,7 +64640,7 @@ var render = function() {
                       attrs: { type: "button" },
                       on: {
                         click: function($event) {
-                          return _vm.buscarResultados()
+                          return _vm.listar()
                         }
                       }
                     },
@@ -66807,12 +66807,19 @@ var render = function() {
                         ) {
                           return [
                             actividad.actividad != "Alimentación"
-                              ? _c("option", { key: index }, [
-                                  _vm._v(
-                                    "\n                        " +
-                                      _vm._s(actividad.actividad)
-                                  )
-                                ])
+                              ? _c(
+                                  "option",
+                                  {
+                                    key: index,
+                                    domProps: { value: actividad.id }
+                                  },
+                                  [
+                                    _vm._v(
+                                      "\n                        " +
+                                        _vm._s(actividad.actividad)
+                                    )
+                                  ]
+                                )
                               : _vm._e()
                           ]
                         })

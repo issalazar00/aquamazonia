@@ -58,9 +58,9 @@ class RecursoNecesarioController extends Controller
 			$valorFechaRegistroAlimentoInicio = $request['fecha_ra1'];
 		}
 		if ($request['fecha_ra2'] != '-1') {
-			$c5 = "fecha_ra";
-			$op3 = '<=';
-			$c6 = $request['fecha_ra2'];
+			$filtroFechaRegistroAlimentoHasta = "fecha_ra";
+			$signoFechaRegistroHasta = '<=';
+			$valorFechaRegistroHasta = $request['fecha_ra2'];
 		}
 
 		if (isset($request['alimento_s']) && $request['alimento_s'] != '-1') {
@@ -90,9 +90,9 @@ class RecursoNecesarioController extends Controller
 
 		$recursosNecesarios = 	$recursosNecesarios->join('siembras', 'recursos_necesarios.siembra_id', 'siembras.id')
 			->join('actividades', 'recursos_necesarios.tipo_actividad', 'actividades.id')
-			// ->where($tipo_actividad, $filtro_tipo_actividad, $id_tipo_actividad)
+			->where($tipo_actividad, $filtro_tipo_actividad, $id_tipo_actividad)
 			->where($fechaRegistroAlimentoInicio, $signoFechaRegistroAlimentoInicio, $valorFechaRegistroAlimentoInicio)
-			->where($c5, $op3, $c6)
+			->where($filtroFechaRegistroAlimentoHasta, $signoFechaRegistroHasta, $valorFechaRegistroHasta)
 			->where($filtroIdAlimento, $op5, $c10)
 			->where($filtroIdRecurso, $op6, $c12)
 			->where($filtroIdSiembra, $signoIdSiembra, $valorIdSiembra);
@@ -223,6 +223,8 @@ class RecursoNecesarioController extends Controller
 			->join('actividades', 'recursos_necesarios.tipo_actividad', 'actividades.id')
 			->where($filtroIdSiembra, $signoIdSiembra, $valorIdSiembra)
 			->where($filtroIdAlimento, $signoIdAlimento, $valorIdAlimento)
+			->where($filtroFechaRegistroAlimentoDesde, $signoFechaRegistroAlimentoDesde, $valorFechaRegistroAlimentoDesde)
+			->where($filtroFechaRegistroAlimentoHasta, $signoFechaRegistroAlimentoHasta, $valorFechaRegistroAlimentohasta)
 			->where('tipo_actividad', '=', '1');
 
 		$recursosNecesarios = $request['see_all'] ? $recursosNecesarios->get() : $recursosNecesarios->paginate(20);

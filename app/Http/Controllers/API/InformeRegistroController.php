@@ -101,7 +101,6 @@ class InformeRegistroController extends Controller
 			$id_contenedor = $request['id_contenedor'];
 		}
 
-
 		$registros = Registro::select(
 			'registros.id as id',
 			'registros.id_siembra as id_siembra',
@@ -146,7 +145,7 @@ class InformeRegistroController extends Controller
 
 				$registro->mortalidad_general = $especies_siembra->cantidadEspecieSiembra($registro->id_siembra, $registro->id_especie)->mortalidad;
 				$registro->biomasa_general = $especies_siembra->cantidadEspecieSiembra($registro->id_siembra, $registro->id_especie)->biomasa;
-				$registro->salida_animales_general = $especies_siembra->cantidadEspecieSiembra($registro->id_siembra, $registro->id_especie)->cantidad + $registro->mortalidad_general;
+				$registro->salida_animales_general = $especies_siembra->cantidadEspecieSiembraSinMortalidad($registro->id_siembra, $registro->id_especie)->cantidad ;
 				$registro->cantidad_actual = $registro->cantidad_inicial - $registro->salida_animales_general;
 				$registro->biomasa_disponible = ((($registro->peso_actual) * ($registro->cantidad_actual)) / 1000);
 				$registro->biomasa_inicial =  ((($registro->peso_inicial) * ($registro->cantidad_inicial)) / 1000);
@@ -169,6 +168,4 @@ class InformeRegistroController extends Controller
 		//
 		$registro = Registro::destroy($id);
 	}
-
-	
 }

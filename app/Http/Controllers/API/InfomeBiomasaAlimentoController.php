@@ -139,16 +139,12 @@ class InfomeBiomasaAlimentoController extends Controller
           $siembra->costo_minutos_hombre = ($recurso_necesario->minutos_hombre * $recurso_necesario->costo_minutos_hombre);
         }
 
-        // $siembra->costo_minutos_hombre = ($siembra->minutos_hombre * $mh->costo);
         $siembra->costo_total_siembra = ($siembra->costo_minutos_hombre + $siembra->costo_total_alimento + $siembra->costo_total_recurso);
         $siembra->costo_produccion_final = $siembra->salida_biomasa > 0 ?  $siembra->costo_total_siembra / $siembra->salida_biomasa : 0;
         $siembra->conversion_alimenticia = $siembra->incr_bio_acum_conver > 0 ?  ($siembra->cantidad_total_alimento) / ($siembra->incr_bio_acum_conver) : 0;
         $siembra->conversion_alimenticia_siembra = $siembra->incremento_biomasa > 0 ? $siembra->cantidad_total_alimento /  $siembra->incremento_biomasa : 0;
         $siembra->conversion_alimenticia_parcial = (($siembra->biomasa_disponible - $siembra->biomasa_inicial) > 0) ? $siembra->cantidad_total_alimento / ($siembra->biomasa_disponible - $siembra->biomasa_inicial) : 0;
-
         $siembra->bio_dispo_alimen = (($siembra->incr_bio_acum_conver + $siembra->biomasa_inicial) - ($siembra->salida_biomasa + $siembra->mortalidad_kg));
-        // $siembra->bio_dispo_alimen =$especies->bio_dispo_alimen;
-
         $siembra->costo_produccion_parcial = $siembra->bio_dispo_alimen > 0 ? $siembra->costo_total_siembra / ($siembra->bio_dispo_alimen + $siembra->salida_biomasa) : 0;
 
         if (($siembra->salida_biomasa + $siembra->mortalidad_kg - $siembra->biomasa_inicial) > 0) {
@@ -158,9 +154,6 @@ class InfomeBiomasaAlimentoController extends Controller
         }
         $siembra->bio_dispo_conver = ($siembra->biomasa_inicial + $siembra->incr_bio_acum_conver) - ($siembra->biomasa_disponible + $siembra->mortalidad_kg);
         $siembra->peso_actual_esp = ($siembra->contador_esp) > 0 ? $siembra->peso_actual / $siembra->contador_esp : 0;
-
-        // recursos_necesarios
-
       }
     }
 
