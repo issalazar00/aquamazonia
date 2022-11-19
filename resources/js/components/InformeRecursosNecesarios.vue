@@ -85,7 +85,7 @@
                     <th>% Costo total de producción</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody v-if="!loading">
                   <tr v-for="(lrn, index) in listado" :key="index">
                     <td v-text="index + 1"></td>
                     <td v-text="lrn.nombre_siembra"></td>
@@ -106,6 +106,9 @@
                       </span>
                     </td>
                   </tr>
+                </tbody>
+                <tbody v-else>
+                  Cargando ...
                 </tbody>
               </table>
             </div>
@@ -144,6 +147,7 @@ export default {
       listadoSiembras: [],
       listadoActividades: [],
       listadoEstanques: [],
+      loading:0
     };
   },
   components: {
@@ -170,6 +174,7 @@ export default {
 
     listar() {
       let me = this;
+      me.loading = 1;
       if (this.f_siembra == "") {
         this.f_s = "-1";
       } else {
@@ -197,9 +202,10 @@ export default {
         f_actividad: this.actividad,
         f_contenedor: this.cont,
       };
-      axios.post("api/informes-recursos-necesarios", data).then((response) => {
+      axios.get("api/informes-recursos-necesarios", { params: data }).then((response) => {
         me.listado = response.data.recursosNecesarios.data;
-        me.promedios = response.data.promedioRecursos;
+        // me.promedios = response.data.promedioRecursos;
+        me.loading = 0;
       });
     },
 
@@ -223,7 +229,7 @@ export default {
         me.listadoEstanques = response.data;
       });
     },
-    
+
   },
   mounted() {
     this.listar();

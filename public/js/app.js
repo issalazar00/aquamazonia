@@ -7995,6 +7995,9 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 //
 //
 //
+//
+//
+//
 
 
 /* harmony default export */ __webpack_exports__["default"] = ({
@@ -8021,7 +8024,8 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       listado: [],
       listadoSiembras: [],
       listadoActividades: [],
-      listadoEstanques: []
+      listadoEstanques: [],
+      loading: 0
     };
   },
   components: {
@@ -8069,6 +8073,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
     },
     listar: function listar() {
       var me = this;
+      me.loading = 1;
 
       if (this.f_siembra == "") {
         this.f_s = "-1";
@@ -8100,9 +8105,12 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         f_actividad: this.actividad,
         f_contenedor: this.cont
       };
-      axios.post("api/informes-recursos-necesarios", data).then(function (response) {
-        me.listado = response.data.recursosNecesarios.data;
-        me.promedios = response.data.promedioRecursos;
+      axios.get("api/informes-recursos-necesarios", {
+        params: data
+      }).then(function (response) {
+        me.listado = response.data.recursosNecesarios.data; // me.promedios = response.data.promedioRecursos;
+
+        me.loading = 0;
       });
     },
     listarSiembras: function listarSiembras() {
@@ -64740,97 +64748,109 @@ var render = function() {
                       ])
                     ]),
                     _vm._v(" "),
-                    _c(
-                      "tbody",
-                      _vm._l(_vm.listado, function(lrn, index) {
-                        return _c("tr", { key: index }, [
-                          _c("td", {
-                            domProps: { textContent: _vm._s(index + 1) }
-                          }),
-                          _vm._v(" "),
-                          _c("td", {
-                            domProps: {
-                              textContent: _vm._s(lrn.nombre_siembra)
-                            }
-                          }),
-                          _vm._v(" "),
-                          lrn.estado == 1
-                            ? _c("td", [_vm._v("Activa")])
-                            : _c("td", [_vm._v("Inactiva")]),
-                          _vm._v(" "),
-                          _c("td", {
-                            domProps: { textContent: _vm._s(lrn.actividad) }
-                          }),
-                          _vm._v(" "),
-                          _c("td", {
-                            domProps: {
-                              textContent: _vm._s(lrn.minutos_hombre + " min")
-                            }
-                          }),
-                          _vm._v(" "),
-                          _c("td", {
-                            staticClass: "text-right",
-                            domProps: { textContent: _vm._s(lrn.costo_minutos) }
-                          }),
-                          _vm._v(" "),
-                          _vm.tipoActividad != "Alimentación"
-                            ? _c("td", {
-                                staticClass: "text-right",
+                    !_vm.loading
+                      ? _c(
+                          "tbody",
+                          _vm._l(_vm.listado, function(lrn, index) {
+                            return _c("tr", { key: index }, [
+                              _c("td", {
+                                domProps: { textContent: _vm._s(index + 1) }
+                              }),
+                              _vm._v(" "),
+                              _c("td", {
                                 domProps: {
-                                  textContent: _vm._s(lrn.cantidad_recurso)
+                                  textContent: _vm._s(lrn.nombre_siembra)
                                 }
-                              })
-                            : _vm._e(),
-                          _vm._v(" "),
-                          _vm.tipoActividad != "Alimentación"
-                            ? _c("td", {
-                                staticClass: "text-right",
+                              }),
+                              _vm._v(" "),
+                              lrn.estado == 1
+                                ? _c("td", [_vm._v("Activa")])
+                                : _c("td", [_vm._v("Inactiva")]),
+                              _vm._v(" "),
+                              _c("td", {
+                                domProps: { textContent: _vm._s(lrn.actividad) }
+                              }),
+                              _vm._v(" "),
+                              _c("td", {
                                 domProps: {
-                                  textContent: _vm._s(lrn.costo_recurso)
-                                }
-                              })
-                            : _vm._e(),
-                          _vm._v(" "),
-                          _vm.tipoActividad == "Alimentación"
-                            ? _c("td", {
-                                staticClass: "text-right",
-                                domProps: {
-                                  textContent: _vm._s(lrn.cantidad_alimento)
-                                }
-                              })
-                            : _vm._e(),
-                          _vm._v(" "),
-                          _vm.tipoActividad == "Alimentación"
-                            ? _c("td", {
-                                staticClass: "text-right",
-                                domProps: {
-                                  textContent: _vm._s(lrn.costo_alimento)
-                                }
-                              })
-                            : _vm._e(),
-                          _vm._v(" "),
-                          _c("td", {
-                            staticClass: "text-right",
-                            domProps: {
-                              textContent: _vm._s(lrn.costo_total_actividad)
-                            }
-                          }),
-                          _vm._v(" "),
-                          _c("td", { staticClass: "text-right" }, [
-                            lrn.porcentaje_total_produccion
-                              ? _c("span", [
-                                  _vm._v(
-                                    "\n                      " +
-                                      _vm._s(lrn.porcentaje_total_produccion) +
-                                      " %\n                    "
+                                  textContent: _vm._s(
+                                    lrn.minutos_hombre + " min"
                                   )
-                                ])
-                              : _vm._e()
-                          ])
+                                }
+                              }),
+                              _vm._v(" "),
+                              _c("td", {
+                                staticClass: "text-right",
+                                domProps: {
+                                  textContent: _vm._s(lrn.costo_minutos)
+                                }
+                              }),
+                              _vm._v(" "),
+                              _vm.tipoActividad != "Alimentación"
+                                ? _c("td", {
+                                    staticClass: "text-right",
+                                    domProps: {
+                                      textContent: _vm._s(lrn.cantidad_recurso)
+                                    }
+                                  })
+                                : _vm._e(),
+                              _vm._v(" "),
+                              _vm.tipoActividad != "Alimentación"
+                                ? _c("td", {
+                                    staticClass: "text-right",
+                                    domProps: {
+                                      textContent: _vm._s(lrn.costo_recurso)
+                                    }
+                                  })
+                                : _vm._e(),
+                              _vm._v(" "),
+                              _vm.tipoActividad == "Alimentación"
+                                ? _c("td", {
+                                    staticClass: "text-right",
+                                    domProps: {
+                                      textContent: _vm._s(lrn.cantidad_alimento)
+                                    }
+                                  })
+                                : _vm._e(),
+                              _vm._v(" "),
+                              _vm.tipoActividad == "Alimentación"
+                                ? _c("td", {
+                                    staticClass: "text-right",
+                                    domProps: {
+                                      textContent: _vm._s(lrn.costo_alimento)
+                                    }
+                                  })
+                                : _vm._e(),
+                              _vm._v(" "),
+                              _c("td", {
+                                staticClass: "text-right",
+                                domProps: {
+                                  textContent: _vm._s(lrn.costo_total_actividad)
+                                }
+                              }),
+                              _vm._v(" "),
+                              _c("td", { staticClass: "text-right" }, [
+                                lrn.porcentaje_total_produccion
+                                  ? _c("span", [
+                                      _vm._v(
+                                        "\n                      " +
+                                          _vm._s(
+                                            lrn.porcentaje_total_produccion
+                                          ) +
+                                          " %\n                    "
+                                      )
+                                    ])
+                                  : _vm._e()
+                              ])
+                            ])
+                          }),
+                          0
+                        )
+                      : _c("tbody", [
+                          _vm._v(
+                            "\n                Cargando ...\n              "
+                          )
                         ])
-                      }),
-                      0
-                    )
                   ]
                 )
               ]
