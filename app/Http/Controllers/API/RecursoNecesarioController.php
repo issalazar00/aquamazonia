@@ -29,6 +29,11 @@ class RecursoNecesarioController extends Controller
 		$fechaRegistroAlimentoInicio = "recursos_necesarios.fecha_ra";
 		$signoFechaRegistroAlimentoInicio = "!=";
 		$valorFechaRegistroAlimentoInicio = "-3";
+
+		$filtroFechaRegistroAlimentoHasta = "recursos_necesarios.id";
+		$signoFechaRegistroAlimentoHasta = "!=";
+		$valorFechaRegistroAlimentohasta = "-1";
+
 		$c5 = "recursos_necesarios.id";
 		$op3 = "!=";
 		$c6 = "-1";
@@ -59,8 +64,8 @@ class RecursoNecesarioController extends Controller
 		}
 		if ($request['fecha_ra2'] != '-1') {
 			$filtroFechaRegistroAlimentoHasta = "fecha_ra";
-			$signoFechaRegistroHasta = '<=';
-			$valorFechaRegistroHasta = $request['fecha_ra2'];
+			$signoFechaRegistroAlimentoHasta = '<=';
+			$valorFechaRegistroAlimentohasta = $request['fecha_ra2'];
 		}
 
 		if (isset($request['alimento_s']) && $request['alimento_s'] != '-1') {
@@ -92,7 +97,7 @@ class RecursoNecesarioController extends Controller
 			->join('actividades', 'recursos_necesarios.tipo_actividad', 'actividades.id')
 			->where($tipo_actividad, $filtro_tipo_actividad, $id_tipo_actividad)
 			->where($fechaRegistroAlimentoInicio, $signoFechaRegistroAlimentoInicio, $valorFechaRegistroAlimentoInicio)
-			->where($filtroFechaRegistroAlimentoHasta, $signoFechaRegistroHasta, $valorFechaRegistroHasta)
+			->where($filtroFechaRegistroAlimentoHasta, $signoFechaRegistroAlimentoHasta, $valorFechaRegistroAlimentohasta)
 			->where($filtroIdAlimento, $op5, $c10)
 			->where($filtroIdRecurso, $op6, $c12)
 			->where($filtroIdSiembra, $signoIdSiembra, $valorIdSiembra);
