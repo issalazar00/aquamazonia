@@ -136,7 +136,7 @@ class InfomeBiomasaAlimentoController extends Controller
           $siembra->cantidad_total_alimento =  $recurso_necesario->cant_tarde + $recurso_necesario->cant_manana;
           $siembra->costo_total_alimento = $recurso_necesario->costo_manana + $recurso_necesario->costo_tarde;
           $siembra->incr_bio_acum_conver =  $recurso_necesario->incr_bio_acum_conver_m + $recurso_necesario->incr_bio_acum_conver_t;
-          $siembra->costo_minutos_hombre = ($recurso_necesario->minutos_hombre * $recurso_necesario->costo_minutos_hombre);
+          $siembra->costo_minutos_hombre = ($recurso_necesario->costo_minutos_hombre);
         }
 
         $siembra->costo_total_siembra = ($siembra->costo_minutos_hombre + $siembra->costo_total_alimento + $siembra->costo_total_recurso);

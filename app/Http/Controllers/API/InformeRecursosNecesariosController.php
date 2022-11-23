@@ -95,9 +95,7 @@ class InformeRecursosNecesariosController extends Controller
 
         if ($recursoNecesario->id_siembra == $costo_recurso->id_siembra) {
 
-
-          $recursoNecesario->minutosHombre += $costo_recurso->minutos_hombre;
-
+          $recursoNecesario->minutosHombre = $costo_recurso->minutos_hombre;
           $recursoNecesario->costoRecurso +=  ($costo_recurso->cantidad_recurso * $costo_recurso->costo);
           $recursoNecesario->cantidadAlimento += ($costo_recurso->cant_tarde + $costo_recurso->cant_manana);
           $recursoNecesario->costoAlimento +=  (($costo_recurso->cant_tarde + $costo_recurso->cant_manana) * $costo_recurso->costo_kg);
