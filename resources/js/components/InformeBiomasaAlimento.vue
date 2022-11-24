@@ -62,7 +62,7 @@
                     <th>Area (m²)<sup>3</sup> </th>
                     <th>Cant Inicial (Animales) </th>
                     <th>Biomasa Inicial (Kg)</th>
-                    <th>Cantidad actual</th>
+                    <th>Cantidad actual (Animales)</th>
                     <th>Biomasa disponible muestreo (Kg)</th>
                     <th>Biomasa cosechada (Kg)</th>
                     <th>Mortalidad <br> (Animales) </th>
@@ -171,7 +171,7 @@ export default {
             return numeral(value).format('0.00');
           }
         },
-        'Mort. Kg': {
+        'Mortalidad (Kg)': {
           field: 'mortalidad_kg',
           callback: (value) => {
             return numeral(value).format('0.00');

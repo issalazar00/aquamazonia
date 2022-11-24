@@ -6000,7 +6000,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
             return numeral(value).format('0.00');
           }
         },
-        'Mort. Kg': {
+        'Mortalidad (Kg)': {
           field: 'mortalidad_kg',
           callback: function callback(value) {
             return numeral(value).format('0.00');
@@ -6758,7 +6758,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
             return numeral(value).format('0.00');
           }
         },
-        "Animales final": {
+        "Cantidad final \n (Animales)": {
           field: "cant_actual",
           callback: function callback(value) {
             return numeral(value).format('0.00');
@@ -6770,19 +6770,25 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
             return numeral(value).format('0.00');
           }
         },
+        "Biomasa disponible \n (kg)": {
+          field: "biomasa_disponible",
+          callback: function callback(value) {
+            return numeral(value).format('0.00');
+          }
+        },
         "Biomasa cosechada \n (Kg)": {
           field: "salida_biomasa",
           callback: function callback(value) {
             return numeral(value).format('0.00');
           }
         },
-        'Mortalidad Animales': {
+        'Mortalidad (Animales)': {
           field: "mortalidad",
           callback: function callback(value) {
             return numeral(value).format('0.00');
           }
         },
-        "Mortalidad kg": {
+        "Mortalidad (kg)": {
           field: "mortalidad_kg",
           callback: function callback(value) {
             return numeral(value).format('0.00');
@@ -6872,7 +6878,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
             return numeral(value).format('0.00');
           }
         },
-        "Ganancia peso dia": {
+        "Ganancia peso/dia \n (gr)": {
           field: "ganancia_peso_dia",
           callback: function callback(value) {
             return numeral(value).format('0.00');
@@ -7126,16 +7132,66 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
   data: function data() {
     return {
       json_fields: {
-        Siembra: "nombre_siembra",
-        Estado: "estado",
-        "Tipo actividad": "actividad",
-        Alimento: "alimento",
-        "Costo Kg": "costoUnitarioAlimento",
-        "Alimento Mañana\n (Kg)": "c_manana",
-        "Alimento Tarde\n (Kg)": "c_tarde",
-        "Cantidad total alimento \n (Kg)": "cantidadTotalAlimento",
-        "% Cantidad Alimento": "porcCantidadAlimento",
-        "Costo total alimento": "costoAlimento"
+        Siembra: {
+          field: "nombre_siembra",
+          callback: function callback(value) {
+            return value;
+          }
+        },
+        Estado: {
+          field: "estado",
+          callback: function callback(value) {
+            return value;
+          }
+        },
+        "Tipo actividad": {
+          field: "actividad",
+          callback: function callback(value) {
+            return value;
+          }
+        },
+        Alimento: {
+          field: "alimento",
+          callback: function callback(value) {
+            return value;
+          }
+        },
+        "Costo Kg": {
+          field: "costoUnitarioAlimento",
+          callback: function callback(value) {
+            return numeral(value).format('0.00');
+          }
+        },
+        "Alimento Mañana\n (Kg)": {
+          field: "c_manana",
+          callback: function callback(value) {
+            return numeral(value).format('0.00');
+          }
+        },
+        "Alimento Tarde\n (Kg)": {
+          field: "c_tarde",
+          callback: function callback(value) {
+            return numeral(value).format('0.00');
+          }
+        },
+        "Cantidad total alimento \n (Kg)": {
+          field: "cantidadTotalAlimento",
+          callback: function callback(value) {
+            return numeral(value).format('0.00');
+          }
+        },
+        "% Cantidad Alimento": {
+          field: "porcCantidadAlimento",
+          callback: function callback(value) {
+            return numeral(value).format('0.00');
+          }
+        },
+        "Costo total alimento": {
+          field: "costoAlimento",
+          callback: function callback(value) {
+            return numeral(value).format('0.00');
+          }
+        }
       },
       pagination: {
         total: 0,
@@ -61441,7 +61497,7 @@ var staticRenderFns = [
         _vm._v(" "),
         _c("th", [_vm._v("Biomasa Inicial (Kg)")]),
         _vm._v(" "),
-        _c("th", [_vm._v("Cantidad actual")]),
+        _c("th", [_vm._v("Cantidad actual (Animales)")]),
         _vm._v(" "),
         _c("th", [_vm._v("Biomasa disponible muestreo (Kg)")]),
         _vm._v(" "),
@@ -62971,17 +63027,17 @@ var staticRenderFns = [
         _vm._v(" "),
         _c("th", [_vm._v("Carga inicial (kg/m²) ")]),
         _vm._v(" "),
-        _c("th", [_vm._v("Animales final")]),
+        _c("th", [_vm._v("Cant final (animales)")]),
         _vm._v(" "),
         _c("th", [_vm._v("Peso Actual (g)")]),
         _vm._v(" "),
-        _c("th", [_vm._v("Biomasa dispo")]),
+        _c("th", [_vm._v("Biomasa disponible (kg)")]),
         _vm._v(" "),
         _c("th", [_vm._v("Biomasa Cosechada (kg) ")]),
         _vm._v(" "),
-        _c("th", [_vm._v("Mortalidad Animales")]),
+        _c("th", [_vm._v("Mortalidad (Animales)")]),
         _vm._v(" "),
-        _c("th", [_vm._v("Mort. Kg")]),
+        _c("th", [_vm._v("Mortalidad (Kg)")]),
         _vm._v(" "),
         _c("th", [_vm._v("% Mortalidad")]),
         _vm._v(" "),
@@ -63027,7 +63083,7 @@ var staticRenderFns = [
         _vm._v(" "),
         _c("th", [_vm._v("Conversion final")]),
         _vm._v(" "),
-        _c("th", [_vm._v("Ganancia peso día")]),
+        _c("th", [_vm._v("Ganancia peso / día "), _c("br"), _vm._v(" (gr) ")]),
         _vm._v(" "),
         _c("th", [_c("b", [_vm._v("%")]), _vm._v(" Supervivencia final")])
       ])
@@ -63394,17 +63450,27 @@ var render = function() {
                             }
                           }),
                           _vm._v(" "),
-                          _c("td", {
-                            staticClass: "text-right",
-                            domProps: {
-                              textContent: _vm._s(
-                                lrn.porcCantidadAlimento + "%"
-                              )
-                            }
-                          }),
+                          _c("td", { staticClass: "text-right" }, [
+                            _vm._v(
+                              _vm._s(
+                                _vm._f("numeral")(
+                                  lrn.porcCantidadAlimento,
+                                  "0.00"
+                                )
+                              ) + " %"
+                            )
+                          ]),
                           _vm._v(" "),
                           _c("th", { staticClass: "text-right" }, [
-                            _vm._v("$ " + _vm._s(lrn.costoAlimento))
+                            _vm._v(
+                              " " +
+                                _vm._s(
+                                  _vm._f("numeral")(
+                                    lrn.costoAlimento,
+                                    "$0,0.00"
+                                  )
+                                )
+                            )
                           ])
                         ])
                       }),

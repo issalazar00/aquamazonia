@@ -99,7 +99,7 @@
                     <th>Mort. Kg</th>
                     <th>% Mortalidad</th>
                     <th>Animales cosechados</th>
-                    <th>Incremento de biomasa <br> <small>(Kg)</small></th>
+                    <!-- <th>Incremento de biomasa <br> <small>(Kg)</small></th> -->
                     <th>Ganancia de peso por día <br> <small>(g / día)</small></th>
                     <th>Densidad parcial <br> <small>(Animales/m<sup>2</sup>)</small></th>
                     <th>Carga parcial <br> <small>(Kg/m<sup>2</sup>)</small> </th>
@@ -151,7 +151,7 @@
                     numeral('0.00')
                     }}</td>
                     <td>
-                      {{ le.incremento_biomasa | numeral('0.00') }}
+                      <!-- {{ le.incremento_biomasa | numeral('0.00') }} -->
                     </td>
                     <td>
                       {{ le.ganancia_peso_dia | numeral('0.00') }}
@@ -266,7 +266,7 @@ export default {
             return numeral(value).format('0.00');
           }
         },
-        'Incremento de biomasa \n (Kg)': 'incremento_biomasa',
+        // 'Incremento de biomasa \n (Kg)': 'incremento_biomasa',
         'Gananacia de peso por día \n (g/día)': 'ganancia_peso_dia',
         'Densidad parcial (Animales/m<sup>2</sup>)': 'densidad_parcial',
         'Carga parcial (Kg/m<sup>2</sup>)': {

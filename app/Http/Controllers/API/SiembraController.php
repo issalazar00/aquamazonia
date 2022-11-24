@@ -24,27 +24,16 @@ class SiembraController extends Controller
 
 		$contenedor_id = (int) $request['contenedor_id'] ?? -1;
 		$sign_contenedor = ($contenedor_id <= 0 ) ? '<>' : '=';
-		// var_dump($contenedor_id);
 		$siembra_id = (int) $request['id_siembra'] ?: -1;
 		$sign_siembra_id = ($siembra_id <= 0 ) ? '<>' : '=';
 
 		$estado_siembra = $request['estado_siembra'] ?? -1;
 		$sign_estado_siembra = ($estado_siembra == "-1" ) ? '<>' : '=';
 
-		// var_dump($sign_siembra_id);
 		$siembras = Siembra::select('siembras.id as id', 'nombre_siembra', 'id_contenedor', 'contenedor', 'fecha_inicio', 'ini_descanso', 'fin_descanso', 'siembras.estado as estado', 'fecha_alimento')
 			->join('contenedores', 'siembras.id_contenedor', 'contenedores.id')
 			->where('siembras.id', $sign_siembra_id, $siembra_id)
-			->where('siembras.estado', $sign_estado_siembra, $sign_estado_siembra);
-
-		// if (isset($request['estado_siembra'])) {
-		// 	if ($request['estado_siembra'] == 1) {
-		// 		$siembras = $siembras->where('siembras.estado', '=', 1);
-		// 	}
-		// 	if ($request['estado_siembra'] == 0) {
-		// 		$siembras = $siembras->where('siembras.estado', '=', 0);
-		// 	}
-		// }
+			->where('siembras.estado', $sign_estado_siembra, $estado_siembra);
 
 		$siembras = $siembras
 			->where('id_contenedor', $sign_contenedor, $contenedor_id)

@@ -30,6 +30,8 @@ class InformeAlimentosController extends Controller
       DB::raw('SUM(cantidad_recurso) as cantidad_recurso'),
       DB::raw('SUM(cant_manana) as c_manana'),
       DB::raw('SUM(cant_tarde) as c_tarde'),
+      DB::raw('SUM(cant_manana*costo_alimento) as costo_c_manana'),
+      DB::raw('SUM(cant_tarde*costo_alimento) as costo_c_tarde'),
       DB::raw('SUM(minutos_hombre) as minutos_hombre'),
       DB::raw('SUM(horas_hombre) as horas_hombre'),
     )
@@ -81,9 +83,9 @@ class InformeAlimentosController extends Controller
       $cantidadAlimentoSiembra  = $this->cantidadAlimentoSiembra($recursoNecesario->siembra_id)->c_manana + $this->cantidadAlimentoSiembra($recursoNecesario->siembra_id)->c_tarde;
       $costo_recursos = $this->datosAlimento($recursoNecesario->alimento_id);
       $recursoNecesario->cantidadTotalAlimento = $recursoNecesario->c_manana + $recursoNecesario->c_tarde;
-      $recursoNecesario->costoAlimento = $costo_recursos->costo_kg * $recursoNecesario->cantidadTotalAlimento;
       $recursoNecesario->costoUnitarioAlimento = $costo_recursos->costo_kg;
       $recursoNecesario->porcCantidadAlimento = ($recursoNecesario->cantidadTotalAlimento * 100) / $cantidadAlimentoSiembra;
+      $recursoNecesario->costoAlimento = $recursoNecesario->costo_c_manana + $recursoNecesario->costo_c_tarde;
     }
 
     return [

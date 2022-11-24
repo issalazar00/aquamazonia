@@ -95,8 +95,8 @@
                     <td>{{ lrn.c_manana }}</td>
                     <td>{{ lrn.c_tarde }}</td>
                     <th v-text="lrn.cantidadTotalAlimento"></th>
-                    <td class="text-right" v-text="lrn.porcCantidadAlimento + '%'"></td>
-                    <th class="text-right">$ {{ lrn.costoAlimento }}</th>
+                    <td class="text-right">{{  lrn.porcCantidadAlimento | numeral('0.00')}} %</td>
+                    <th class="text-right"> {{ lrn.costoAlimento  | numeral('$0,0.00') }}</th>
                   </tr>
                 </tbody>
               </table>
@@ -133,16 +133,66 @@ export default {
   data() {
     return {
       json_fields: {
-        Siembra: "nombre_siembra",
-        Estado: "estado",
-        "Tipo actividad": "actividad",
-        Alimento: "alimento",
-        "Costo Kg": "costoUnitarioAlimento",
-        "Alimento Mañana\n (Kg)": "c_manana",
-        "Alimento Tarde\n (Kg)": "c_tarde",
-        "Cantidad total alimento \n (Kg)": "cantidadTotalAlimento",
-        "% Cantidad Alimento": "porcCantidadAlimento",
-        "Costo total alimento": "costoAlimento",
+        Siembra:{
+          field: "nombre_siembra",
+          callback:(value) => {
+            return value
+          }
+        },
+        Estado:{
+          field: "estado",
+          callback:(value) => {
+            return value
+          }
+        },
+        "Tipo actividad":{
+          field: "actividad",
+          callback:(value) => {
+            return value
+          }
+        },
+        Alimento:{
+          field: "alimento",
+          callback:(value) => {
+            return value
+          }
+        },
+        "Costo Kg":{
+          field: "costoUnitarioAlimento",
+          callback:(value) => {
+            return numeral(value).format('0.00')
+          }
+        },
+        "Alimento Mañana\n (Kg)":{
+          field: "c_manana",
+          callback:(value) => {
+            return numeral(value).format('0.00')
+          }
+        },
+        "Alimento Tarde\n (Kg)":{
+          field: "c_tarde",
+          callback:(value) => {
+            return numeral(value).format('0.00')
+          }
+        },
+        "Cantidad total alimento \n (Kg)":{
+          field: "cantidadTotalAlimento",
+          callback:(value) => {
+            return numeral(value).format('0.00')
+          }
+        },
+        "% Cantidad Alimento":{
+          field: "porcCantidadAlimento",
+          callback:(value) => {
+            return numeral(value).format('0.00')
+          }
+        },
+        "Costo total alimento":{
+          field: "costoAlimento",
+          callback:(value) => {
+            return numeral(value).format('0.00')
+          }
+        },
       },
       pagination: {
         total: 0,

@@ -70,12 +70,12 @@
                                         <th>Biomasa Inicial (kg)</th>
                                         <th>Peso Inicial (g)</th>
                                         <th>Carga inicial (kg/m²) </th>
-                                        <th>Animales final</th>
+                                        <th>Cant final (animales)</th>
                                         <th>Peso Actual (g)</th>
-                                        <th>Biomasa dispo</th>
+                                        <th>Biomasa disponible (kg)</th>
                                         <th>Biomasa Cosechada (kg) </th>
-                                        <th>Mortalidad Animales</th>
-                                        <th>Mort. Kg</th>
+                                        <th>Mortalidad (Animales)</th>
+                                        <th>Mortalidad (Kg)</th>
                                         <th>% Mortalidad</th>
                                         <th>Animales cosechados</th>
                                         <th>
@@ -96,7 +96,7 @@
                                         <th>Costo produccion final</th>
                                         <th>Conversion alimenticia parcial</th>
                                         <th>Conversion final</th>
-                                        <th>Ganancia peso día</th>
+                                        <th>Ganancia peso / día <br> (gr) </th>
                                         <th><b>%</b> Supervivencia final</th>
                                     </tr>
                                 </thead>
@@ -234,7 +234,7 @@ export default {
                         return numeral(value).format('0.00');
                     }
                 },
-                "Animales final": {
+                "Cantidad final \n (Animales)": {
                     field: "cant_actual",
                     callback: (value) => {
                         return numeral(value).format('0.00');
@@ -247,19 +247,26 @@ export default {
                     }
                 },
 
+                "Biomasa disponible \n (kg)": {
+                    field: "biomasa_disponible",
+                    callback: (value) => {
+                        return numeral(value).format('0.00');
+                    }
+                },
+
                 "Biomasa cosechada \n (Kg)": {
                     field: "salida_biomasa",
                     callback: (value) => {
                         return numeral(value).format('0.00');
                     }
                 },
-                'Mortalidad Animales': {
+                'Mortalidad (Animales)': {
                     field: "mortalidad",
                     callback: (value) => {
                         return numeral(value).format('0.00');
                     }
                 },
-                "Mortalidad kg": {
+                "Mortalidad (kg)": {
                     field: "mortalidad_kg",
                     callback: (value) => {
                         return numeral(value).format('0.00');
@@ -350,7 +357,7 @@ export default {
                         return numeral(value).format('0.00');
                     }
                 },
-                "Ganancia peso dia": {
+                "Ganancia peso/dia \n (gr)": {
                     field: "ganancia_peso_dia",
                     callback: (value) => {
                         return numeral(value).format('0.00');

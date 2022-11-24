@@ -35,12 +35,12 @@ class InformeRegistroController extends Controller
 		$c9 = 'registros.id';
 		$op5 = '!=';
 		$c10 = '-1';
-		$c11 = "registros.peso_ganado";
-		$op6 = '!=';
-		$c12 = '0';
-		$c13 = "registros.peso_ganado";
-		$op7 = '!=';
-		$c14 = '0';
+		$filtroPesoGanadoDesde = "registros.peso_ganado";
+		$signoPesoGanadoDesde = '!=';
+		$valorPesoGanadoDesde = '0';
+		$filtroPesoGanadoHasta = "registros.peso_ganado";
+		$signoPesoGanadoHasta = '!=';
+		$valorPesoGanadoHasta = '0';
 		$c15 = 'lote';
 		$op8 = '!=';
 		$c16 = '-1';
@@ -78,14 +78,14 @@ class InformeRegistroController extends Controller
 			$c10 = $request['f_especie'];
 		}
 		if ($request['f_peso_d'] != '-1') {
-			$c11 = "peso_ganado";
-			$op6 = '>=';
-			$c12 = $request['f_peso_d'];
+			$filtroPesoGanadoDesde = "peso_ganado";
+			$signoPesoGanadoDesde = '>=';
+			$valorPesoGanadoDesde = $request['f_peso_d'];
 		}
 		if ($request['f_peso_h'] != '-1') {
-			$c13 = "peso_ganado";
-			$op7 = '<=';
-			$c14 = $request['f_peso_h'];
+			$filtroPesoGanadoHasta = "peso_ganado";
+			$signoPesoGanadoHasta = '<=';
+			$valorPesoGanadoHasta = $request['f_peso_h'];
 		}
 		if ($request['f_lote'] != '-1') {
 			$c15 = "lote";
@@ -133,6 +133,8 @@ class InformeRegistroController extends Controller
 			->where($c7, $op4, $c8)
 			->where($c9, $op5, $c10)
 			->where($c15, $op8, $c16)
+			->where($filtroPesoGanadoDesde, $signoPesoGanadoDesde, $valorPesoGanadoDesde)
+			->where($filtroPesoGanadoHasta, $signoPesoGanadoHasta, $valorPesoGanadoHasta)
 			->where('siembras.estado', $filtro_estado_siembra, $estado_siembra)
 			->where('siembras.id_contenedor', $filtro_contenedor, $id_contenedor)
 			// ->where('tipo_registro', '<>', 0)
