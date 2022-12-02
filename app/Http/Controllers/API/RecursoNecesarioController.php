@@ -47,6 +47,10 @@ class RecursoNecesarioController extends Controller
 		$signoIdSiembra = '!=';
 		$valorIdSiembra = '-1';
 
+		$filtroEstadoSiembra = 'recursos_necesarios.estado';
+		$signoEstadoSiembra = '!=';
+		$valorEstadoSiembra = '-1';
+
 		if ($request['tipo_actividad'] != '-1') {
 			$tipo_actividad = "tipo_actividad";
 			$filtro_tipo_actividad = '=';
@@ -84,6 +88,12 @@ class RecursoNecesarioController extends Controller
 			$valorIdSiembra = $request['f_siembra'];
 		}
 
+		if ($request['f_estado'] != '-1') {
+			$filtroEstadoSiembra = "siembras.estado";
+			$signoEstadoSiembra = '=';
+			$valorEstadoSiembra = $request['f_estado'];
+		}
+
 		$recursosNecesarios = RecursoNecesario::orderBy('fecha_ra', 'desc')
 			->select('*', 'recursos_necesarios.id as id');
 
@@ -100,7 +110,8 @@ class RecursoNecesarioController extends Controller
 			->where($filtroFechaRegistroAlimentoHasta, $signoFechaRegistroAlimentoHasta, $valorFechaRegistroAlimentohasta)
 			->where($filtroIdAlimento, $op5, $c10)
 			->where($filtroIdRecurso, $op6, $c12)
-			->where($filtroIdSiembra, $signoIdSiembra, $valorIdSiembra);
+			->where($filtroIdSiembra, $signoIdSiembra, $valorIdSiembra)
+			->where($filtroEstadoSiembra, $signoEstadoSiembra, $valorEstadoSiembra);
 
 		if ($request['see_all']) {
 			$recursosNecesarios = $recursosNecesarios->get();

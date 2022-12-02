@@ -351,7 +351,6 @@ class SiembraController extends Controller
 	public function listadoSiembras()
 	{
 		$listado_siembras = Siembra::select()
-			// ->orderBy('siembras.id', 'desc')
 			->get();
 
 		return $listado_siembras;

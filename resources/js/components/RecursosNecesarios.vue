@@ -17,9 +17,28 @@
                 <h2>Filtrar por:</h2>
                 <form class="row">
                   <div class="form-group col-md-2">
-                    <label for="Siembra">Siembra:</label>
-                    <v-select :options="listadoSiembras" label="nombre_siembra" :reduce="(siembra) => siembra.id"
-                      v-model="f_siembra" />
+                    <label for="f_estado">
+                      Estado:
+                      <select class="custom-select" name="estado" id="estado" v-model="f_estado">
+                        <option value="-1">--Seleccionar--</option>
+                        <option value="0">Inactiva</option>
+                        <option value="1">Activa</option>
+                      </select>
+                    </label>
+                  </div>
+
+                  <div class="form-group col-3">
+                    <label for="siembra_activa">Siembras
+                      {{ f_estado == 0 ? "inactivas" : "activas" }} :
+                    </label>
+                    <template v-if="f_estado != '-1'">
+                      <v-select :options="filteredItems" label="nombre_siembra" :reduce="(siembra) => siembra.id"
+                        v-model="f_siembra" />
+                    </template>
+                    <template v-if="f_estado == '-1'">
+                      <v-select :options="listadoSiembras" label="nombre_siembra" :reduce="(siembra) => siembra.id"
+                        v-model="f_siembra" />
+                    </template>
                   </div>
                   <div class="form-group col-md-2">
                     <label for="t_actividad">Tipo de Actividad:
@@ -29,9 +48,9 @@
                         Seleccionar</option>
                       <template v-for="(actividad,
                       index) in listadoActividades">
-                        <option :key="index"  :value="actividad.id" v-if="actividad.actividad != 'Alimentación'">
+                        <option :key="index" :value="actividad.id" v-if="actividad.actividad != 'Alimentación'">
                           {{
-                          actividad.actividad
+                              actividad.actividad
                           }}</option>
                       </template>
 
@@ -204,8 +223,8 @@
                     <option selected>--Seleccionar--</option>
                     <option v-for="(actividad,
                     index) in listadoActividades" :key="index" v-bind:value="actividad.id">{{
-                    actividad.actividad
-                    }}</option>
+      actividad.actividad
+  }}</option>
                   </select>
                 </div>
                 <div class="form-group">
@@ -225,8 +244,8 @@
                     <option selected>--Seleccionar--</option>
                     <option v-for="(recurso,
                     index) in listadoRecursos" :key="index" v-bind:value="recurso.id">{{
-                    recurso.recurso
-                    }}</option>
+      recurso.recurso
+  }}</option>
                   </select>
                 </div>
                 <div class="form-row my-2" style="background:#f0ffff;" v-show="form.tipo_actividad == 12">
@@ -274,7 +293,9 @@
                 <span v-if="form.id_siembra.length == ''" class="text-danger mb-3">
                   Debe seleccionar al menos una siembra
                 </span>
-                <div v-for="(item, index) in listadoSiembras" :key="index">
+                <v-select :options="siembrasActivas" label="nombre_siembra" :reduce="(siembra) => siembra.id"
+                  v-model="form.id_siembra" multiple />
+                <!-- <div v-for="(item, index) in listadoSiembras" :key="index">
                   <input type="checkbox" class="form-check-input" v-bind:value="item.id" v-model="form.id_siembra"
                     :id="'siembra-' + item.id" :name="'siembra-' + item.id" />
                   <label :for="'siembra-' + item.id" class="form-check-label">
@@ -282,7 +303,7 @@
                     {{ item.nombre_siembra }}
                   </label>
                   <br />
-                </div>
+                </div> -->
               </div>
             </form>
           </div>
@@ -341,6 +362,7 @@ export default {
       fecha_ra1: "",
       fecha_ra2: "",
       f_siembra: "",
+      f_estado: "1",
       alimento_s: "",
       recurso_s: "",
       see_all: 0,
@@ -371,6 +393,12 @@ export default {
     downloadexcel
   },
   computed: {
+    filteredItems() {
+      return this.listadoSiembras.filter((item) => item.estado == this.f_estado);
+    },
+    siembrasActivas() {
+      return this.listadoSiembras.filter((item) => item.estado == 1);
+    },
     isActived: function () {
       return this.pagination.current_page;
     },
@@ -411,36 +439,16 @@ export default {
 
     listar(page = 1) {
       let me = this;
-      if (this.f_siembra == "") {
-        this.f_s = "-1";
-      } else {
-        this.f_s = this.f_siembra;
-      }
-      if (this.t_actividad == "") {
-        this.actividad = "-1";
-      } else {
-        this.actividad = this.t_actividad;
-      }
-      if (this.see_all == "") {
-        this.check = 0;
-      } else {
-        this.check = this.see_all;
-      }
-      if (this.recurso_s == "") {
-        this.rec = "-1";
-      } else {
-        this.rec = this.recurso_s;
-      }
-      if (this.fecha_ra1 == "") {
-        this.fecha1 = "-3";
-      } else {
-        this.fecha1 = this.fecha_ra1;
-      }
-      if (this.fecha_ra2 == "") {
-        this.fecha2 = "-1";
-      } else {
-        this.fecha2 = this.fecha_ra2;
-      }
+
+      let f_siembra = this.f_siembra == "" ? "-1" : this.f_siembra;
+      let f_estado = this.f_estado == "-1" ? "-1" : this.f_estado;
+      let f_actividad = this.t_actividad == "" ? "-1" : this.t_actividad;
+      let see_all = this.see_all == "" ? "0" : this.see_all;
+      let recurso_s = this.recurso_s == "" ? "-1" : this.recurso_s;
+      let fecha_ra1 = this.fecha_ra1 == "" ? "-3" : this.fecha_ra1;
+      let fecha_ra2 = this.fecha_ra2 == "" ? "-1" : this.fecha_ra2;
+
+   
       if (this.recurso_s == "") {
         this.rec = "-1";
       } else {
@@ -449,14 +457,15 @@ export default {
 
       const data = {
         page: page,
-        f_siembra: this.f_s,
-        tipo_actividad: this.actividad,
-        recurso_s: this.rec,
-        alimento_s: this.ali,
-        fecha_ra1: this.fecha1,
-        fecha_ra2: this.fecha2,
-        see_all: this.check
+        f_siembra: f_siembra,
+        f_estado: f_estado,
+        tipo_actividad: f_actividad,
+        recurso_s: recurso_s,
+        fecha_ra1:fecha_ra1,
+        fecha_ra2: fecha_ra2,
+        see_all: see_all
       };
+
       axios
         .get("api/recursos-necesarios", { params: data })
         .then(function (response) {
