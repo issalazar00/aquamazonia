@@ -8054,6 +8054,13 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
 
 
 /* harmony default export */ __webpack_exports__["default"] = ({
@@ -8063,14 +8070,54 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         Siembra: "nombre_siembra",
         Estado: "estado",
         "Tipo actividad": "actividad",
-        "Minutos hombre": "minutos_hombre",
-        "Costo total minutos": "costo_minutos",
-        "Cantidad total recurso": "cantidad_recurso",
-        "Costo total recurso": "costo_recurso",
-        "Cantidad total alimento": "cantidad_alimento",
-        "Costo total alimento": "costo_alimento",
-        "Costo total actividad": "costo_total_actividad",
-        "%Costo total producción": "porcentaje_total_produccion"
+        "Minutos hombre": {
+          field: "minutos_hombre",
+          callback: function callback(value) {
+            return numeral(value).format('0.00');
+          }
+        },
+        "Costo total minutos": {
+          field: "costo_minutos",
+          callback: function callback(value) {
+            return numeral(value).format('0.00');
+          }
+        },
+        "Cantidad total recurso": {
+          field: "cantidad_recurso",
+          callback: function callback(value) {
+            return numeral(value).format('0.00');
+          }
+        },
+        "Costo total recurso": {
+          field: "costo_recurso",
+          callback: function callback(value) {
+            return numeral(value).format('0.00');
+          }
+        },
+        "Cantidad total alimento": {
+          field: "cantidad_alimento",
+          callback: function callback(value) {
+            return numeral(value).format('0.00');
+          }
+        },
+        "Costo total alimento": {
+          field: "costo_alimento",
+          callback: function callback(value) {
+            return numeral(value).format('0.00');
+          }
+        },
+        "Costo total actividad": {
+          field: "costo_total_actividad",
+          callback: function callback(value) {
+            return numeral(value).format('0.00');
+          }
+        },
+        "% Costo total producción": {
+          field: "porcentaje_total_produccion",
+          callback: function callback(value) {
+            return numeral(value).format('0.00');
+          }
+        }
       },
       tipoActividad: "",
       f_actividad: "",
@@ -8806,16 +8853,56 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         "Estado Siembra": "estado",
         "Tipo de Actividad": "actividad",
         "Fecha Registro": "fecha_ra",
-        "Minutos hombre": "minutos_hombre",
-        "Costo minutos hombre": "costo_minutosh",
+        "Minutos hombre": {
+          field: "minutos_hombre",
+          callback: function callback(value) {
+            return numeral(value).format('0.00');
+          }
+        },
+        "Costo minutos hombre": {
+          field: "costo_minutosh",
+          callback: function callback(value) {
+            return numeral(value).format('0.00');
+          }
+        },
         Recurso: "recurso",
-        "Cantidad Recurso": "cantidad_recurso",
-        "Costo Recurso": "costo_total_recurso",
+        "Cantidad Recurso": {
+          field: "cantidad_recurso",
+          callback: function callback(value) {
+            return numeral(value).format('0.00');
+          }
+        },
+        "Costo Recurso": {
+          field: "costo_total_recurso",
+          callback: function callback(value) {
+            return numeral(value).format('0.00');
+          }
+        },
         Alimento: "alimento",
-        "Cantidad KG mañana": "cant_manana",
-        "Cantidad KG tarde": "cant_tarde",
-        "Costo Alimento": "costo_total_alimento",
-        "Costo Actividad": "costo_total_actividad"
+        "Cantidad KG mañana": {
+          field: "cant_manana",
+          callback: function callback(value) {
+            return numeral(value).format('0.00');
+          }
+        },
+        "Cantidad KG tarde": {
+          field: "cant_tarde",
+          callback: function callback(value) {
+            return numeral(value).format('0.00');
+          }
+        },
+        "Costo Alimento": {
+          field: "costo_total_alimento",
+          callback: function callback(value) {
+            return numeral(value).format('0.00');
+          }
+        },
+        "Costo Actividad": {
+          field: "costo_total_actividad",
+          callback: function callback(value) {
+            return numeral(value).format('0.00');
+          }
+        }
       },
       listadorn: [],
       listadoActividades: [],
@@ -64524,7 +64611,7 @@ var render = function() {
                       _vm._v(
                         "Siembras\n                  " +
                           _vm._s(_vm.f_estado == 0 ? "inactivas" : "activas") +
-                          " :\n                "
+                          " : "
                       )
                     ]),
                     _vm._v(" "),
@@ -64832,55 +64919,79 @@ var render = function() {
                                 }
                               }),
                               _vm._v(" "),
-                              _c("td", {
-                                staticClass: "text-right",
-                                domProps: {
-                                  textContent: _vm._s(lrn.costo_minutos)
-                                }
-                              }),
+                              _c("td", { staticClass: "text-right" }, [
+                                _vm._v(
+                                  _vm._s(
+                                    _vm._f("numeral")(
+                                      lrn.costo_minutos,
+                                      "$0,0.00"
+                                    )
+                                  )
+                                )
+                              ]),
                               _vm._v(" "),
                               _vm.tipoActividad != "Alimentación"
-                                ? _c("td", {
-                                    staticClass: "text-right",
-                                    domProps: {
-                                      textContent: _vm._s(lrn.cantidad_recurso)
-                                    }
-                                  })
+                                ? _c("td", { staticClass: "text-right" }, [
+                                    _vm._v(
+                                      _vm._s(
+                                        _vm._f("numeral")(
+                                          lrn.cantidad_recurso,
+                                          "0.00"
+                                        )
+                                      )
+                                    )
+                                  ])
                                 : _vm._e(),
                               _vm._v(" "),
                               _vm.tipoActividad != "Alimentación"
-                                ? _c("td", {
-                                    staticClass: "text-right",
-                                    domProps: {
-                                      textContent: _vm._s(lrn.costo_recurso)
-                                    }
-                                  })
+                                ? _c("td", { staticClass: "text-right" }, [
+                                    _vm._v(
+                                      _vm._s(
+                                        _vm._f("numeral")(
+                                          lrn.costo_recurso,
+                                          "$0,0.00"
+                                        )
+                                      )
+                                    )
+                                  ])
                                 : _vm._e(),
                               _vm._v(" "),
                               _vm.tipoActividad == "Alimentación"
-                                ? _c("td", {
-                                    staticClass: "text-right",
-                                    domProps: {
-                                      textContent: _vm._s(lrn.cantidad_alimento)
-                                    }
-                                  })
+                                ? _c("td", { staticClass: "text-right" }, [
+                                    _vm._v(
+                                      _vm._s(
+                                        _vm._f("numeral")(
+                                          lrn.cantidad_alimento,
+                                          "0.00"
+                                        )
+                                      )
+                                    )
+                                  ])
                                 : _vm._e(),
                               _vm._v(" "),
                               _vm.tipoActividad == "Alimentación"
-                                ? _c("td", {
-                                    staticClass: "text-right",
-                                    domProps: {
-                                      textContent: _vm._s(lrn.costo_alimento)
-                                    }
-                                  })
+                                ? _c("td", { staticClass: "text-right" }, [
+                                    _vm._v(
+                                      _vm._s(
+                                        _vm._f("numeral")(
+                                          lrn.costo_alimento,
+                                          "$0,0.00"
+                                        )
+                                      )
+                                    )
+                                  ])
                                 : _vm._e(),
                               _vm._v(" "),
-                              _c("td", {
-                                staticClass: "text-right",
-                                domProps: {
-                                  textContent: _vm._s(lrn.costo_total_actividad)
-                                }
-                              }),
+                              _c("td", { staticClass: "text-right" }, [
+                                _vm._v(
+                                  _vm._s(
+                                    _vm._f("numeral")(
+                                      lrn.costo_total_actividad,
+                                      "$0,0.00"
+                                    )
+                                  )
+                                )
+                              ]),
                               _vm._v(" "),
                               _c("td", { staticClass: "text-right" }, [
                                 lrn.porcentaje_total_produccion
@@ -64888,7 +64999,10 @@ var render = function() {
                                       _vm._v(
                                         "\n                      " +
                                           _vm._s(
-                                            lrn.porcentaje_total_produccion
+                                            _vm._f("numeral")(
+                                              lrn.porcentaje_total_produccion,
+                                              "0.00"
+                                            )
                                           ) +
                                           " %\n                    "
                                       )
@@ -65943,9 +66057,9 @@ var render = function() {
                           ? [
                               _c("th", [_vm._v("Alimentos")]),
                               _vm._v(" "),
-                              _c("th", [_vm._v("Cantidada Mañana (KG)")]),
+                              _c("th", [_vm._v("Cantidad Mañana (KG)")]),
                               _vm._v(" "),
-                              _c("th", [_vm._v("Cantidada Tarde (KG)")]),
+                              _c("th", [_vm._v("Cantidad Tarde (KG)")]),
                               _vm._v(" "),
                               _c("th", [_vm._v("Costo Alimento")])
                             ]
@@ -65974,25 +66088,15 @@ var render = function() {
                             }
                           }),
                           _vm._v(" "),
-                          _c("td", {
-                            domProps: {
-                              textContent: _vm._s(_vm.estados[lrn.estado])
-                            }
-                          }),
+                          _c("td", [_vm._v(_vm._s(_vm.estados[lrn.estado]))]),
                           _vm._v(" "),
-                          _c("td", {
-                            domProps: { textContent: _vm._s(lrn.actividad) }
-                          }),
+                          _c("td", [_vm._v(_vm._s(lrn.actividad))]),
                           _vm._v(" "),
-                          _c("td", {
-                            domProps: { textContent: _vm._s(lrn.fecha_ra) }
-                          }),
+                          _c("td", [_vm._v(_vm._s(lrn.fecha_ra))]),
                           _vm._v(" "),
-                          _c("td", {
-                            domProps: {
-                              textContent: _vm._s(lrn.minutos_hombre + "min")
-                            }
-                          }),
+                          _c("td", [
+                            _vm._v(_vm._s(lrn.minutos_hombre + "min"))
+                          ]),
                           _vm._v(" "),
                           _c("td", [
                             _vm._v(
@@ -66004,15 +66108,11 @@ var render = function() {
                           _vm._v(" "),
                           _vm.tipoActividad != "Alimentación"
                             ? [
-                                _c("td", {
-                                  domProps: { textContent: _vm._s(lrn.recurso) }
-                                }),
+                                _c("td", [_vm._v(_vm._s(lrn.recurso))]),
                                 _vm._v(" "),
-                                _c("td", {
-                                  domProps: {
-                                    textContent: _vm._s(lrn.cantidad_recurso)
-                                  }
-                                }),
+                                _c("td", [
+                                  _vm._v(_vm._s(lrn.cantidad_recurso))
+                                ]),
                                 _vm._v(" "),
                                 _c("td", [
                                   _vm._v(
@@ -66049,7 +66149,7 @@ var render = function() {
                                   }
                                 }),
                                 _vm._v(" "),
-                                _c("th", [
+                                _c("td", [
                                   _vm._v(
                                     "\n                      " +
                                       _vm._s(
@@ -66060,22 +66160,22 @@ var render = function() {
                                       ) +
                                       "\n                    "
                                   )
-                                ]),
-                                _vm._v(" "),
-                                _c("th", [
-                                  _vm._v(
-                                    "\n                      " +
-                                      _vm._s(
-                                        _vm._f("numeral")(
-                                          lrn.costo_total_actividad,
-                                          "$0,0.00"
-                                        )
-                                      ) +
-                                      "\n                    "
-                                  )
                                 ])
                               ]
-                            : _vm._e()
+                            : _vm._e(),
+                          _vm._v(" "),
+                          _c("th", [
+                            _vm._v(
+                              "\n                    " +
+                                _vm._s(
+                                  _vm._f("numeral")(
+                                    lrn.costo_total_actividad,
+                                    "$0,0.00"
+                                  )
+                                ) +
+                                "\n                  "
+                            )
+                          ])
                         ],
                         2
                       )

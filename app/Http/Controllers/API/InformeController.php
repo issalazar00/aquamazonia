@@ -106,25 +106,13 @@ class InformeController extends Controller
 			->orderBy('recursos_necesarios.created_at', 'desc')
 			->paginate(30);
 
-		$acumula = 0;
-		$acumula2 = 0;
-		$acumula3 = 0;
-
 		if (count($recursosNecesarios) > 0) {
 			for ($i = 0; $i < count($recursosNecesarios); $i++) {
 
 				$recursosNecesarios[$i]->costo_total_recurso = ($recursosNecesarios[$i]->cantidad_recurso * $recursosNecesarios[$i]->costo_r);
-				$acumula += ($recursosNecesarios[$i]->cantidad_recurso * $recursosNecesarios[$i]->costo_r);
-
 				$recursosNecesarios[$i]->costo_total_alimento = ($recursosNecesarios[$i]->cant_tarde + $recursosNecesarios[$i]->cant_manana) * $recursosNecesarios[$i]->costo_a;
-				$acumula2 += (($recursosNecesarios[$i]->cant_tarde + $recursosNecesarios[$i]->cant_manana) * $recursosNecesarios[$i]->costo_a);
-
 				$recursosNecesarios[$i]->costo_minutosh = $recursosNecesarios[$i]->minutos_hombre * $recursosNecesarios[$i]->costo_minutos_hombre;
-				$acumula3 += $recursosNecesarios[$i]->costo_minutosh;
-				$recursosNecesarios[$i]->costo_total_actividad = ($acumula + 	$acumula2 + 	$acumula3);
-				$recursosNecesarios[$i]->costo_r_acum = $acumula;
-				$recursosNecesarios[$i]->costo_a_acum = $acumula2;
-				$recursosNecesarios[$i]->costo_h_acum = $acumula3;
+				$recursosNecesarios[$i]->costo_total_actividad = ($recursosNecesarios[$i]->costo_total_recurso + 	$recursosNecesarios[$i]->costo_total_alimento + 	$recursosNecesarios[$i]->costo_minutosh);
 			}
 		}
 
@@ -141,154 +129,6 @@ class InformeController extends Controller
 		];
 	}
 
-	public function traerInformes()
-	{
-		$recursosNecesarios = RecursoNecesario::orderBy('fecha_ra', 'desc')
-			->leftJoin('recursos', 'recursos_necesarios.id_recurso', 'recursos.id')
-			->leftJoin('alimentos', 'recursos_necesarios.id_alimento', 'alimentos.id')
-			->join('siembras', 'recursos_necesarios.siembra_id', 'siembras.id')
-			->join('actividades', 'recursos_necesarios.tipo_actividad', 'actividades.id')
-			->select('recursos.id as idr', 'alimentos.id as ida', 'recursos_necesarios.id as id', 'actividad', 'id_recurso', 'id_alimento', 'fecha_ra', 'minutos_hombre', 'costo_minutos_hombre', 'cant_manana', 'cant_tarde', 'detalles', 'tipo_actividad', 'recurso', 'alimento', 'recursos.costo as costo_r', 'alimentos.costo_kg as costo_a', 'nombre_siembra', 'estado', 'cantidad_recurso')
-			->orderBy('nombre_siembra', 'desc')
-			->get();
-
-		$acumula = 0;
-		$acumula2 = 0;
-		$acumula3 = 0;
-
-		if (count($recursosNecesarios) > 0) {
-			for ($i = 0; $i < count($recursosNecesarios); $i++) {
-
-				$recursosNecesarios[$i]->costo_total_recurso = ($recursosNecesarios[$i]->cantidad_recurso * $recursosNecesarios[$i]->costo_r);
-				$acumula += ($recursosNecesarios[$i]->cantidad_recurso * $recursosNecesarios[$i]->costo_r);
-
-				$recursosNecesarios[$i]->costo_total_alimento = ($recursosNecesarios[$i]->cant_tarde + $recursosNecesarios[$i]->cant_manana) * $recursosNecesarios[$i]->costo_a;
-				$acumula2 += (($recursosNecesarios[$i]->cant_tarde + $recursosNecesarios[$i]->cant_manana) * $recursosNecesarios[$i]->costo_a);
-
-				$recursosNecesarios[$i]->costo_minutosh = $recursosNecesarios[$i]->minutos_hombre * $recursosNecesarios[$i]->costo_minutos_hombre;
-				$acumula3 += $recursosNecesarios[$i]->costo_minutosh;
-				$recursosNecesarios[$i]->costo_total_actividad = ($acumula + 	$acumula2 + 	$acumula3);
-
-				$sumac = $recursosNecesarios[$i]->costo_total_actividad;
-
-				$recursosNecesarios[$i]->costo_r_acum = number_format($acumula, 2, ',', '');
-				$recursosNecesarios[$i]->costo_a_acum = number_format($acumula2, 2, ',', '');
-				$recursosNecesarios[$i]->costo_h_acum = number_format($acumula3, 2, ',', '');
-				$recursosNecesarios[$i]->costo_total_recurso = number_format($recursosNecesarios[$i]->costo_total_recurso, 2, ',', '');
-				$recursosNecesarios[$i]->costo_total_alimento = number_format($recursosNecesarios[$i]->costo_total_alimento, 2, ',', '');
-				$recursosNecesarios[$i]->costo_total_actividad = number_format($recursosNecesarios[$i]->costo_total_actividad, 2, ',', '');
-			}
-		}
-		return ['recursosNecesarios' => $recursosNecesarios];
-	}
-	// Filtro de la funcion anterior
-
-	public function informeRecursos(Request $request)
-	{
-		$c1 = 'tipo_actividad';
-		$op1 = '!=';
-		$c2 = '-1';
-		$c3 = 'tipo_actividad';
-		$op2 = '!=';
-		$c4 = '-1';
-		$c5 = 'tipo_actividad';
-		$op3 = '!=';
-		$c6 = '-1';
-		$c7 = 'tipo_actividad';
-		$op4 = '!=';
-		$c8 = '-1';
-		$c9 = 'tipo_actividad';
-		$op5 = '!=';
-		$c10 = '-1';
-		$c11 = 'tipo_actividad';
-		$op6 = '!=';
-		$c12 = '-1';
-		$c13 = 'tipo_actividad';
-		$op7 = '!=';
-		$c14 = '-1';
-
-		if ($request['estado_s'] != '-1') {
-			$c1 = "estado";
-			$op1 = '=';
-			$c2 = $request['estado_s'];
-		}
-		if ($request['actividad_s'] != '-1') {
-			$c3 = "tipo_actividad";
-			$op2 = '=';
-			$c4 = $request['actividad_s'];
-		}
-		if ($request['alimento_s'] != '-1') {
-			$c5 = "id_alimento";
-			$op3 = '=';
-			$c6 = $request['alimento_s'];
-		}
-		if ($request['recurso_s'] != '-1') {
-			$c7 = "id_recurso";
-			$op4 = '=';
-			$c8 = $request['recurso_s'];
-		}
-		if ($request['fecha_ra1'] != '-1') {
-			$c9 = "fecha_ra";
-			$op5 = '>=';
-			$c10 = $request['fecha_ra1'];
-		}
-		if ($request['fecha_ra2'] != '-1') {
-			$c11 = "fecha_ra";
-			$op6 = '<=';
-			$c12 = $request['fecha_ra2'];
-		}
-		if ($request['f_siembra'] != '-1') {
-			$c13 = "siembras.id";
-			$op7 = '=';
-			$c14 = $request['f_siembra'];
-		}
-
-		$recursosNecesarios = RecursoNecesario::orderBy('fecha_ra', 'desc')
-			->leftJoin('recursos', 'recursos_necesarios.id_recurso', 'recursos.id')
-			->leftJoin('alimentos', 'recursos_necesarios.id_alimento', 'alimentos.id')
-			->join('siembras', 'recursos_necesarios.siembra_id', 'siembras.id')
-			->join('actividades', 'recursos_necesarios.tipo_actividad', 'actividades.id')
-			->select('recursos.id as idr', 'alimentos.id as ida', 'recursos_necesarios.id as id', 'actividad', 'minutos_hombre', 'id_recurso', 'id_alimento', 'fecha_ra', 'costo_minutos_hombre', 'cant_manana', 'cant_tarde', 'detalles', 'tipo_actividad', 'recurso', 'alimento', 'recursos.costo as costo_r', 'alimentos.costo_kg as costo_a', 'nombre_siembra', 'siembras.estado as estado', 'cantidad_recurso')
-			->where($c1, $op1, $c2)
-			->where($c3, $op2, $c4)
-			->where($c5, $op3, $c6)
-			->where($c7, $op4, $c8)
-			->where($c9, $op5, $c10)
-			->where($c11, $op6, $c12)
-			->where($c13, $op7, $c14)
-			->orderBy('nombre_siembra', 'desc')
-			->get();
-		//  return 'Hola';
-		$acumula = 0;
-		$acumula2 = 0;
-		$acumula3 = 0;
-
-		if (count($recursosNecesarios) > 0) {
-			for ($i = 0; $i < count($recursosNecesarios); $i++) {
-
-				$recursosNecesarios[$i]->costo_total_recurso = ($recursosNecesarios[$i]->cantidad_recurso * $recursosNecesarios[$i]->costo_r);
-				$acumula += ($recursosNecesarios[$i]->cantidad_recurso * $recursosNecesarios[$i]->costo_r);
-
-				$recursosNecesarios[$i]->costo_total_alimento = ($recursosNecesarios[$i]->cant_tarde + $recursosNecesarios[$i]->cant_manana) * $recursosNecesarios[$i]->costo_a;
-				$acumula2 += (($recursosNecesarios[$i]->cant_tarde + $recursosNecesarios[$i]->cant_manana) * $recursosNecesarios[$i]->costo_a);
-
-				$recursosNecesarios[$i]->costo_minutosh = $recursosNecesarios[$i]->minutos_hombre * $recursosNecesarios[$i]->costo_minutos_hombre;
-				$acumula3 += $recursosNecesarios[$i]->costo_minutosh;
-
-
-				$recursosNecesarios[$i]->costo_total_actividad = ($acumula + 	$acumula2 + 	$acumula3);
-
-				$recursosNecesarios[$i]->costo_r_acum = number_format($acumula, 2, ',', '');
-				$recursosNecesarios[$i]->costo_a_acum = number_format($acumula2, 2, ',', '');
-				$recursosNecesarios[$i]->costo_h_acum = number_format($acumula3, 2, ',', '');
-				$recursosNecesarios[$i]->costo_total_recurso = number_format($recursosNecesarios[$i]->costo_total_recurso, 2, ',', '');
-				$recursosNecesarios[$i]->costo_total_alimento = number_format($recursosNecesarios[$i]->costo_total_alimento, 2, ',', '');
-				$recursosNecesarios[$i]->costo_total_actividad = number_format($recursosNecesarios[$i]->costo_total_actividad, 2, ',', '');
-			}
-		}
-
-		return ['recursosNecesarios' => $recursosNecesarios];
-	}
 
 	public function traerExistencias(Request $request)
 	{
@@ -644,7 +484,7 @@ class InformeController extends Controller
 					"salida_animales" => $siembra->salida_animales,
 					"salida_biomasa" => $siembra->salida_biomasa,
 					"porc_supervivencia_final" => $siembra->porc_supervivencia_final,
-					"salida_animales_sin_mortalidad" =>$siembra->salida_animales_sin_mortalidad
+					"salida_animales_sin_mortalidad" => $siembra->salida_animales_sin_mortalidad
 				];
 			}
 		}

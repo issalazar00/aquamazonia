@@ -53,7 +53,6 @@ Route::namespace('API')->group(function () {
 	Route::post('siembras/cambiar-estado/{id}', 'SiembraController@changeStatus');
 	Route::post('filtro-siembras', 'InformeSiembraController@filtroSiembras');
 	Route::post('searchResults', 'RecursoNecesarioController@searchResults');
-	Route::post('informe-recursos', 'InformeController@informeRecursos');
 	Route::post('informe-recursos-totales', 'InformeController@informeRecursosTotales');
 	Route::post('filtro-parametros', 'ParametroCalidadController@filtroParametros');
 	Route::post('filtro-parametros-excel', 'ParametroCalidadController@filtroParametrosExcel');
@@ -65,7 +64,6 @@ Route::namespace('API')->group(function () {
 	Route::get('especies-siembra-edita/{id}', 'SiembraController@getEspeciesSiembra');
 	Route::get('lista-alimentacion', 'RecursoNecesarioController@alimentacion');
 	Route::get('traer-siembras', 'SiembraController@traerSiembras');
-	Route::get('traer-recursos', 'InformeController@traerInformes');
 	Route::get('traer-existencias', 'InformeController@traerExistencias');
 	Route::get('traer-existencias-detalle', 'InformeController@traerExistenciasDetalle');
 	Route::get('parametros-contenedores', 'ParametroCalidadController@listadoParametrosContenedores');

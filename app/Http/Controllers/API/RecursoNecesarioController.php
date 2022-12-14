@@ -94,8 +94,7 @@ class RecursoNecesarioController extends Controller
 			$valorEstadoSiembra = $request['f_estado'];
 		}
 
-		$recursosNecesarios = RecursoNecesario::orderBy('fecha_ra', 'desc')
-			->select('*', 'recursos_necesarios.id as id');
+		$recursosNecesarios = RecursoNecesario::select('*', 'recursos_necesarios.id as id');
 
 		if ($request['tipo_actividad'] == 1) {
 			$recursosNecesarios = 	$recursosNecesarios->join('alimentos', 'recursos_necesarios.id_alimento', 'alimentos.id');
@@ -110,13 +109,18 @@ class RecursoNecesarioController extends Controller
 			->where($filtroFechaRegistroAlimentoHasta, $signoFechaRegistroAlimentoHasta, $valorFechaRegistroAlimentohasta)
 			->where($filtroIdAlimento, $op5, $c10)
 			->where($filtroIdRecurso, $op6, $c12)
-			->where($filtroIdSiembra, $signoIdSiembra, $valorIdSiembra)
-			->where($filtroEstadoSiembra, $signoEstadoSiembra, $valorEstadoSiembra);
+			->where($filtroIdSiembra, $signoIdSiembra, $valorIdSiembra);
+
+		if ($valorIdSiembra == '-1') {
+			$recursosNecesarios = $recursosNecesarios->where($filtroEstadoSiembra, $signoEstadoSiembra, $valorEstadoSiembra);
+		}
 
 		if ($request['see_all']) {
-			$recursosNecesarios = $recursosNecesarios->get();
+			$recursosNecesarios = $recursosNecesarios->orderBy('fecha_ra', 'desc')
+				->get();
 		} else {
-			$recursosNecesarios = $recursosNecesarios->paginate(20);
+			$recursosNecesarios = $recursosNecesarios->orderBy('fecha_ra', 'desc')
+				->paginate(20);
 		}
 
 		$promedioRecursos = array();

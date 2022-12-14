@@ -117,8 +117,8 @@
                     </template>
                     <template v-if="tipoActividad == 'Alimentación'">
                       <th>Alimentos</th>
-                      <th>Cantidada Mañana (KG)</th>
-                      <th>Cantidada Tarde (KG)</th>
+                      <th>Cantidad Mañana (KG)</th>
+                      <th>Cantidad Tarde (KG)</th>
                       <th>Costo Alimento</th>
                       <!-- <th>Costo <br>Acumulado</th> -->
                     </template>
@@ -129,14 +129,14 @@
                   <tr v-for="(lrn, index) in listadorn" :key="index">
                     <th v-text="index + 1"></th>
                     <td v-text="lrn.nombre_siembra"></td>
-                    <td v-text="estados[lrn.estado]"></td>
-                    <td v-text="lrn.actividad"></td>
-                    <td v-text="lrn.fecha_ra"></td>
-                    <td v-text="lrn.minutos_hombre + 'min'"></td>
+                    <td>{{ estados[lrn.estado] }}</td>
+                    <td>{{ lrn.actividad }}</td>
+                    <td>{{ lrn.fecha_ra }}</td>
+                    <td>{{ lrn.minutos_hombre + 'min' }}</td>
                     <td>{{ lrn.costo_minutosh | numeral("$0,0.00") }}</td>
                     <template v-if="tipoActividad != 'Alimentación'">
-                      <td v-text="lrn.recurso"></td>
-                      <td v-text="lrn.cantidad_recurso"></td>
+                      <td>{{ lrn.recurso }}</td>
+                      <td>{{ lrn.cantidad_recurso }}</td>
                       <td>
                         {{ lrn.costo_total_recurso | numeral("$0,0.00") }}
                       </td>
@@ -147,14 +147,14 @@
                       <td v-text="lrn.alimento"></td>
                       <td v-text="lrn.cant_manana"></td>
                       <td v-text="lrn.cant_tarde"></td>
-                      <th>
+                      <td>
                         {{ lrn.costo_total_alimento | numeral("$0,0.00") }}
-                      </th>
+                      </td>
                       <!-- <th v-text="lrn.costo_a_acum" ></th> -->
-                      <th>
-                        {{ lrn.costo_total_actividad | numeral("$0,0.00") }}
-                      </th>
                     </template>
+                    <th>
+                      {{ lrn.costo_total_actividad | numeral("$0,0.00") }}
+                    </th>
                   </tr>
                 </tbody>
                 <tfoot>
@@ -202,16 +202,56 @@ export default {
         "Estado Siembra": "estado",
         "Tipo de Actividad": "actividad",
         "Fecha Registro": "fecha_ra",
-        "Minutos hombre": "minutos_hombre",
-        "Costo minutos hombre": "costo_minutosh",
+        "Minutos hombre": {
+          field: "minutos_hombre",
+          callback: (value) => {
+            return numeral(value).format('0.00');
+          }
+        },
+        "Costo minutos hombre": {
+          field: "costo_minutosh",
+          callback: (value) => {
+            return numeral(value).format('0.00');
+          }
+        },
         Recurso: "recurso",
-        "Cantidad Recurso": "cantidad_recurso",
-        "Costo Recurso": "costo_total_recurso",
+        "Cantidad Recurso": {
+          field: "cantidad_recurso",
+          callback: (value) => {
+            return numeral(value).format('0.00');
+          }
+        },
+        "Costo Recurso": {
+          field: "costo_total_recurso",
+          callback: (value) => {
+            return numeral(value).format('0.00');
+          }
+        },
         Alimento: "alimento",
-        "Cantidad KG mañana": "cant_manana",
-        "Cantidad KG tarde": "cant_tarde",
-        "Costo Alimento": "costo_total_alimento",
-        "Costo Actividad": "costo_total_actividad",
+        "Cantidad KG mañana": {
+          field: "cant_manana",
+          callback: (value) => {
+            return numeral(value).format('0.00');
+          }
+        },
+        "Cantidad KG tarde": {
+          field: "cant_tarde",
+          callback: (value) => {
+            return numeral(value).format('0.00');
+          }
+        },
+        "Costo Alimento": {
+          field: "costo_total_alimento",
+          callback: (value) => {
+            return numeral(value).format('0.00');
+          }
+        },
+        "Costo Actividad": {
+          field: "costo_total_actividad",
+          callback: (value) => {
+            return numeral(value).format('0.00');
+          }
+        },
       },
       listadorn: [],
       listadoActividades: [],
