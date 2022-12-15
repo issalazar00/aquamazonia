@@ -19,4 +19,8 @@ class Registro extends Model
 		'cantidad',
 		'estado'
 	];
+
+	public function siembra() {
+		return $this->belongsTo(Siembra::class, 'id_siembra');
+	}
 }

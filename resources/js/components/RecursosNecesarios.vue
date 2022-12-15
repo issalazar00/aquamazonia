@@ -442,7 +442,7 @@ export default {
 
       let f_siembra = this.f_siembra == "" ? "-1" : this.f_siembra;
       let f_estado = this.f_estado == "-1" ? "-1" : this.f_estado;
-      let f_actividad = this.t_actividad == "" ? "-1" : this.t_actividad;
+      let search_activity = this.t_actividad == "" ? "-1" : this.t_actividad;
       let see_all = this.see_all == "" ? "0" : this.see_all;
       let recurso_s = this.recurso_s == "" ? "-1" : this.recurso_s;
       let fecha_ra1 = this.fecha_ra1 == "" ? "-3" : this.fecha_ra1;
@@ -459,7 +459,7 @@ export default {
         page: page,
         f_siembra: f_siembra,
         f_estado: f_estado,
-        tipo_actividad: f_actividad,
+        tipo_actividad: search_activity,
         recurso_s: recurso_s,
         fecha_ra1:fecha_ra1,
         fecha_ra2: fecha_ra2,

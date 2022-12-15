@@ -63,7 +63,7 @@
                   </div>
                   <div class="form-group col-md-2">
                     <label for="actividad">Tipo actividad: </label>
-                    <select class="form-control" id="actividad" v-model="f_actividad" name="tipo_actividad">
+                    <select class="form-control" id="actividad" v-model="search_activity" name="tipo_actividad">
                       <option selected value="">Seleccionar</option>
                       <option value="0">Muestreo</option>
                       <option value="1">Pesca</option>
@@ -81,13 +81,13 @@
                   </div>
                   <div class="form-group col-md-2">
                     <label for="search">Desde: </label>
-                    <input class="form-control" type="date" placeholder="Search" aria-label="f_fecha_d"
-                      v-model="f_fecha_d" />
+                    <input class="form-control" type="date" placeholder="Search" aria-label="search_from"
+                      v-model="search_from" />
                   </div>
                   <div class="form-group col-md-2">
                     <label for="search">Hasta: </label>
-                    <input class="form-control" type="date" placeholder="Search" aria-label="f_fecha_h"
-                      v-model="f_fecha_h" />
+                    <input class="form-control" type="date" placeholder="Search" aria-label="search_to"
+                      v-model="search_to" />
                   </div>
                   <div class="form-group col-md-1">
                     <label for="">Buscar</label>
@@ -115,7 +115,7 @@
                     <th>Especie</th>
                     <th>Tipo <br />actividad</th>
                     <th>Peso actual (g) </th>
-                    <th>Biomasa cosecha Kg</th>
+                    <th>Biomasa cosechada Kg</th>
                     <th>Biomasa muestreo (kg)</th>
                     <th>Animales Actuales</th>
                     <th>Biomasa disponible por alimento</th>
@@ -134,7 +134,8 @@
                       {{ lr.peso_ganado | numeral("0.00") }}
                     </td>
                     <td>
-                      {{ lr.biomasa | numeral("0.00") }}
+                      {{ lr.biomasa_general | numeral("0.00") }}
+                      <!-- {{ lr.biomasa | numeral("0.00") }} -->
                     </td>
                     <td>
                       {{ lr.biomasa_disponible | numeral("0.00") }}
@@ -181,7 +182,7 @@ export default {
             return numeral(value).format("0.00");
           },
         },
-        "Biomasa cosecha \n Kg": {
+        "Biomasa cosechada \n Kg": {
           field: "biomasa",
           callback: (value) => {
             return numeral(value).format("0.00");
@@ -223,9 +224,9 @@ export default {
       f_lote: "",
       f_estado: "1",
       f_especie: "",
-      f_actividad: "",
-      f_fecha_d: "",
-      f_fecha_h: "",
+      search_activity: "",
+      search_from: "",
+      search_to: "",
       f_peso_d: 0,
       f_peso_h: 0,
       id_contenedor: "-1",
@@ -267,10 +268,10 @@ export default {
       } else {
         this.f_e = this.f_especie;
       }
-      if (this.f_actividad == "") {
+      if (this.search_activity == "") {
         this.act = "-1";
       } else {
-        this.act = this.f_actividad;
+        this.act = this.search_activity;
       }
       if (this.f_peso_d == "") {
         this.pesod = "-1";
@@ -282,15 +283,15 @@ export default {
       } else {
         this.pesoh = this.f_peso_h;
       }
-      if (this.f_fecha_d == "") {
+      if (this.search_from == "") {
         this.fec1 = "-1";
       } else {
-        this.fec1 = this.f_fecha_d;
+        this.fec1 = this.search_from;
       }
-      if (this.f_fecha_h == "") {
+      if (this.search_to == "") {
         this.fec2 = "-1";
       } else {
-        this.fec2 = this.f_fecha_h;
+        this.fec2 = this.search_to;
       }
 
       const data = {
@@ -298,11 +299,11 @@ export default {
         f_estado: this.est,
         f_lote: this.lot,
         f_especie: this.f_e,
-        f_actividad: this.act,
+        search_activity: this.act,
         f_peso_d: this.pesod,
         f_peso_h: this.pesoh,
-        f_fecha_d: this.fec1,
-        f_fecha_h: this.fec2,
+        search_from: this.fec1,
+        search_to: this.fec2,
         id_contenedor: this.id_contenedor,
       };
 

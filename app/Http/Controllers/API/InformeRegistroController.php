@@ -57,20 +57,20 @@ class InformeRegistroController extends Controller
 			$op1 = '=';
 			$c2 = $request['f_siembra'];
 		}
-		if ($request['f_actividad'] != '-1') {
+		if ($request['search_activity'] != '-1') {
 			$c3 = "registros.tipo_registro";
 			$op2 = '=';
-			$c4 = $request['f_actividad'];
+			$c4 = $request['search_activity'];
 		}
-		if ($request['f_fecha_d'] != '-1') {
+		if ($request['search_from'] != '-1') {
 			$c5 = "fecha_registro";
 			$op3 = '>=';
-			$c6 = $request['f_fecha_d'];
+			$c6 = $request['search_from'];
 		}
-		if ($request['f_fecha_h'] != '-1') {
+		if ($request['search_to'] != '-1') {
 			$c7 = "fecha_registro";
 			$op4 = '<=';
-			$c8 = $request['f_fecha_h'];
+			$c8 = $request['search_to'];
 		}
 		if ($request['f_especie'] != '-1') {
 			$c9 = "especies.id";

@@ -5602,6 +5602,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 //
 //
 //
+//
 
 /* harmony default export */ __webpack_exports__["default"] = ({
   data: function data() {
@@ -5618,7 +5619,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
             return numeral(value).format("0.00");
           }
         },
-        "Biomasa cosecha \n Kg": {
+        "Biomasa cosechada \n Kg": {
           field: "biomasa",
           callback: function callback(value) {
             return numeral(value).format("0.00");
@@ -5659,9 +5660,9 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       f_lote: "",
       f_estado: "1",
       f_especie: "",
-      f_actividad: "",
-      f_fecha_d: "",
-      f_fecha_h: "",
+      search_activity: "",
+      search_from: "",
+      search_to: "",
       f_peso_d: 0,
       f_peso_h: 0,
       id_contenedor: "-1"
@@ -5726,10 +5727,10 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         this.f_e = this.f_especie;
       }
 
-      if (this.f_actividad == "") {
+      if (this.search_activity == "") {
         this.act = "-1";
       } else {
-        this.act = this.f_actividad;
+        this.act = this.search_activity;
       }
 
       if (this.f_peso_d == "") {
@@ -5744,16 +5745,16 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         this.pesoh = this.f_peso_h;
       }
 
-      if (this.f_fecha_d == "") {
+      if (this.search_from == "") {
         this.fec1 = "-1";
       } else {
-        this.fec1 = this.f_fecha_d;
+        this.fec1 = this.search_from;
       }
 
-      if (this.f_fecha_h == "") {
+      if (this.search_to == "") {
         this.fec2 = "-1";
       } else {
-        this.fec2 = this.f_fecha_h;
+        this.fec2 = this.search_to;
       }
 
       var data = {
@@ -5761,11 +5762,11 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         f_estado: this.est,
         f_lote: this.lot,
         f_especie: this.f_e,
-        f_actividad: this.act,
+        search_activity: this.act,
         f_peso_d: this.pesod,
         f_peso_h: this.pesoh,
-        f_fecha_d: this.fec1,
-        f_fecha_h: this.fec2,
+        search_from: this.fec1,
+        search_to: this.fec2,
         id_contenedor: this.id_contenedor
       };
       axios.get("api/informes-registros?page=".concat(page), {
@@ -8120,7 +8121,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         }
       },
       tipoActividad: "",
-      f_actividad: "",
+      search_activity: "",
       f_siembra: "",
       f_contenedor: "",
       f_estado: "",
@@ -8148,20 +8149,13 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       var _this2 = this;
 
       return _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.mark(function _callee() {
-        var me, response;
         return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.wrap(function _callee$(_context) {
           while (1) {
             switch (_context.prev = _context.next) {
               case 0:
-                me = _this2;
-                _context.next = 3;
-                return _this2.listado;
-
-              case 3:
-                response = _context.sent;
                 return _context.abrupt("return", _this2.listado);
 
-              case 5:
+              case 1:
               case "end":
                 return _context.stop();
             }
@@ -8170,7 +8164,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       }))();
     },
     cambiarActividad: function cambiarActividad() {
-      if (this.f_actividad == 1) {
+      if (this.search_activity == 1) {
         this.tipoActividad = "Alimentación";
       } else this.tipoActividad = "";
     },
@@ -8196,16 +8190,16 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         this.cont = this.f_contenedor;
       }
 
-      if (this.f_actividad == "") {
+      if (this.search_activity == "") {
         this.actividad = "-1";
       } else {
-        this.actividad = this.f_actividad;
+        this.actividad = this.search_activity;
       }
 
       var data = {
         f_siembra: this.f_s,
         f_estado: this.f_e,
-        f_actividad: this.actividad,
+        search_activity: this.actividad,
         f_contenedor: this.cont
       };
       axios.get("api/informes-recursos-necesarios", {
@@ -10035,7 +10029,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       var me = this;
       var f_siembra = this.f_siembra == "" ? "-1" : this.f_siembra;
       var f_estado = this.f_estado == "-1" ? "-1" : this.f_estado;
-      var f_actividad = this.t_actividad == "" ? "-1" : this.t_actividad;
+      var search_activity = this.t_actividad == "" ? "-1" : this.t_actividad;
       var see_all = this.see_all == "" ? "0" : this.see_all;
       var recurso_s = this.recurso_s == "" ? "-1" : this.recurso_s;
       var fecha_ra1 = this.fecha_ra1 == "" ? "-3" : this.fecha_ra1;
@@ -10051,7 +10045,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         page: page,
         f_siembra: f_siembra,
         f_estado: f_estado,
-        tipo_actividad: f_actividad,
+        tipo_actividad: search_activity,
         recurso_s: recurso_s,
         fecha_ra1: fecha_ra1,
         fecha_ra2: fecha_ra2,
@@ -11053,8 +11047,26 @@ __webpack_require__.r(__webpack_exports__);
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var sweetalert2__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! sweetalert2 */ "./node_modules/sweetalert2/dist/sweetalert2.all.js");
-/* harmony import */ var sweetalert2__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(sweetalert2__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/regenerator */ "./node_modules/@babel/runtime/regenerator/index.js");
+/* harmony import */ var _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var os__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! os */ "./node_modules/os-browserify/browser.js");
+/* harmony import */ var os__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(os__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var sweetalert2__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! sweetalert2 */ "./node_modules/sweetalert2/dist/sweetalert2.all.js");
+/* harmony import */ var sweetalert2__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(sweetalert2__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var vue_json_excel__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! vue-json-excel */ "./node_modules/vue-json-excel/dist/vue-json-excel.esm.js");
+
+
+function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
+
+function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
+
+//
+//
+//
+//
+//
+//
+//
 //
 //
 //
@@ -11219,6 +11231,8 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 
+
+
 /* harmony default export */ __webpack_exports__["default"] = ({
   props: ['siembra_id'],
   data: function data() {
@@ -11242,17 +11256,96 @@ __webpack_require__.r(__webpack_exports__);
       campos: {},
       // Filtros registros
       f_siembra: "",
-      f_actividad: "",
-      f_fecha_d: "",
-      f_fecha_h: ""
+      search_activity: "",
+      search_from: "",
+      search_to: "",
+      json_fields: {
+        'Siembra': 'siembra.nombre_siembra',
+        'Especie': "especie",
+        'Tipo registro': {
+          field: "tipo_registro",
+          callback: function callback(value) {
+            switch (value) {
+              case 0:
+                return 'Mortalidad';
+                break;
+
+              case 1:
+                return 'Pesca';
+                break;
+
+              case 2:
+                return 'Inicial';
+                break;
+
+              default:
+                return 'Pesca';
+                break;
+            }
+          }
+        },
+        'Fecha de registro': "fecha_registro",
+        "Peso ganado": {
+          field: "peso_ganado",
+          callback: function callback(value) {
+            return numeral(value).format('0.00');
+          }
+        },
+        "Mortalidad": {
+          field: "mortalidad",
+          callback: function callback(value) {
+            return numeral(value).format('0');
+          }
+        },
+        "Biomasa": {
+          field: "biomasa",
+          callback: function callback(value) {
+            return numeral(value).format('0');
+          }
+        },
+        "Cantidad": {
+          field: "cantidad",
+          callback: function callback(value) {
+            return numeral(value).format('0');
+          }
+        }
+      }
     };
   },
+  components: {
+    downloadexcel: vue_json_excel__WEBPACK_IMPORTED_MODULE_3__["default"]
+  },
   methods: {
-    listarRegistros: function listarRegistros(id) {
+    fetchData: function fetchData() {
+      var _this = this;
+
+      return _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.mark(function _callee() {
+        return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                return _context.abrupt("return", _this.listadoRegistros);
+
+              case 1:
+              case "end":
+                return _context.stop();
+            }
+          }
+        }, _callee);
+      }))();
+    },
+    listarRegistros: function listarRegistros() {
+      var id = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : null;
       this.tipo_registro = 0;
       this.ver_registros = 1;
+      var data = {
+        f_siembra: id ? id : this.siembra_id,
+        search_activity: this.search_activity == "" ? '-1' : this.search_activity,
+        search_from: this.search_from == "" ? '-1' : this.search_from,
+        search_to: this.search_to == "" ? '-1' : this.search_to
+      };
       var me = this;
-      axios.post("api/registros-siembra/" + id).then(function (response) {
+      axios.post("api/registros-siembra/".concat(data.f_siembra), data).then(function (response) {
         me.listadoRegistros = response.data;
       });
       this.especiesSiembra(id);
@@ -11292,42 +11385,11 @@ __webpack_require__.r(__webpack_exports__);
         me.listarRegistros(id);
       });
     },
-    filtrarIngresos: function filtrarIngresos() {
-      var me = this; // if(this.f_siembra == ''){this.smb = '-1'}else{this.smb = this.f_siembra}
-
-      if (this.f_actividad == "") {
-        this.act = "-1";
-      } else {
-        this.act = this.f_actividad;
-      }
-
-      if (this.f_fecha_d == "") {
-        this.f_d = "-1";
-      } else {
-        this.f_d = this.f_fecha_d;
-      }
-
-      if (this.f_fecha_h == "") {
-        this.f_h = "-1";
-      } else {
-        this.f_h = this.f_fecha_h;
-      }
-
-      var data = {
-        f_siembra: this.siembra_id,
-        f_actividad: this.act,
-        f_fecha_d: this.f_d,
-        f_fecha_h: this.f_h
-      };
-      axios.post("api/filtro-registros", data).then(function (response) {
-        me.listadoRegistros = response.data;
-      });
-    },
     eliminarRegistro: function eliminarRegistro(id, objeto) {
-      var _this = this;
+      var _this2 = this;
 
       var me = this;
-      sweetalert2__WEBPACK_IMPORTED_MODULE_0___default.a.fire({
+      sweetalert2__WEBPACK_IMPORTED_MODULE_2___default.a.fire({
         title: "Estás seguro?",
         text: "Una vez eliminado, no se puede recuperar este registro",
         icon: "warning",
@@ -11340,7 +11402,7 @@ __webpack_require__.r(__webpack_exports__);
           };
           axios.put("api/registros/" + id, data).then(function (_ref2) {
             var data = _ref2.data;
-            me.listarRegistros(_this.siembra_id);
+            me.listarRegistros(_this2.siembra_id);
           });
         }
       });
@@ -11466,18 +11528,6 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _dialog_fish_food_vue__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./dialog-fish-food.vue */ "./resources/js/components/stocking/dialog-fish-food.vue");
 /* harmony import */ var vform__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! vform */ "./node_modules/vform/dist/vform.common.js");
 /* harmony import */ var vform__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(vform__WEBPACK_IMPORTED_MODULE_4__);
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
 //
 //
 //
@@ -47165,6 +47215,66 @@ return numeral;
 
 /***/ }),
 
+/***/ "./node_modules/os-browserify/browser.js":
+/*!***********************************************!*\
+  !*** ./node_modules/os-browserify/browser.js ***!
+  \***********************************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+exports.endianness = function () { return 'LE' };
+
+exports.hostname = function () {
+    if (typeof location !== 'undefined') {
+        return location.hostname
+    }
+    else return '';
+};
+
+exports.loadavg = function () { return [] };
+
+exports.uptime = function () { return 0 };
+
+exports.freemem = function () {
+    return Number.MAX_VALUE;
+};
+
+exports.totalmem = function () {
+    return Number.MAX_VALUE;
+};
+
+exports.cpus = function () { return [] };
+
+exports.type = function () { return 'Browser' };
+
+exports.release = function () {
+    if (typeof navigator !== 'undefined') {
+        return navigator.appVersion;
+    }
+    return '';
+};
+
+exports.networkInterfaces
+= exports.getNetworkInterfaces
+= function () { return {} };
+
+exports.arch = function () { return 'javascript' };
+
+exports.platform = function () { return 'browser' };
+
+exports.tmpdir = exports.tmpDir = function () {
+    return '/tmp';
+};
+
+exports.EOL = '\n';
+
+exports.homedir = function () {
+	return '/'
+};
+
+
+/***/ }),
+
 /***/ "./node_modules/popper.js/dist/esm/popper.js":
 /*!***************************************************!*\
   !*** ./node_modules/popper.js/dist/esm/popper.js ***!
@@ -60638,8 +60748,8 @@ var render = function() {
                             {
                               name: "model",
                               rawName: "v-model",
-                              value: _vm.f_actividad,
-                              expression: "f_actividad"
+                              value: _vm.search_activity,
+                              expression: "search_activity"
                             }
                           ],
                           staticClass: "form-control",
@@ -60654,7 +60764,7 @@ var render = function() {
                                   var val = "_value" in o ? o._value : o.value
                                   return val
                                 })
-                              _vm.f_actividad = $event.target.multiple
+                              _vm.search_activity = $event.target.multiple
                                 ? $$selectedVal
                                 : $$selectedVal[0]
                             }
@@ -60750,23 +60860,23 @@ var render = function() {
                           {
                             name: "model",
                             rawName: "v-model",
-                            value: _vm.f_fecha_d,
-                            expression: "f_fecha_d"
+                            value: _vm.search_from,
+                            expression: "search_from"
                           }
                         ],
                         staticClass: "form-control",
                         attrs: {
                           type: "date",
                           placeholder: "Search",
-                          "aria-label": "f_fecha_d"
+                          "aria-label": "search_from"
                         },
-                        domProps: { value: _vm.f_fecha_d },
+                        domProps: { value: _vm.search_from },
                         on: {
                           input: function($event) {
                             if ($event.target.composing) {
                               return
                             }
-                            _vm.f_fecha_d = $event.target.value
+                            _vm.search_from = $event.target.value
                           }
                         }
                       })
@@ -60782,23 +60892,23 @@ var render = function() {
                           {
                             name: "model",
                             rawName: "v-model",
-                            value: _vm.f_fecha_h,
-                            expression: "f_fecha_h"
+                            value: _vm.search_to,
+                            expression: "search_to"
                           }
                         ],
                         staticClass: "form-control",
                         attrs: {
                           type: "date",
                           placeholder: "Search",
-                          "aria-label": "f_fecha_h"
+                          "aria-label": "search_to"
                         },
-                        domProps: { value: _vm.f_fecha_h },
+                        domProps: { value: _vm.search_to },
                         on: {
                           input: function($event) {
                             if ($event.target.composing) {
                               return
                             }
-                            _vm.f_fecha_h = $event.target.value
+                            _vm.search_to = $event.target.value
                           }
                         }
                       })
@@ -60909,8 +61019,10 @@ var render = function() {
                           _c("td", [
                             _vm._v(
                               "\n                    " +
-                                _vm._s(_vm._f("numeral")(lr.biomasa, "0.00")) +
-                                "\n                  "
+                                _vm._s(
+                                  _vm._f("numeral")(lr.biomasa_general, "0.00")
+                                ) +
+                                "\n                    "
                             )
                           ]),
                           _vm._v(" "),
@@ -61020,7 +61132,7 @@ var staticRenderFns = [
         _vm._v(" "),
         _c("th", [_vm._v("Peso actual (g) ")]),
         _vm._v(" "),
-        _c("th", [_vm._v("Biomasa cosecha Kg")]),
+        _c("th", [_vm._v("Biomasa cosechada Kg")]),
         _vm._v(" "),
         _c("th", [_vm._v("Biomasa muestreo (kg)")]),
         _vm._v(" "),
@@ -64718,7 +64830,7 @@ var render = function() {
                 ]),
                 _vm._v(" "),
                 _c("div", { staticClass: "form-group col-md-2" }, [
-                  _c("label", { attrs: { for: "f_actividad" } }, [
+                  _c("label", { attrs: { for: "search_activity" } }, [
                     _vm._v("Tipo de Actividad: ")
                   ]),
                   _vm._v(" "),
@@ -64729,12 +64841,12 @@ var render = function() {
                         {
                           name: "model",
                           rawName: "v-model",
-                          value: _vm.f_actividad,
-                          expression: "f_actividad"
+                          value: _vm.search_activity,
+                          expression: "search_activity"
                         }
                       ],
                       staticClass: "custom-select",
-                      attrs: { id: "f_actividad" },
+                      attrs: { id: "search_activity" },
                       on: {
                         click: function($event) {
                           return _vm.cambiarActividad()
@@ -64748,7 +64860,7 @@ var render = function() {
                               var val = "_value" in o ? o._value : o.value
                               return val
                             })
-                          _vm.f_actividad = $event.target.multiple
+                          _vm.search_activity = $event.target.multiple
                             ? $$selectedVal
                             : $$selectedVal[0]
                         }
@@ -69840,8 +69952,8 @@ var render = function() {
                                 {
                                   name: "model",
                                   rawName: "v-model",
-                                  value: _vm.f_actividad,
-                                  expression: "f_actividad"
+                                  value: _vm.search_activity,
+                                  expression: "search_activity"
                                 }
                               ],
                               staticClass: "form-control",
@@ -69857,7 +69969,7 @@ var render = function() {
                                         "_value" in o ? o._value : o.value
                                       return val
                                     })
-                                  _vm.f_actividad = $event.target.multiple
+                                  _vm.search_activity = $event.target.multiple
                                     ? $$selectedVal
                                     : $$selectedVal[0]
                                 }
@@ -69893,8 +70005,8 @@ var render = function() {
                               {
                                 name: "model",
                                 rawName: "v-model",
-                                value: _vm.f_fecha_d,
-                                expression: "f_fecha_d"
+                                value: _vm.search_from,
+                                expression: "search_from"
                               }
                             ],
                             staticClass: "form-control",
@@ -69903,13 +70015,13 @@ var render = function() {
                               placeholder: "Search",
                               "aria-label": "fecha_desde"
                             },
-                            domProps: { value: _vm.f_fecha_d },
+                            domProps: { value: _vm.search_from },
                             on: {
                               input: function($event) {
                                 if ($event.target.composing) {
                                   return
                                 }
-                                _vm.f_fecha_d = $event.target.value
+                                _vm.search_from = $event.target.value
                               }
                             }
                           })
@@ -69925,8 +70037,8 @@ var render = function() {
                               {
                                 name: "model",
                                 rawName: "v-model",
-                                value: _vm.f_fecha_h,
-                                expression: "f_fecha_h"
+                                value: _vm.search_to,
+                                expression: "search_to"
                               }
                             ],
                             staticClass: "form-control",
@@ -69935,13 +70047,13 @@ var render = function() {
                               placeholder: "Search",
                               "aria-label": "fecha_hasta"
                             },
-                            domProps: { value: _vm.f_fecha_h },
+                            domProps: { value: _vm.search_to },
                             on: {
                               input: function($event) {
                                 if ($event.target.composing) {
                                   return
                                 }
-                                _vm.f_fecha_h = $event.target.value
+                                _vm.search_to = $event.target.value
                               }
                             }
                           })
@@ -69956,13 +70068,39 @@ var render = function() {
                               attrs: { type: "button" },
                               on: {
                                 click: function($event) {
-                                  return _vm.filtrarIngresos()
+                                  return _vm.listarRegistros(_vm.siembra_id)
                                 }
                               }
                             },
                             [_c("i", { staticClass: "fas fa-search" })]
                           )
-                        ])
+                        ]),
+                        _vm._v(" "),
+                        _c(
+                          "div",
+                          { staticClass: "col-md-2" },
+                          [
+                            _c(
+                              "downloadexcel",
+                              {
+                                staticClass: "btn btn-success form-control",
+                                attrs: {
+                                  fetch: _vm.fetchData,
+                                  fields: _vm.json_fields,
+                                  name: "informe-registros-x-siembra.xls",
+                                  type: "xls"
+                                }
+                              },
+                              [
+                                _c("i", {
+                                  staticClass: "fa fa-fw fa-download"
+                                }),
+                                _vm._v(" Generar Excel\n                ")
+                              ]
+                            )
+                          ],
+                          1
+                        )
                       ])
                     ]),
                     _vm._v(" "),
@@ -70816,11 +70954,11 @@ var render = function() {
                     _vm._v(" "),
                     _c(
                       "tbody",
-                      _vm._l(_vm.listado, function(siembra, index) {
+                      _vm._l(_vm.listado, function(siembra) {
                         return _c("tr", { key: siembra.id }, [
                           _c("th", {
                             attrs: { scope: "row" },
-                            domProps: { textContent: _vm._s(index + 1) }
+                            domProps: { textContent: _vm._s(siembra.id) }
                           }),
                           _vm._v(" "),
                           _c("td", {

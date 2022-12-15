@@ -22,7 +22,7 @@
               <form class="row">
                 <div class="form-group col-md-4">
                   <label for="tipo_registro">Tipo</label>
-                  <select class="form-control" id="tipo_registro" v-model="f_actividad">
+                  <select class="form-control" id="tipo_registro" v-model="search_activity">
                     <option value="3">Peso inicial</option>
                     <option value="0">Muestreo</option>
                     <option value="1">Pesca</option>
@@ -32,17 +32,24 @@
                 <div class="form-group col-md-3">
                   <label for="search">Desde: </label>
                   <input class="form-control" type="date" placeholder="Search" aria-label="fecha_desde"
-                    v-model="f_fecha_d" />
+                    v-model="search_from" />
                 </div>
                 <div class="form-group col-md-3">
                   <label for="search">Hasta: </label>
                   <input class="form-control" type="date" placeholder="Search" aria-label="fecha_hasta"
-                    v-model="f_fecha_h" />
+                    v-model="search_to" />
                 </div>
                 <div class="form-group col-md-2">
-                  <button class="btn btn-primary rounded-circle mt-4" @click="filtrarIngresos()" type="button">
+                  <button class="btn btn-primary rounded-circle mt-4" @click="listarRegistros(siembra_id)"
+                    type="button">
                     <i class="fas fa-search"></i>
                   </button>
+                </div>
+                <div class="col-md-2">
+                  <downloadexcel class="btn btn-success form-control" :fetch="fetchData" :fields="json_fields"
+                    name="informe-registros-x-siembra.xls" type="xls">
+                    <i class="fa fa-fw fa-download"></i> Generar Excel
+                  </downloadexcel>
                 </div>
               </form>
             </div>
@@ -162,7 +169,9 @@
   </div>
 </template>
 <script>
+import { type } from 'os';
 import Swal from 'sweetalert2';
+import downloadexcel from "vue-json-excel";
 
 export default {
   props: ['siembra_id'],
@@ -189,18 +198,82 @@ export default {
 
       // Filtros registros
       f_siembra: "",
-      f_actividad: "",
-      f_fecha_d: "",
-      f_fecha_h: "",
+      search_activity: "",
+      search_from: "",
+      search_to: "",
+
+      json_fields: {
+        'Siembra' : 'siembra.nombre_siembra',
+        'Especie': "especie",
+        'Tipo registro': {
+          field: "tipo_registro",
+          callback: (value) => {
+
+            switch (value) {
+              case 0:
+                return 'Mortalidad'
+                break;
+              case 1:
+                return 'Pesca'
+                break;
+              case 2:
+                return 'Inicial'
+                break;
+
+              default:
+                return 'Pesca'
+                break;
+            }
+          }
+        },
+        'Fecha de registro': "fecha_registro",
+        "Peso ganado": {
+          field: "peso_ganado",
+          callback: (value) => {
+            return numeral(value).format('0.00');
+          }
+        },
+        "Mortalidad": {
+          field: "mortalidad",
+          callback: (value) => {
+            return numeral(value).format('0');
+          }
+        },
+        "Biomasa": {
+          field: "biomasa",
+          callback: (value) => {
+            return numeral(value).format('0');
+          }
+        },
+        "Cantidad": {
+          field: "cantidad",
+          callback: (value) => {
+            return numeral(value).format('0');
+          }
+        },
+      },
     };
   },
+  components: {
+    downloadexcel,
+  },
   methods: {
-    listarRegistros(id) {
+    async fetchData() {
+      return this.listadoRegistros;
+    },
+    listarRegistros(id = null) {
       this.tipo_registro = 0;
-
       this.ver_registros = 1;
+
+      const data = {
+        f_siembra: id ? id : this.siembra_id,
+        search_activity: this.search_activity == "" ? '-1' : this.search_activity,
+        search_from: this.search_from == "" ? '-1' : this.search_from,
+        search_to: this.search_to == "" ? '-1' : this.search_to,
+      };
+
       let me = this;
-      axios.post("api/registros-siembra/" + id).then(function (response) {
+      axios.post(`api/registros-siembra/${data.f_siembra}`, data).then(function (response) {
         me.listadoRegistros = response.data;
       });
 
@@ -239,37 +312,6 @@ export default {
         me.aux_campos = [];
         me.ver_registros = 1;
         me.listarRegistros(id);
-      });
-    },
-
-    filtrarIngresos() {
-      let me = this;
-
-      // if(this.f_siembra == ''){this.smb = '-1'}else{this.smb = this.f_siembra}
-      if (this.f_actividad == "") {
-        this.act = "-1";
-      } else {
-        this.act = this.f_actividad;
-      }
-      if (this.f_fecha_d == "") {
-        this.f_d = "-1";
-      } else {
-        this.f_d = this.f_fecha_d;
-      }
-      if (this.f_fecha_h == "") {
-        this.f_h = "-1";
-      } else {
-        this.f_h = this.f_fecha_h;
-      }
-
-      const data = {
-        f_siembra: this.siembra_id,
-        f_actividad: this.act,
-        f_fecha_d: this.f_d,
-        f_fecha_h: this.f_h,
-      };
-      axios.post("api/filtro-registros", data).then((response) => {
-        me.listadoRegistros = response.data;
       });
     },
     eliminarRegistro(id, objeto) {

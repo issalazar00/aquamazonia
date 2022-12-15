@@ -804,7 +804,7 @@
                     <select
                       class="form-control"
                       id="tipo_registro"
-                      v-model="f_actividad"
+                      v-model="search_activity"
                     >
                       <option value="3">Peso inicial</option>
                       <option value="0">Muestreo</option>
@@ -819,7 +819,7 @@
                       type="date"
                       placeholder="Search"
                       aria-label="fecha_desde"
-                      v-model="f_fecha_d"
+                      v-model="search_from"
                     />
                   </div>
                   <div class="form-group col-md-3">
@@ -829,7 +829,7 @@
                       type="date"
                       placeholder="Search"
                       aria-label="fecha_hasta"
-                      v-model="f_fecha_h"
+                      v-model="search_to"
                     />
                   </div>
                   <div class="form-group col-md-2">
@@ -1159,9 +1159,9 @@ export default {
       },
       // Filtros ingresos
       f_siembra: "",
-      f_actividad: "",
-      f_fecha_d: "",
-      f_fecha_h: "",
+      search_activity: "",
+      search_from: "",
+      search_to: "",
 
       //Filtro siembras
       estado_siembra: "-1",
@@ -1390,27 +1390,27 @@ export default {
       let me = this;
 
       // if(this.f_siembra == ''){this.smb = '-1'}else{this.smb = this.f_siembra}
-      if (this.f_actividad == "") {
+      if (this.search_activity == "") {
         this.act = "-1";
       } else {
-        this.act = this.f_actividad;
+        this.act = this.search_activity;
       }
-      if (this.f_fecha_d == "") {
+      if (this.search_from == "") {
         this.f_d = "-1";
       } else {
-        this.f_d = this.f_fecha_d;
+        this.f_d = this.search_from;
       }
-      if (this.f_fecha_h == "") {
+      if (this.search_to == "") {
         this.f_h = "-1";
       } else {
-        this.f_h = this.f_fecha_h;
+        this.f_h = this.search_to;
       }
 
       const data = {
         f_siembra: this.idSiembraRegistro,
-        f_actividad: this.act,
-        f_fecha_d: this.f_d,
-        f_fecha_h: this.f_h
+        search_activity: this.act,
+        search_from: this.f_d,
+        search_to: this.f_h
       };
       axios.post("api/filtro-registros", data).then(response => {
         me.listadoRegistros = response.data;

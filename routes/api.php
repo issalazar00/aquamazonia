@@ -48,7 +48,6 @@ Route::apiResources([
 
 Route::namespace('API')->group(function () {
 	Route::post('registros-siembra/{id}', 'RegistroController@registrosxSiembra');
-	Route::post('filtro-registros', 'RegistroController@filtroRegistros');
 	Route::post('actualizarEstado/{id}', 'SiembraController@actualizarEstado');
 	Route::post('siembras/cambiar-estado/{id}', 'SiembraController@changeStatus');
 	Route::post('filtro-siembras', 'InformeSiembraController@filtroSiembras');

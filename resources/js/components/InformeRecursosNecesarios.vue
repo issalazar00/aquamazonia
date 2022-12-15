@@ -37,8 +37,8 @@
                   </select>
                 </div>
                 <div class="form-group col-md-2">
-                  <label for="f_actividad">Tipo de Actividad: </label>
-                  <select class="custom-select" id="f_actividad" v-model="f_actividad" @click="cambiarActividad()">
+                  <label for="search_activity">Tipo de Actividad: </label>
+                  <select class="custom-select" id="search_activity" v-model="search_activity" @click="cambiarActividad()">
                     <option value="-1" selected>Seleccionar</option>
                     <option v-for="(actividad, index) in listadoActividades" :key="index" v-bind:value="actividad.id">
                       {{ actividad.actividad }}
@@ -186,7 +186,7 @@ export default {
         },
       },
       tipoActividad: "",
-      f_actividad: "",
+      search_activity: "",
       f_siembra: "",
       f_contenedor: "",
       f_estado: "",
@@ -208,13 +208,11 @@ export default {
   },
   methods: {
     async fetchData() {
-      let me = this;
-      const response = await this.listado;
-      return this.listado;
+     return this.listado;
     },
 
     cambiarActividad() {
-      if (this.f_actividad == 1) {
+      if (this.search_activity == 1) {
         this.tipoActividad = "Alimentación";
       } else this.tipoActividad = "";
     },
@@ -237,16 +235,16 @@ export default {
       } else {
         this.cont = this.f_contenedor;
       }
-      if (this.f_actividad == "") {
+      if (this.search_activity == "") {
         this.actividad = "-1";
       } else {
-        this.actividad = this.f_actividad;
+        this.actividad = this.search_activity;
       }
 
       const data = {
         f_siembra: this.f_s,
         f_estado: this.f_e,
-        f_actividad: this.actividad,
+        search_activity: this.actividad,
         f_contenedor: this.cont,
       };
       axios.get("api/informes-recursos-necesarios", { params: data }).then((response) => {

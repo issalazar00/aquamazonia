@@ -34,10 +34,10 @@ class InformeRecursosNecesariosController extends Controller
       $operador_siembra = '=';
       $filtro_siembra = $request['f_siembra'];
     }
-    if ($request['f_actividad'] != '-1') {
+    if ($request['search_activity'] != '-1') {
       $idTipoActividad = "tipo_actividad";
       $signoIdTipoActividad = '=';
-      $valorIdTipoActividad = $request['f_actividad'];
+      $valorIdTipoActividad = $request['search_activity'];
     }
     if ($request['f_estado'] != '-1') {
       $c5 = "estado";
@@ -54,6 +54,7 @@ class InformeRecursosNecesariosController extends Controller
       'siembra_id',
       'tipo_actividad',
       'nombre_siembra',
+      'estado',
       DB::raw('SUM(cantidad_recurso) as cantidad_recurso'),
       DB::raw('SUM(cant_manana) as c_manana'),
       DB::raw('SUM(cant_tarde) as c_tarde'),
@@ -66,7 +67,7 @@ class InformeRecursosNecesariosController extends Controller
     )
       ->join('siembras', 'recursos_necesarios.siembra_id', 'siembras.id')
       ->join('actividades', 'recursos_necesarios.tipo_actividad', 'actividades.id')
-      ->groupBy('siembras.nombre_siembra', 'siembra_id')
+      ->groupBy('siembras.nombre_siembra', 'siembra_id','estado')
       ->groupBy('recursos_necesarios.tipo_actividad')
       ->groupBy('actividades.actividad')
       ->where($id_siembra, $operador_siembra, $filtro_siembra)

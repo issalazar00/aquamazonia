@@ -25,7 +25,7 @@
                 </div>
                 <div class="form-group col-3">
                   <label for="siembra_activa">Siembras
-                    {{ (estado_siembra == "-1") ? "" : (estado_siembra == 0 ? "inactivas":"activas") }} :
+                    {{ (estado_siembra == "-1") ? "" : (estado_siembra == 0 ? "inactivas" : "activas") }} :
                   </label>
                   <template v-if="estado_siembra != '-1'">
                     <v-select :options="filteredItems" label="nombre_siembra" :reduce="(siembra) => siembra.id"
@@ -92,8 +92,8 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="(siembra, index) in listado" :key="siembra.id">
-                    <th v-text="index + 1" scope="row"></th>
+                  <tr v-for="(siembra) in listado" :key="siembra.id">
+                    <th v-text="siembra.id" scope="row"></th>
                     <td v-text="siembra.nombre_siembra" scope="row"></td>
                     <td v-text="siembra.contenedor"></td>
                     <td class="d-sm-none d-none d-md-block">
@@ -102,25 +102,13 @@
                         <span class="nav-item border-bottom" style="width: 80px; display: inline-block">
                           {{ pez.especie }}
                         </span>
-                        <span class="nav-item border-bottom" style="
-                            width: 80px;
-                            text-align: center;
-                            display: inline-block;
-                          ">
+                        <span class="nav-item border-bottom" style="width: 80px;text-align: center;display: inline-block;">
                           {{ pez.lote }}
                         </span>
-                        <span class="nav-item border-bottom" style="
-                            width: 80px;
-                            text-align: center;
-                            display: inline-block;
-                          ">
+                        <span class="nav-item border-bottom" style="width: 80px;text-align: center;display: inline-block;">
                           {{ Math.floor(pez.cant_actual) }}
                         </span>
-                        <span class="nav-item border-bottom" style="
-                            width: 60px;
-                            display: inline-block;
-                            text-align: center;
-                          ">
+                        <span class="nav-item border-bottom" style="width: 60px;display: inline-block;text-align: center;">
                           {{ pez.peso_actual + "Gr" }}
                         </span>
                       </div>
