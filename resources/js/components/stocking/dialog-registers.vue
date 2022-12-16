@@ -203,7 +203,7 @@ export default {
       search_to: "",
 
       json_fields: {
-        'Siembra' : 'siembra.nombre_siembra',
+        'Siembra': 'siembra.nombre_siembra',
         'Especie': "especie",
         'Tipo registro': {
           field: "tipo_registro",
@@ -211,15 +211,17 @@ export default {
 
             switch (value) {
               case 0:
-                return 'Mortalidad'
+                return 'Muestreo'
                 break;
               case 1:
                 return 'Pesca'
                 break;
               case 2:
-                return 'Inicial'
+                return 'Mortalidad inicial'
                 break;
-
+              case 3:
+                return 'Peso Inicial'
+                break;
               default:
                 return 'Pesca'
                 break;
