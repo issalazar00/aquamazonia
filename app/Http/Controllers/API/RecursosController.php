@@ -33,7 +33,8 @@ class RecursosController extends Controller
         $val = $request->validate([
             'recurso' => 'required',
             'unidad' => 'required',
-            'costo' => 'required'
+            'costo' => 'required',
+            'warehouse_id'=> 'nullable'
         ]);
         $recursos = Recursos::create([
             'recurso' => $request['recurso'],
