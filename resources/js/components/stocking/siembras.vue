@@ -181,8 +181,6 @@ import DialogRegisters from "./dialog-registers.vue";
 import DialogFishFood from "./dialog-fish-food.vue";
 import { Form, HasError, AlertError } from "vform";
 
-Vue.component(HasError.name, HasError);
-Vue.component(AlertError.name, AlertError);
 
 export default {
   components: {

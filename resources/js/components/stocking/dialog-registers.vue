@@ -168,11 +168,10 @@
     </div>
   </div>
 </template>
+
 <script>
-import { type } from 'os';
 import Swal from 'sweetalert2';
 import downloadexcel from "vue-json-excel";
-
 export default {
   props: ['siembra_id'],
   data() {

@@ -12,6 +12,7 @@ class Recursos extends Model
         
         'costo',
         'recurso',
-        'unidad'
+        'unidad',
+        'warehouse_id'
     ];
 }

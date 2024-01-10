@@ -63,8 +63,8 @@
                   <div class="form-group row">
                     <label for="Descripción" class="col-sm-12  col-md-4 col-form-label">Descripción</label>
                     <div class="col-sm-12 col-md-8">
-                      <input type="text" class="form-control" id="descripcion"  :class="{ 'is-invalid': form.errors.has('descripción') }" v-model="form.descripcion">
-                       <has-error :form="form" field="descripcion"></has-error>
+                      <input type="text" class="form-control" id="descripcion"  :class="{ 'is-invalid': form.errors.has('descripcion') }" v-model="form.descripcion">
+                       <has-error :form="form" field="descripcion" />
                     </div>
                   </div>
                   <div class="form-group row">
@@ -85,11 +85,8 @@
 </template>
 
 <script>
-  import Vue from 'vue'
-  import { Form, HasError, AlertError } from 'vform'
+import { Form } from "vform";
     
-  Vue.component(HasError.name, HasError)
-  Vue.component(AlertError.name, AlertError)
     export default {
         data() {
             return {

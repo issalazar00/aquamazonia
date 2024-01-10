@@ -16,10 +16,15 @@ import 'vue-select/dist/vue-select.css';
 // import 'vue-select/dist/vue-select'
 import JsonExcel from 'vue-json-excel'
 import vueNumeralFilterInstaller from 'vue-numeral-filter';
+import {  HasError, AlertError } from 'vform'
 
 Vue.component('downloadExcel', JsonExcel)
 Vue.component("pagination", require("laravel-vue-pagination"));
 Vue.component('v-select', vSelect)
+
+Vue.component(HasError.name, HasError)
+Vue.component(AlertError.name, AlertError)
+
 
 window.Swal = Swal
 Vue.use(VueRouter)

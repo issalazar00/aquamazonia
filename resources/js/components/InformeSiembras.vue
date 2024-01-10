@@ -116,11 +116,7 @@
 </template>  
 
 <script>
-import Vue from 'vue'
-import { Form, HasError, AlertError } from 'vform'
 
-Vue.component(HasError.name, HasError)
-Vue.component(AlertError.name, AlertError)
 import downloadexcel from "vue-json-excel"
 
 export default {

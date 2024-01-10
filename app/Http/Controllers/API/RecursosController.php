@@ -39,7 +39,8 @@ class RecursosController extends Controller
         $recursos = Recursos::create([
             'recurso' => $request['recurso'],
             'unidad' => $request['unidad'],
-            'costo' => $request['costo']
+            'costo' => $request['costo'],
+            'warehouse_id' => 0
         ]);
 
         HistorialRecurso::create([
