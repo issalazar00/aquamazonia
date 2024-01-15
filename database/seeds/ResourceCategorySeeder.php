@@ -1,9 +1,12 @@
 <?php
 
-use App\Phase;
+namespace Database\Seeders;
+
+use App\ResourceCategory;
+use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
-class PhaseSeeder extends Seeder
+class ResourceCategorySeeder extends Seeder
 {
     /**
      * Run the database seeds.
@@ -12,7 +15,7 @@ class PhaseSeeder extends Seeder
      */
     public function run()
     {
-        Phase::factory()
+        ResourceCategory::factory()
         ->count(3)
         ->create();
     }

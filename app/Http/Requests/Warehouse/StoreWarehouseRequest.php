@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Warehouse;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class WarehouseRequest extends FormRequest
+class StoreWarehouseRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -26,7 +26,7 @@ class WarehouseRequest extends FormRequest
         return [
             'warehouse' => 'required|string|max:255',
             'description' => 'required|string|max:255',
-            'state' => 'required|boolean',
+            'state' => 'required|boolean'
         ];
     }
 }

@@ -2,12 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\Warehouse\StoreWarehouseRequest;
-use App\Http\Requests\Warehouse\UpdateWarehouseRequest;
-use App\Warehouse;
-use Illuminate\Http\Request;
+use App\ResourceCategory;
+use App\Http\Requests\ResourceCategory\StoreResourceCategoryRequest;
+use App\Http\Requests\ResourceCategory\UpdateResourceCategoryRequest;
 
-class WarehouseController extends Controller
+class ResourceCategoryController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -16,14 +15,13 @@ class WarehouseController extends Controller
      */
     public function index()
     {
-        $warehouse = Warehouse::orderBy('warehouse', 'asc')->paginate(10);
+        $resourceCategories = ResourceCategory::orderBy('category', 'asc')->paginate(10);
 
         return response()->json([
             'status' => 'success',
             'code' => 200,
-            'warehouses' => $warehouse
+            'resourceCategories' => $resourceCategories
         ]);
-        
     }
 
     /**
@@ -39,28 +37,26 @@ class WarehouseController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Http\Requests\StoreResourceCategoryRequest  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(StoreWarehouseRequest $request)
+    public function store(StoreResourceCategoryRequest $request)
     {
-        $warehouse = Warehouse::create([
-            'warehouse' => $request->warehouse,
-            'description' => $request->description,
+        $resource_category = ResourceCategory::create([
+            'category' => $request->category,
             'state' => $request->state
         ]);
 
-        return $warehouse;
-
+        return $resource_category;
     }
 
     /**
      * Display the specified resource.
      *
-     * @param  \App\Warehouse  $warehouse
+     * @param  \App\ResourceCategory  $resourceCategory
      * @return \Illuminate\Http\Response
      */
-    public function show(Warehouse $warehouse)
+    public function show(ResourceCategory $resourceCategory)
     {
         abort(404);
     }
@@ -68,34 +64,34 @@ class WarehouseController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  \App\Warehouse  $warehouse
+     * @param  \App\ResourceCategory  $resourceCategory
      * @return \Illuminate\Http\Response
      */
-    public function edit(Warehouse $warehouse)
+    public function edit(ResourceCategory $resourceCategory)
     {
-        //
+        abort(404);
     }
 
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Warehouse  $warehouse
+     * @param  \App\Http\Requests\UpdateResourceCategoryRequest  $request
+     * @param  \App\ResourceCategory  $resourceCategory
      * @return \Illuminate\Http\Response
      */
-    public function update(UpdateWarehouseRequest $request, Warehouse $warehouse)
+    public function update(UpdateResourceCategoryRequest $request, ResourceCategory $resourceCategory)
     {
-        if ($warehouse) {
-            $warehouse->warehouse = $request->input('warehouse');
-            $warehouse->description = $request->input('description');
-            $warehouse->state = $request->input('state');
-            $warehouse->save();
+        
+        if ($resourceCategory) {
+            $resourceCategory->category = $request->input('category');
+            $resourceCategory->state = $request->input('state');
+            $resourceCategory->save();
     
             $data = [
                 'status' => 'success',
                 'code' =>  200,
                 'message' => 'Actualización exitosa',
-                'warehouse' =>  $warehouse
+                'resourceCategory' =>  $resourceCategory
             ];
         } else {
             $data = [
@@ -110,17 +106,17 @@ class WarehouseController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Warehouse  $warehouse
+     * @param  \App\ResourceCategory  $resourceCategory
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Warehouse $warehouse)
+    public function destroy(ResourceCategory $resourceCategory)
     {
-        if ($warehouse) {
-            $warehouse->delete();
+        if ($resourceCategory) {
+            $resourceCategory->delete();
             $data = [
                 'status' => 'success',
                 'code' => 200,
-                'warehouse' => $warehouse
+                'resourceCategory' => $resourceCategory
             ];
         } else {
             $data = [

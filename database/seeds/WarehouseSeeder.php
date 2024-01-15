@@ -1,5 +1,6 @@
 <?php
 
+use App\Warehouse;
 use Illuminate\Database\Seeder;
 
 class WarehouseSeeder extends Seeder
@@ -11,6 +12,8 @@ class WarehouseSeeder extends Seeder
      */
     public function run()
     {
-        //
+        Warehouse::factory()
+        ->count(3)
+        ->create();
     }
 }

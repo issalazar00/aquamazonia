@@ -1,11 +1,11 @@
 <template>
   <!-- Modal para creacion y edicion de impuestos -->
-  <div class="modal fade" id="warehouseModal" tabindex="-1" aria-labelledby="warehouseModalLabel" aria-hidden="true"
+  <div class="modal fade" id="resourceCategoryModal" tabindex="-1" aria-labelledby="resourceCategoryModalLabel" aria-hidden="true"
     data-backdrop="static">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title" id="warehouseModalLabel">Bodega</h5>
+          <h5 class="modal-title" id="resourceCategoryModalLabel">Categoria</h5>
           <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
             <span aria-hidden="true">&times;</span>
           </button>
@@ -15,25 +15,20 @@
             <div class="row justify-content-center">
               <form>
                 <div class="form-group">
-                  <label for="name">Bodega</label>
-                  <input type="text" class="form-control" id="warehouse" placeholder="" v-model="formWarehouse.warehouse" />
-                  <small class="form-text text-danger">{{ formErrors.warehouse }}</small>
-                </div>
-                <div class="form-group">
-                  <label for="name">Descripción</label>
-                  <input type="text" class="form-control" id="description" placeholder="description" v-model="formWarehouse.description" />
-                  <small class="form-text text-danger">{{ formErrors.description }}</small>
+                  <label for="name">Categoria</label>
+                  <input type="text" class="form-control" id="name" placeholder="" v-model="formResourceCategory.category" />
+                  <small class="form-text text-danger">{{ formErrors.category }}</small>
                 </div>
                 <div class="form-group">
                   <label for="name">Estado</label>
                   <div class="form-check">
-                    <input class="form-check-input" type="radio" v-model="formWarehouse.state" name="state" id="true" value="1" checked>
+                    <input class="form-check-input" type="radio" v-model="formResourceCategory.state" name="state" id="true" value="1" checked>
                     <label class="form-check-label" for="true">
                       Activo
                     </label>
                   </div>
                   <div class="form-check">
-                    <input class="form-check-input" type="radio" v-model="formWarehouse.state" name="state" id="false" value="0">
+                    <input class="form-check-input" type="radio" v-model="formResourceCategory.state" name="state" id="false" value="0">
                     <label class="form-check-label" for="false">
                       Desactivado
                     </label>
@@ -48,7 +43,7 @@
           <button type="button" class="btn btn-outline-secondary" @click="closeModal()">
             Cerrar
           </button>
-          <button type="button" class="btn btn-outline-primary" @click="SaveWarehouse()">
+          <button type="button" class="btn btn-outline-primary" @click="SaveResourceCategory()">
             Guardar
           </button>
         </div>
@@ -62,9 +57,8 @@ export default {
   data() {
     return {
       edit: false,
-      formWarehouse: {
-        warehouse: "",
-        description:"",
+      formResourceCategory: {
+        category: "",
         state: true
       },
       formErrors: {
@@ -73,48 +67,47 @@ export default {
     };
   },
   methods: {
-    CreateWarehouse() {
+    CreateResourceCategory() {
       let me = this;
       this.assignErrors(false);
 
       axios
-        .post("api/warehouses", this.formWarehouse, this.$root.config)
+        .post("api/resource-categories", this.formResourceCategory, this.$root.config)
         .then(function () {
-          $("#warehouseModal").modal("hide");
-          me.formWarehouse = {};
-          me.$emit('list-warehouses');
+          $("#resourceCategoryModal").modal("hide");
+          me.formResourceCategory = {};
+          me.$emit('list-resource-categories');
         })
         .catch((response) => {
           this.assignErrors(response);
         });
     },
-    OpenEditWarehouse(warehouse) {
+    OpenEditResourceCategory(category) {
       let me = this;
       me.edit = true;
-      $("#warehouseModal").modal("show");
-      me.formWarehouse = warehouse;
+      $("#resourceCategoryModal").modal("show");
+      me.formResourceCategory = category;
     },
-    SaveWarehouse: function () {
+    SaveResourceCategory: function () {
       let me = this;
       if (this.edit == false) {
-        this.CreateWarehouse();
+        this.CreateResourceCategory();
       } else {
-        this.EditWarehouse();
+        this.EditResourceCategory();
       }
     },
 
-
-    EditWarehouse() {
+    EditResourceCategory() {
       let me = this;
       this.assignErrors(false);
 
       axios
-        .put("api/warehouses/" + this.formWarehouse.id, this.formWarehouse, this.$root.config)
+        .put("api/resource-categories/" + this.formResourceCategory.id, this.formResourceCategory, this.$root.config)
         .then(function () {
-          $("#warehouseModal").modal("hide");
-          me.formWarehouse = {};
+          $("#resourceCategoryModal").modal("hide");
+          me.formResourceCategory = {};
 
-          me.$emit('list-warehouses');
+          me.$emit('list-resource-categories');
         })
         .catch((response) => {
           this.assignErrors(response);
@@ -123,14 +116,14 @@ export default {
 
     ResetData() {
       let me = this;
-      $("#warehouseModal").modal("hide");
-      me.formWarehouse = {};
+      $("#resourceCategoryModal").modal("hide");
+      me.formResourceCategory = {};
       this.assignErrors(false);
     },
     closeModal() {
       this.edit = false;
       this.ResetData();
-      this.$emit("list-warehouses");
+      this.$emit("list-resource-categories");
     },
     assignErrors(response) {
       if (response) {
