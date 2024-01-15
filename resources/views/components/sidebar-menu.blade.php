@@ -90,6 +90,7 @@
             </router-link>
             <router-link class="dropdown-item" to="/usuarios">Usuarios</router-link>
             <router-link class="dropdown-item" to="/phases">Fases</router-link>
+            <router-link class="dropdown-item" to="/warehouses">Bodegas</router-link>
           </div>
         </li>
         <li class="nav-item col-nav-item dropdown">

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\WarehouseRequest;
 use App\Warehouse;
 use Illuminate\Http\Request;
 
@@ -14,7 +15,14 @@ class WarehouseController extends Controller
      */
     public function index()
     {
-        //
+        $warehouse = Warehouse::orderBy('warehouse', 'asc')->paginate(10);
+
+        return response()->json([
+            'status' => 'success',
+            'code' => 200,
+            'warehouses' => $warehouse
+        ]);
+        
     }
 
     /**
@@ -24,7 +32,7 @@ class WarehouseController extends Controller
      */
     public function create()
     {
-        //
+        abort(404);
     }
 
     /**
@@ -33,9 +41,16 @@ class WarehouseController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(WarehouseRequest $request)
     {
-        //
+        $warehouse = Warehouse::create([
+            'warehouse' => $request->warehouse,
+            'description' => $request->description,
+            'state' => $request->state
+        ]);
+
+        return $warehouse;
+
     }
 
     /**
@@ -46,7 +61,7 @@ class WarehouseController extends Controller
      */
     public function show(Warehouse $warehouse)
     {
-        //
+        abort(404);
     }
 
     /**
@@ -67,9 +82,28 @@ class WarehouseController extends Controller
      * @param  \App\Warehouse  $warehouse
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Warehouse $warehouse)
+    public function update(WarehouseRequest $request, Warehouse $warehouse)
     {
-        //
+        if ($warehouse) {
+            $warehouse->warehouse = $request->input('warehouse');
+            $warehouse->description = $request->input('description');
+            $warehouse->state = $request->input('state');
+            $warehouse->save();
+    
+            $data = [
+                'status' => 'success',
+                'code' =>  200,
+                'message' => 'Actualización exitosa',
+                'warehouse' =>  $warehouse
+            ];
+        } else {
+            $data = [
+                'status' => 'error',
+                'code' =>  400,
+                'message' => 'Registro no encontrado',
+            ];
+        }
+        return response()->json($data, $data['code']);
     }
 
     /**
@@ -80,6 +114,21 @@ class WarehouseController extends Controller
      */
     public function destroy(Warehouse $warehouse)
     {
-        //
+        if ($warehouse) {
+            $warehouse->delete();
+            $data = [
+                'status' => 'success',
+                'code' => 200,
+                'warehouse' => $warehouse
+            ];
+        } else {
+            $data = [
+                'status' => 'error',
+                'code' => 400,
+                'message' => 'Registro no encontrado'
+            ];
+        }
+
+        return response()->json($data, $data['code']);
     }
 }

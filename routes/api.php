@@ -43,7 +43,8 @@ Route::apiResources([
 	'phases' => 'PhaseController',
 	'historial-alimentos-costos' => 'API\HistorialAlimentoController',
 	'historial-recursos-costos' => 'API\HistorialRecursoController',
-	'especies-siembra' => 'API\EspeciesSiembraController'
+	'especies-siembra' => 'API\EspeciesSiembraController',
+	'warehouses' => 'WarehouseController'
 ]);
 
 Route::namespace('API')->group(function () {

@@ -30,7 +30,7 @@ class RecursosController extends Controller
     public function store(Request $request)
     {
         //
-        $val = $request->validate([
+        $request->validate([
             'recurso' => 'required',
             'unidad' => 'required',
             'costo' => 'required',
