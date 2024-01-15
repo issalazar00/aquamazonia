@@ -21,7 +21,7 @@ class ResourceCategoryController extends Controller
             'status' => 'success',
             'code' => 200,
             'resourceCategories' => $resourceCategories
-        ]);
+        ], 200);
     }
 
     /**
@@ -47,7 +47,11 @@ class ResourceCategoryController extends Controller
             'state' => $request->state
         ]);
 
-        return $resource_category;
+        return response()->json([
+            'status' => 'success',
+            'code' => 200,
+            'resourceCategory' => $resource_category
+        ], 200);
     }
 
     /**

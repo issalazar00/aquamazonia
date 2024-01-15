@@ -1,7 +1,7 @@
 <template>
   <!-- Modal para creacion y edicion de impuestos -->
-  <div class="modal fade" id="resourceCategoryModal" tabindex="-1" aria-labelledby="resourceCategoryModalLabel" aria-hidden="true"
-    data-backdrop="static">
+  <div class="modal fade" id="resourceCategoryModal" tabindex="-1" aria-labelledby="resourceCategoryModalLabel"
+    aria-hidden="true" data-backdrop="static">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
@@ -16,24 +16,24 @@
               <form>
                 <div class="form-group">
                   <label for="name">Categoria</label>
-                  <input type="text" class="form-control" id="name" placeholder="" v-model="formResourceCategory.category" />
-                  <small class="form-text text-danger">{{ formErrors.category }}</small>
+                  <input type="text" class="form-control" id="name" placeholder=""
+                    v-model="formResourceCategory.category" />
                 </div>
                 <div class="form-group">
                   <label for="name">Estado</label>
                   <div class="form-check">
-                    <input class="form-check-input" type="radio" v-model="formResourceCategory.state" name="state" id="true" value="1" checked>
+                    <input class="form-check-input" type="radio" v-model="formResourceCategory.state" name="state"
+                      id="true" value="1" checked>
                     <label class="form-check-label" for="true">
                       Activo
                     </label>
                   </div>
                   <div class="form-check">
-                    <input class="form-check-input" type="radio" v-model="formResourceCategory.state" name="state" id="false" value="0">
+                    <input class="form-check-input" type="radio" v-model="formResourceCategory.state" name="state">
                     <label class="form-check-label" for="false">
                       Desactivado
                     </label>
                   </div>
-                  <small class="form-text text-danger">{{ formErrors.state }}</small>
                 </div>
               </form>
             </div>
@@ -53,6 +53,7 @@
 </template>
 
 <script>
+
 export default {
   data() {
     return {
@@ -61,33 +62,33 @@ export default {
         category: "",
         state: true
       },
-      formErrors: {
-        errors: "",
-      },
+      formErrors : {}
     };
   },
   methods: {
     CreateResourceCategory() {
       let me = this;
-      this.assignErrors(false);
 
       axios
         .post("api/resource-categories", this.formResourceCategory, this.$root.config)
-        .then(function () {
+        .then(function (data) {
           $("#resourceCategoryModal").modal("hide");
           me.formResourceCategory = {};
           me.$emit('list-resource-categories');
         })
         .catch((response) => {
-          this.assignErrors(response);
+          console.log(response.response.data);
+          this.formErrors = response.response.data.errors
         });
     },
+
     OpenEditResourceCategory(category) {
       let me = this;
       me.edit = true;
       $("#resourceCategoryModal").modal("show");
       me.formResourceCategory = category;
     },
+
     SaveResourceCategory: function () {
       let me = this;
       if (this.edit == false) {
@@ -99,7 +100,6 @@ export default {
 
     EditResourceCategory() {
       let me = this;
-      this.assignErrors(false);
 
       axios
         .put("api/resource-categories/" + this.formResourceCategory.id, this.formResourceCategory, this.$root.config)
@@ -110,7 +110,7 @@ export default {
           me.$emit('list-resource-categories');
         })
         .catch((response) => {
-          this.assignErrors(response);
+          console.log(response)
         });
     },
 
@@ -118,21 +118,17 @@ export default {
       let me = this;
       $("#resourceCategoryModal").modal("hide");
       me.formResourceCategory = {};
-      this.assignErrors(false);
     },
+
     closeModal() {
       this.edit = false;
       this.ResetData();
       this.$emit("list-resource-categories");
     },
-    assignErrors(response) {
-      if (response) {
-        var errors = response.response.data.errors;
-      } else { }
-    },
+
   },
   mounted() {
-    console.log("Component mounted.");
+    console.log(this.formResourceCategory)
   },
 };
 </script>

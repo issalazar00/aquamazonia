@@ -1,6 +1,6 @@
 <template>
   <div class="col-12 container">
-    <h3 class="page-header">Phases</h3>
+    <h3 class="page-header">Fases</h3>
     <section v-if="!isLoading">
       <div class="row justify-content-end mx-4">
         <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#phaseModal"

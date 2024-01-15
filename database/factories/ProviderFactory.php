@@ -7,6 +7,10 @@ use Faker\Generator as Faker;
 
 $factory->define(Provider::class, function (Faker $faker) {
     return [
-        //
+        'provider' => $faker->company() ,
+        'nit' => $faker->randomDigit() ,
+        'tel' => $faker->phoneNumber() ,
+        'address' => $faker->streetAddress() ,
+        'state' => $faker->boolean()
     ];
 });

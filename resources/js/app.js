@@ -59,6 +59,8 @@ let routes = [
     { path: '/phases', component: require('./components/phase/phases.vue').default },
     { path: '/warehouses', component: require('./components/warehouse/warehouses.vue').default },
     { path: '/resource-categories', component: require('./components/resource-category/resource-categories.vue').default },
+    { path: '/providers', component: require('./components/provider/providers.vue').default },
+
 ]
 
 const router = new VueRouter({

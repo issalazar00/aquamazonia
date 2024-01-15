@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Provider\StoreProviderRequest;
+use App\Http\Requests\Provider\UpdateProviderRequest;
 use App\Provider;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -38,24 +40,14 @@ class ProviderController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(StoreProviderRequest $request)
     {
-        $validate = Validator::make($request->all(), [
-            'provider' => 'required|string'
-        ]);
-
-        if ($validate->fails()) {
-            return response()->json([
-                'status' => 'error',
-                'code' =>  400,
-                'message' => 'Validación de datos incorrecta',
-                'errors' =>  $validate->errors()
-            ], 400);
-        }
-
         $provider = Provider::create([
-            'provider' => $request->input('provider')
-
+            'provider' => $request->input('provider'),
+            'nit' => $request->input('nit'),
+            'tel' => $request->input('tel'),
+            'address' => $request->input('address'),
+            'state' => $request->input('state')
         ]);
 
         return response()->json([
@@ -95,27 +87,17 @@ class ProviderController extends Controller
      * @param  \App\Provider  $provider
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Provider $provider)
+    public function update(UpdateProviderRequest $request, Provider $provider)
     {
-        $validate = Validator::make($request->all(), [
-            'provider' => 'required|string'
-        ]);
-
-        if ($validate->fails()) {
-            return response()->json([
-                'status' => 'error',
-                'code' =>  400,
-                'message' => 'Validación de datos incorrecta',
-                'errors' =>  $validate->errors()
-            ], 400);
-        }
-
-        // $provider = Phase::find($id);
-
+       
         if ($provider) {
             $provider->provider = $request->input('provider');
-
+            $provider->nit = $request->input('nit');
+            $provider->tel = $request->input('tel');
+            $provider->address = $request->input('address');
+            $provider->state = $request->input('state');
             $provider->save();
+
             $data = [
                 'status' => 'success',
                 'code' =>  200,

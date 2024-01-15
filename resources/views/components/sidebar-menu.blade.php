@@ -92,6 +92,7 @@
             <router-link class="dropdown-item" to="/phases">Fases</router-link>
             <router-link class="dropdown-item" to="/warehouses">Bodegas</router-link>
             <router-link class="dropdown-item" to="/resource-categories">Tipo de recursos</router-link>
+            <router-link class="dropdown-item" to="/providers">Proveedores</router-link>
           </div>
         </li>
         <li class="nav-item col-nav-item dropdown">

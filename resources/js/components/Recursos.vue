@@ -250,7 +250,7 @@
 <script>
 import downloadexcel from "vue-json-excel";
 import Vue from "vue";
-import { Form, HasError, AlertError } from "vform";
+import { Form } from "vform";
 
 export default {
   data() {
