@@ -15,12 +15,22 @@ class ProviderController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
+        $provider = $request->provider;
+
+        $providers = Provider::orderBy('provider', 'asc')
+        ->where(function ($query) use ($provider) {
+			if (!is_null($provider) && $provider != '' && $provider != 'all') {
+				$query->where('provider', 'LIKE',  "%$provider%");
+			}
+		})
+        ->paginate(10);
+
         return response()->json([
             'status' => 'success',
             'code' => 200,
-            'providers' => Provider::paginate(10)
+            'providers' => $providers
         ]);
     }
 

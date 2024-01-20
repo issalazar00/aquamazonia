@@ -60,7 +60,7 @@ let routes = [
     { path: '/warehouses', component: require('./components/warehouse/warehouses.vue').default },
     { path: '/resource-categories', component: require('./components/resource-category/resource-categories.vue').default },
     { path: '/providers', component: require('./components/provider/providers.vue').default },
-
+    { path: '/brands', component: require('./components/brand/brands.vue').default },
 ]
 
 const router = new VueRouter({

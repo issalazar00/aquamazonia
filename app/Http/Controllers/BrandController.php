@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\Warehouse\StoreWarehouseRequest;
-use App\Http\Requests\Warehouse\UpdateWarehouseRequest;
-use App\Warehouse;
+use App\Brand;
+use App\Http\Requests\Brand\StoreBrandRequest;
+use App\Http\Requests\Brand\UpdateBrandRequest;
 use Illuminate\Http\Request;
 
-class WarehouseController extends Controller
+class BrandController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -16,12 +16,13 @@ class WarehouseController extends Controller
      */
     public function index(Request $request)
     {
-        $warehouse = $request->warehouse;
 
-        $warehouses = Warehouse::orderBy('warehouse', 'asc')
-        ->where(function ($query) use ($warehouse) {
-			if (!is_null($warehouse) && $warehouse != '' && $warehouse != 'all') {
-				$query->where('warehouse', 'LIKE',  "%$warehouse%");
+        $brand = $request->brand;
+
+        $brands = Brand::orderBy('brand', 'asc')
+        ->where(function ($query) use ($brand) {
+			if (!is_null($brand) && $brand != '' && $brand != 'all') {
+				$query->where('brand', 'LIKE',  "%$brand%");
 			}
 		})
         ->paginate(10);
@@ -29,8 +30,8 @@ class WarehouseController extends Controller
         return response()->json([
             'status' => 'success',
             'code' => 200,
-            'warehouses' => $warehouses
-        ]);        
+            'brands' => $brands
+        ]);
     }
 
     /**
@@ -46,27 +47,26 @@ class WarehouseController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Http\Requests\StoreBrandRequest  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(StoreWarehouseRequest $request)
+    public function store(StoreBrandRequest $request)
     {
-        $warehouse = Warehouse::create([
-            'warehouse' => $request->warehouse,
-            'description' => $request->description,
+        $brand = Brand::create([
+            'brand' => $request->brand,
             'state' => $request->state
         ]);
 
-        return $warehouse;
+        return $brand;
     }
 
     /**
      * Display the specified resource.
      *
-     * @param  \App\Warehouse  $warehouse
+     * @param  \App\Brand  $brand
      * @return \Illuminate\Http\Response
      */
-    public function show(Warehouse $warehouse)
+    public function show(Brand $brand)
     {
         abort(404);
     }
@@ -74,10 +74,10 @@ class WarehouseController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  \App\Warehouse  $warehouse
+     * @param  \App\Brand  $brand
      * @return \Illuminate\Http\Response
      */
-    public function edit(Warehouse $warehouse)
+    public function edit(Brand $brand)
     {
         abort(404);
     }
@@ -85,23 +85,22 @@ class WarehouseController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Warehouse  $warehouse
+     * @param  \App\Http\Requests\UpdateBrandRequest  $request
+     * @param  \App\Brand  $brand
      * @return \Illuminate\Http\Response
      */
-    public function update(UpdateWarehouseRequest $request, Warehouse $warehouse)
+    public function update(UpdateBrandRequest $request, Brand $brand)
     {
-        if ($warehouse) {
-            $warehouse->warehouse = $request->input('warehouse');
-            $warehouse->description = $request->input('description');
-            $warehouse->state = $request->input('state');
-            $warehouse->save();
+        if ($brand) {
+            $brand->brand = $request->input('brand');
+            $brand->state = $request->input('state');
+            $brand->save();
     
             $data = [
                 'status' => 'success',
                 'code' =>  200,
                 'message' => 'Actualización exitosa',
-                'warehouse' =>  $warehouse
+                'brand' =>  $brand
             ];
         } else {
             $data = [
@@ -116,17 +115,17 @@ class WarehouseController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Warehouse  $warehouse
+     * @param  \App\Brand  $brand
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Warehouse $warehouse)
+    public function destroy(Brand $brand)
     {
-        if ($warehouse) {
-            $warehouse->delete();
+        if ($brand) {
+            $brand->delete();
             $data = [
                 'status' => 'success',
                 'code' => 200,
-                'warehouse' => $warehouse
+                'brand' => $brand
             ];
         } else {
             $data = [

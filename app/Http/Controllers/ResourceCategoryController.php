@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\ResourceCategory;
 use App\Http\Requests\ResourceCategory\StoreResourceCategoryRequest;
 use App\Http\Requests\ResourceCategory\UpdateResourceCategoryRequest;
+use Illuminate\Http\Request;
 
 class ResourceCategoryController extends Controller
 {
@@ -13,9 +14,17 @@ class ResourceCategoryController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        $resourceCategories = ResourceCategory::orderBy('category', 'asc')->paginate(10);
+        $category = $request->category;
+
+        $resourceCategories = ResourceCategory::orderBy('category', 'asc')
+        ->where(function ($query) use ($category) {
+			if (!is_null($category) && $category != '' && $category != 'all') {
+				$query->where('category', 'LIKE',  "%$category%");
+			}
+		})
+        ->paginate(10);
 
         return response()->json([
             'status' => 'success',

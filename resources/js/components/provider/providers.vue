@@ -29,7 +29,6 @@
               <td>{{ provider.tel }}</td>
               <td>{{ provider.address }}</td>
               <td>{{ provider.state ? 'Activo' : 'Inactivo' }}</td>
-
               <td>
                 <button class="btn btn-outline-success" @click="ShowData(provider)">
                   Editar

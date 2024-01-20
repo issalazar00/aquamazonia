@@ -7,6 +7,7 @@ use Faker\Generator as Faker;
 
 $factory->define(Phase::class, function (Faker $faker) {
     return [
-        //
+        'phase' => $faker->name(),
+        'state' => $faker->boolean()
     ];
 });

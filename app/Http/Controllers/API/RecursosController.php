@@ -40,7 +40,10 @@ class RecursosController extends Controller
             'recurso' => $request['recurso'],
             'unidad' => $request['unidad'],
             'costo' => $request['costo'],
-            'warehouse_id' => 0
+            'warehouse_id' => $request['warehouse_id'],
+            'category_id' => $request['category_id'],
+            'brand_id' => $request['brand_id'],
+            'provider_id' => $request['provider_id']
         ]);
 
         HistorialRecurso::create([
@@ -58,7 +61,7 @@ class RecursosController extends Controller
      */
     public function show($id)
     {
-        //
+        abort(404);
     }
 
     /**
