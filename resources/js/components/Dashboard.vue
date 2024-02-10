@@ -79,7 +79,7 @@
                         </div>
 
                          <div class="card">
-                           <router-link to="/alimentos" class="box-option rounded" >
+                           <router-link to="/foods" class="box-option rounded" >
                               <div class="cover-option bg-light text-center">
                                 <img src="img/alimentos.jpg" alt="" srcset="">
                               </div>

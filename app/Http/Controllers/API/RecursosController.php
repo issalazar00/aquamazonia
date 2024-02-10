@@ -16,7 +16,6 @@ class RecursosController extends Controller
      */
     public function index()
     {
-        //
         $recursos = Recursos::orderBy('recurso', 'asc')->get();
         return $recursos;
     }
@@ -29,13 +28,17 @@ class RecursosController extends Controller
      */
     public function store(Request $request)
     {
-        //
         $request->validate([
             'recurso' => 'required',
             'unidad' => 'required',
             'costo' => 'required',
-            'warehouse_id'=> 'nullable'
+            'warehouse_id' => 'nullable',
+            'expiration_date' => 'nullable',
+            'cantidad' => 'numeric',
+            'cantidad_minima' => 'numeric',
+            'cantidad_maxima' => 'numeric'
         ]);
+
         $recursos = Recursos::create([
             'recurso' => $request['recurso'],
             'unidad' => $request['unidad'],
@@ -43,7 +46,12 @@ class RecursosController extends Controller
             'warehouse_id' => $request['warehouse_id'],
             'category_id' => $request['category_id'],
             'brand_id' => $request['brand_id'],
-            'provider_id' => $request['provider_id']
+            'provider_id' => $request['provider_id'],
+            'expiration_date' => $request['expiration_date'],
+            'cantidad' => $request['cantidad'],
+            'cantidad_minima' => $request['cantidad_minima'],
+            'cantidad_maxima' => $request['cantidad_maxima'],
+
         ]);
 
         HistorialRecurso::create([
@@ -73,7 +81,6 @@ class RecursosController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
         $recurso = Recursos::findOrFail($id);
         $recurso->update($request->all());
 
@@ -83,7 +90,7 @@ class RecursosController extends Controller
             'fecha_registro' => date('Y-m-d')
         ]);
 
-        return 'ok';
+        return $recurso;
     }
 
     /**
@@ -94,7 +101,6 @@ class RecursosController extends Controller
      */
     public function destroy($id)
     {
-        //
         Recursos::destroy($id);
         HistorialRecurso::where('id_recurso', $id)->delete();
 

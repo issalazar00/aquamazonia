@@ -46,6 +46,7 @@ Route::apiResources([
 	'especies-siembra' => 'API\EspeciesSiembraController',
 	'warehouses' => 'WarehouseController',
 	'resource-categories' => 'ResourceCategoryController',
+	'food-categories' => 'FoodCategoryController',
 	'providers' =>  'ProviderController',
 	'brands' =>  'BrandController'
 ]);

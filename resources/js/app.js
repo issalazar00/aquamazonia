@@ -36,8 +36,8 @@ let routes = [
     { path: '/dashboard', component: require('./components/Dashboard.vue').default },
     { path: '/contenedores', component: require('./components/Contenedores.vue').default },
     { path: '/especies', component: require('./components/Especies.vue').default },
-    { path: '/alimentos', component: require('./components/Alimentos.vue').default },
-    { path: '/recursos', component: require('./components/Recursos.vue').default },
+    { path: '/foods', component: require('./components/food/foods.vue').default },
+    { path: '/recursos', component: require('./components/resource/resources.vue').default },
     { path: '/usuarios', component: require('./components/users/users.vue').default },
     { path: '/siembras', component: require('./components/stocking/siembras.vue').default },
     // { path: '/siembras', component: require('./components/Siembras.vue').default },
@@ -59,6 +59,7 @@ let routes = [
     { path: '/phases', component: require('./components/phase/phases.vue').default },
     { path: '/warehouses', component: require('./components/warehouse/warehouses.vue').default },
     { path: '/resource-categories', component: require('./components/resource-category/resource-categories.vue').default },
+    { path: '/food-categories', component: require('./components/food-category/food-categories.vue').default },
     { path: '/providers', component: require('./components/provider/providers.vue').default },
     { path: '/brands', component: require('./components/brand/brands.vue').default },
 ]

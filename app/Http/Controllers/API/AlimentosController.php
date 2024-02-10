@@ -31,11 +31,19 @@ class AlimentosController extends Controller
   {
     $val = $request->validate([
       'alimento' => 'required',
-      'costo_kg' => 'required'
+      'costo_kg' => 'required',
+      'warehouse_id'=> 'nullable',
+      'category_id'=> 'nullable',
+      'brand_id'=> 'nullable',
+      'provider_id'=> 'nullable'
     ]);
     $alimento = Alimento::create([
       'alimento' => $request['alimento'],
-      'costo_kg' => $request['costo_kg']
+      'costo_kg' => $request['costo_kg'],
+      'warehouse_id' => $request['warehouse_id'],
+      'category_id' => $request['category_id'],
+      'brand_id' => $request['brand_id'],
+      'provider_id' => $request['provider_id']
     ]);
 
     HistorialAlimento::create([
@@ -53,7 +61,7 @@ class AlimentosController extends Controller
    */
   public function show($id)
   {
-    //
+    abort(404);
   }
 
   /**
@@ -73,6 +81,8 @@ class AlimentosController extends Controller
       'costo' => $request['costo_kg'],
       'fecha_registro' => date('Y-m-d')
     ]);
+
+    return $alimento;
   }
 
   /**

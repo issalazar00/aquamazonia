@@ -16,7 +16,11 @@ class Recursos extends Model
         'warehouse_id',
         'category_id',
         'brand_id',
-        'provider_id'
+        'provider_id',
+        'expiration_date',
+        'cantidad',
+        'cantidad_minima',
+        'cantidad_maxima'
     ];
 
     protected $with = [
