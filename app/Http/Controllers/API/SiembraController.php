@@ -17,67 +17,58 @@ class SiembraController extends Controller
 	 *
 	 * @return \Illuminate\Http\Response
 	 */
+
 	public function index(Request $request)
 	{
 		//Otros datos
-
-
 		$contenedor_id = (int) $request['contenedor_id'] ?? -1;
-		$sign_contenedor = ($contenedor_id <= 0 ) ? '<>' : '=';
+		$sign_contenedor = ($contenedor_id <= 0) ? '<>' : '=';
 		$siembra_id = (int) $request['id_siembra'] ?: -1;
-		$sign_siembra_id = ($siembra_id <= 0 ) ? '<>' : '=';
+		$sign_siembra_id = ($siembra_id <= 0) ? '<>' : '=';
 
 		$estado_siembra = $request['estado_siembra'] ?? -1;
-		$sign_estado_siembra = ($estado_siembra == "-1" ) ? '<>' : '=';
+		$sign_estado_siembra = ($estado_siembra == "-1") ? '<>' : '=';
 
-		$siembras = Siembra::select('siembras.id as id', 'nombre_siembra', 'id_contenedor', 'contenedor', 'fecha_inicio', 'ini_descanso', 'fin_descanso', 'siembras.estado as estado', 'fecha_alimento')
+		$phase = $request->phase;
+		$type = $request->type;
+		$nro_results = $request->nro_results ?? 15;
+
+		$siembras = Siembra::select('siembras.id as id', 'nombre_siembra', 'id_contenedor', 'contenedor', 'fecha_inicio', 'ini_descanso', 'fin_descanso', 'siembras.estado as estado', 'fecha_alimento', 'phase_id', 'tipo')
 			->join('contenedores', 'siembras.id_contenedor', 'contenedores.id')
 			->where('siembras.id', $sign_siembra_id, $siembra_id)
-			->where('siembras.estado', $sign_estado_siembra, $estado_siembra);
+			->where('siembras.estado', $sign_estado_siembra, $estado_siembra)
+			->where(function ($query) use ($phase) {
+				if (!is_null($phase) && $phase != '' && $phase != 'all') {
+					$query->where('phase_id', "LIKE", "%$phase%");
+				}
+			})
+			->where(function ($query) use ($type) {
+				if (!is_null($type) && $type != '' && $type != 'all') {
+					$query->where('tipo', "LIKE", "%$type%");
+				}
+			})
 
-		$siembras = $siembras
 			->where('id_contenedor', $sign_contenedor, $contenedor_id)
-			->orderBy('siembras.id', 'desc')->get();
+			->with('peces.especie')
+			->orderBy('siembras.id', 'asc')->paginate($nro_results);
 
-		$detalles_siembra = array();
-		foreach ($siembras as $siembra) {
+		$siembras->map(function ($siembra) {
+			$siembra->peces->map(function ($pez) {
 
-			$peces = EspecieSiembra::select('especies_siembra.id as id', 'id_siembra as siembra_id', 'id_especie', 'lote', 'cantidad', 'peso_inicial', 'cant_actual',  'peso_actual', 'especies.especie as especie',)
-				->leftJoin('especies', 'especies_siembra.id_especie', 'especies.id')
-				->where('especies_siembra.id_siembra', $siembra->id)
-				->orderBy('especie', 'asc')
-				->get();
-
-			$detalles_siembra[$siembra['id']] = array(
-				'id' => $siembra['id'],
-				'nombre_siembra' => $siembra['nombre_siembra'],
-				'contenedor' => $siembra['contenedor'],
-				'fecha_alimento' => $siembra['fecha_alimento'],
-				'ini_descanso' => $siembra['ini_descanso'],
-				'estado' => $siembra['estado'],
-				'fecha_inicio' => $siembra['fecha_inicio'],
-				'fin_descanso' => $siembra['fin_descanso'],
-				'id_contenedor' => $siembra['id_contenedor'],
-			);
-
-			foreach ($peces as $pez) {
 				$especies_siembra = new EspeciesSiembraController();
-				$mortalidad = $especies_siembra->cantidadEspecieSiembra($pez['id_siembra'], $pez['id_especie'])->mortalidad ?? 0;
-				$salida = $especies_siembra->cantidadEspecieSiembra($pez['id_siembra'], $pez['id_especie'])->cantidad ?? 0;
-				$cantidad_actual = $pez['cantidad'] - $salida - $mortalidad;
-				$detalles_siembra[$siembra['id']]['peces'][$pez['id']] = [
-					'especie' => $pez['especie'],
-					'lote' => $pez['lote'],
-					'cant_actual' => $cantidad_actual,
-					'peso_actual' => $pez['peso_actual'],
-
-				];
-			}
-		}
+				$mortalidad = $especies_siembra->cantidadEspecieSiembra($pez->id_siembra, $pez->id_especie)->mortalidad ?? 0;
+				$salida = $especies_siembra->cantidadEspecieSiembra($pez->id_siembra, $pez->id_especie)->cantidad ?? 0;
+				$pez->cant_actual = $pez->cantidad - $salida - $mortalidad;
+				$pez->mortalidad =  $mortalidad;
+				$pez->salida =  $salida;
+				return $pez;
+			});
+			return $siembra;
+		});
 
 		$fecha_actual = date('Y-m-d');
 
-		return ["siembra" => $detalles_siembra, 'fecha_actual' => $fecha_actual];
+		return ["siembra" => $siembras, 'fecha_actual' => $fecha_actual];
 	}
 
 	public function campos(Request $request)

@@ -173,4 +173,27 @@ class PhaseController extends Controller
 
         return response()->json($data, $data['code']);
     }
+
+    /**
+     * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function getData(Request $request)
+    {
+        $phase = $request->phase;
+        $phases = Phase::select()
+            ->where(function ($query) use ($phase) {
+                if (!is_null($phase) && $phase != '' && $phase != 'all') {
+                    $query->where('phase', "LIKE", "%$phase%");
+                }
+            })
+            ->paginate(10);
+
+        return response()->json([
+            'status' => 'success',
+            'code' => 200,
+            'phases' => $phases
+        ]);
+    }
 }

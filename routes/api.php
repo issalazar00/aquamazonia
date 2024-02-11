@@ -22,6 +22,9 @@ Route::get('siembras/listado-lotes', 'API\SiembraController@listadoLotes');
 Route::get('siembras/listado', 'API\SiembraController@listadoSiembras');
 Route::get('siembras/campos', 'API\SiembraController@campos');
 
+Route::get('phases/get', 'PhaseController@getData');
+
+
 Route::apiResources([
 	'contenedores' => 'API\ContenedorController',
 	'actividades' => 'API\ActividadController',
@@ -50,6 +53,7 @@ Route::apiResources([
 	'providers' =>  'ProviderController',
 	'brands' =>  'BrandController'
 ]);
+
 
 Route::namespace('API')->group(function () {
 	Route::post('registros-siembra/{id}', 'RegistroController@registrosxSiembra');

@@ -36,7 +36,7 @@ class EspeciesSiembraController extends Controller
    * Se devuelve la cantidad total de especies en una siembra
    * A partir del conteo de los registros
    */
-  public function cantidadTotalEspeciesSiembra($id_siembra)
+  public function cantidadTotalEspeciesSiembra(int $id_siembra)
   {
     return Registro::select(
       'id_siembra',
@@ -67,8 +67,9 @@ class EspeciesSiembraController extends Controller
    * Se devuelve la cantidad total de cada especie en una siembra
    * A partir del conteo de los registros
    */
-  public function cantidadEspecieSiembra($id_siembra, $id_especie)
+  public function cantidadEspecieSiembra(int $id_siembra, int $id_especie)
   {
+
     return Registro::select(
       'id_siembra',
       'id_especie',
@@ -84,7 +85,7 @@ class EspeciesSiembraController extends Controller
       ->first();
   }
 
-  public function cantidadEspecieSiembraSinMortalidad($id_siembra, $id_especie)
+  public function cantidadEspecieSiembraSinMortalidad(int $id_siembra, int $id_especie)
   {
     return Registro::select(
       'id_siembra',
@@ -107,7 +108,7 @@ class EspeciesSiembraController extends Controller
    */
   public function store(Request $request)
   {
-    //
+    abort(404);
   }
 
   /**
@@ -195,16 +196,16 @@ class EspeciesSiembraController extends Controller
             $siembra->biomasa_inicial += $existencia->biomasa_inicial;
 
             foreach ($registros as $registro) {
-                if ($existencia->id_siembra == $registro->id_siembra) {
-              $existencia->salida_biomasa += $registro->biomasa;
-              if ($existencia->id_especie == $registro->id_especie) {
-                $registro->mortalidad_kg = (($registro->mortalidad * $registro->peso_ganado) / 1000);
-                $existencia->mortalidad += $registro->mortalidad;
-                $existencia->mortalidad_kg += $registro->mortalidad_kg;
-                $existencia->salida_biomasa_especie += $registro->biomasa;
+              if ($existencia->id_siembra == $registro->id_siembra) {
+                $existencia->salida_biomasa += $registro->biomasa;
+                if ($existencia->id_especie == $registro->id_especie) {
+                  $registro->mortalidad_kg = (($registro->mortalidad * $registro->peso_ganado) / 1000);
+                  $existencia->mortalidad += $registro->mortalidad;
+                  $existencia->mortalidad_kg += $registro->mortalidad_kg;
+                  $existencia->salida_biomasa_especie += $registro->biomasa;
+                }
               }
             }
-              }
             $siembra->mortalidad += $existencia->mortalidad;
             $siembra->mortalidad_kg += $existencia->mortalidad_kg;
             $siembra->salida_biomasa = $especies_siembra->cantidadTotalEspeciesSiembraSinMortalidad($siembra->id)->biomasa ?? 0;

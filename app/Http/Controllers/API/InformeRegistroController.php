@@ -101,6 +101,10 @@ class InformeRegistroController extends Controller
 			$id_contenedor = $request['id_contenedor'];
 		}
 
+		$phase = $request->phase;
+		$type = $request->type;
+		$nro_results = $request->nro_results ?? 15;
+
 		$registros = Registro::select(
 			'registros.id as id',
 			'registros.id_siembra as id_siembra',
@@ -139,7 +143,17 @@ class InformeRegistroController extends Controller
 			->where('siembras.id_contenedor', $filtro_contenedor, $id_contenedor)
 			// ->where('tipo_registro', '<>', 0)
 			->orderBy('fecha_registro', 'desc')
-			->paginate(30);
+			->with('siembra')
+			->whereHas('siembra', function ($query) use ($phase, $type) {
+
+				if (!is_null($phase) && $phase != '' && $phase != 'all') {
+					$query->where('phase_id', "LIKE", "%$phase%");
+				}
+				if (!is_null($type) && $type != '' && $type != 'all') {
+					$query->where('tipo', "LIKE", "%$type%");
+				}
+			})
+			->paginate($nro_results);
 
 		$especies_siembra = new EspeciesSiembraController;
 		if (count($registros) > 0) {

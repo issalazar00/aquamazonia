@@ -30,8 +30,7 @@
                                 </template>
                                 <template v-if="f_estado == '-1'">
                                     <v-select :options="listadoSiembras" label="nombre_siembra"
-                                        :reduce="(siembra) => siembra.id" v-model="f_siembra"
-                                        />
+                                        :reduce="(siembra) => siembra.id" v-model="f_siembra" />
                                 </template>
                             </div>
                             <div class="form-group col-md-2">
@@ -39,18 +38,50 @@
                                 <select class="custom-select" id="contenedor" v-model="f_contenedor">
                                     <option value="-1">Seleccionar</option>
                                     <option :value="cont.id" v-for="(cont,
-                                    index) in listadoEstanques" :key="index">{{ cont.contenedor }}</option>
+                                        index) in listadoEstanques" :key="index">{{ cont.contenedor }}</option>
                                 </select>
                             </div>
-
+                            <div class="form-group col-xs-6 col-sm-6 col-md-4 col-lg-3">
+                                <label for="phase" class="col-form-label">Fase
+                                </label>
+                                <v-select label="phase" class="w-100" v-model="search_phase" :reduce="(option) => option.id"
+                                    :filterable="false" :options="listPhases" @search="onSearchPhase">
+                                    <template slot="no-options">
+                                        Escribe para iniciar la búsqueda
+                                    </template>
+                                    <template slot="option" slot-scope="option">
+                                        <div class="d-center">
+                                            {{ option.phase }}
+                                        </div>
+                                    </template>
+                                    <template slot="selected-option" slot-scope="option">
+                                        <div class="selected d-center">
+                                            {{ option.phase }}
+                                        </div>
+                                    </template>
+                                </v-select>
+                            </div>
+                            <div class="form-group col-xs-6 col-sm-6 col-md-4 col-lg-3">
+                                <label for="search_type">Tipo de siembra</label>
+                                <select name="search_type" class="custom-select w-100" id="search_type"
+                                    v-model="search_type">
+                                    <option value="">Todas</option>
+                                    <option value="Monocultivo">Monocultivo</option>
+                                    <option value="Policultivo">Policultivo</option>
+                                </select>
+                            </div>
+                            <div class="form-group col-xs-6 col-sm-6 col-md-4 col-lg-3">
+                                <label for="search_nro_results">Mostrar {{ search_nro_results }} por página</label>
+                                <input type="number" v-model="search_nro_results" class="form-control">
+                            </div>
                             <div class="form-group col-md-2">
                                 <button class="btn btn-primary" @click="listar()">
                                     Filtrar resultados
                                 </button>
                             </div>
                             <div class="form-group col-md-2">
-                                <downloadexcel class="btn btn-success form-control" :fetch="fetchData"
-                                    :fields="json_fields" name="informe-consolidado.xls" type="xls">
+                                <downloadexcel class="btn btn-success form-control" :fetch="fetchData" :fields="json_fields"
+                                    name="informe-consolidado.xls" type="xls">
                                     <i class="fa fa-fw fa-download"></i> Generar
                                     Excel
                                 </downloadexcel>
@@ -63,6 +94,8 @@
                                         <th>#</th>
                                         <th class="fixed-column">Siembra</th>
                                         <th>Area (m²)</th>
+                                        <th>Tipo</th>
+                                        <th>Fase</th>
                                         <th>Inicio siembra</th>
                                         <th>Tiempo de cultivo <br> <small>(Días)</small></th>
                                         <th>Tiempo de cultivo <br> <small>(Meses)</small></th>
@@ -102,10 +135,16 @@
                                 </thead>
                                 <tbody>
                                     <tr v-for="(le,
-                                    index) in listadoExistencias" :key="index">
+                                        index) in listadoExistencias.data" :key="index">
                                         <td v-text="index + 1"></td>
                                         <td v-text="le.nombre_siembra" class="fixed-column"></td>
                                         <td v-text="le.capacidad"></td>
+                                        <td>{{ le.tipo }}</td>
+                                        <td> 
+                                            <span v-if="le.phase_id">
+                                                {{ le.phase.phase }}
+                                            </span> 
+                                        </td>
                                         <td v-text="le.fecha_inicio"></td>
                                         <td v-text="le.intervalo_tiempo"></td>
                                         <td>{{ le.intervalo_tiempo_months | numeral('0.00') }} meses</td>
@@ -181,6 +220,11 @@
                                     </tr>
                                 </tbody>
                             </table>
+                            <pagination :align="'center'" :data="listadoExistencias" :limit="2"
+                                @pagination-change-page="listar">
+                                <span slot="prev-nav"><i class="fas fa-arrow-left"></i></span>
+                                <span slot="next-nav"><i class="fas fa-arrow-right"></i></span>
+                            </pagination>
                         </div>
                     </div>
                 </div>
@@ -198,6 +242,8 @@ export default {
                 Siembra: "nombre_siembra",
                 'Area (m<sup>2</sup>)': "capacidad",
                 "Inicio siembra": "fecha_inicio",
+                "Tipo": "tipo",
+                "Fase": "phase.phase",
                 "Tiempo de cultivo \n (Días)": {
                     field: "intervalo_tiempo",
                     callback: (value) => {
@@ -370,16 +416,20 @@ export default {
                     }
                 }
             },
-            listadoExistencias: [],
+            listadoExistencias: {},
             listadoEspecies: [],
             listadoSiembras: [],
+            listPhases: [],
             imprimirRecursos: [],
             listadoEstanques: [],
             f_siembra: "-1",
             f_contenedor: "-1",
             f_estado: "1",
             f_inicio_d: "-1",
-            f_inicio_h: "-1"
+            f_inicio_h: "-1",
+            search_phase: "",
+            search_type: "",
+            search_nro_results: "15"
         };
     },
     components: {
@@ -392,9 +442,9 @@ export default {
     },
     methods: {
         async fetchData() {
-            return this.listadoExistencias;
+            return this.listadoExistencias.data;
         },
-        listar() {
+        listar(page = 1) {
             let me = this;
 
             const data = {
@@ -403,6 +453,10 @@ export default {
                 'f_estado': this.f_estado == '-1' ? '-1' : this.f_estado,
                 'f_inicio_d': this.f_inicio_d == '-1' ? '-1' : this.f_inicio_d,
                 'f_inicio_h': this.f_inicio_h == '-1' ? '-1' : this.f_inicio_h,
+                phase: this.search_phase,
+                type: this.search_type,
+                nro_results: this.search_nro_results,
+                page: page
             };
 
             axios.get("api/traer-existencias-detalle", { params: data }).then(function (response) {
@@ -426,6 +480,23 @@ export default {
             axios.get("api/contenedores").then(function (response) {
                 me.listadoEstanques = response.data;
             });
+        },
+        onSearchPhase(search, loading) {
+            if (search.length) {
+                loading(true);
+                let data = {
+                    phase: search
+                };
+
+                axios.get(`api/phases/get`, {
+                    params: data
+                })
+                    .then((response) => {
+                        this.listPhases = (response.data.phases.data);
+                        loading(false)
+                    })
+                    .catch(e => console.log(e))
+            }
         },
     },
     mounted() {

@@ -2981,6 +2981,8 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
     return {
       json_fields: {
         Siembra: "nombre_siembra",
+        "Tipo": "siembra.tipo",
+        "Fase": "siembra.phase.phase",
         Lote: "lote",
         "Fecha de registro": "fecha_registro",
         Especie: "especie",
@@ -3027,6 +3029,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       listadoEspecies: [],
       listadoLotes: [],
       listadoEstanques: [],
+      listPhases: [],
       // filtros
       f_siembra: "",
       f_lote: "",
@@ -3037,7 +3040,10 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       search_to: "",
       f_peso_d: 0,
       f_peso_h: 0,
-      id_contenedor: "-1"
+      id_contenedor: "-1",
+      search_phase: "",
+      search_type: "",
+      search_nro_results: "15"
     };
   },
   components: {
@@ -3124,7 +3130,11 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         f_peso_h: this.pesoh,
         search_from: this.fec1,
         search_to: this.fec2,
-        id_contenedor: this.id_contenedor
+        id_contenedor: this.id_contenedor,
+        phase: this.search_phase,
+        type: this.search_type,
+        nro_results: this.search_nro_results,
+        page: page
       };
       axios.get("api/informes-registros?page=".concat(page), {
         params: data
@@ -3155,6 +3165,23 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       axios.get("api/contenedores").then(function (response) {
         me.listadoEstanques = response.data;
       });
+    },
+    onSearchPhase: function onSearchPhase(search, loading) {
+      var _this3 = this;
+      if (search.length) {
+        loading(true);
+        var data = {
+          phase: search
+        };
+        axios.get("api/phases/get", {
+          params: data
+        }).then(function (response) {
+          _this3.listPhases = response.data.phases.data;
+          loading(false);
+        })["catch"](function (e) {
+          return console.log(e);
+        });
+      }
     }
   },
   mounted: function mounted() {
@@ -3349,6 +3376,8 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
     return {
       json_fields: {
         'Siembra': 'nombre_siembra',
+        "Tipo": "siembra.tipo",
+        "Fase": "siembra.phase.phase",
         'Lote': 'lote',
         'Area': 'capacidad',
         'Especie': 'especie.especie',
@@ -3411,12 +3440,13 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
           }
         }
       },
-      listadoExistencias: [],
+      listadoExistencias: {},
       totalizadoEspeciesSiembras: [],
       listadoEspecies: [],
       listadoSiembras: [],
       imprimirRecursos: [],
       listadoLotes: [],
+      listPhases: [],
       f_siembra: '-1',
       f_estado: '1',
       f_lote: '-1',
@@ -3424,7 +3454,10 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       f_inicio_d: '-1',
       f_inicio_h: '-1',
       f_peso_d: 0,
-      f_peso_h: 1000
+      f_peso_h: 1000,
+      search_phase: "",
+      search_type: "",
+      search_nro_results: "15"
     };
   },
   components: {
@@ -3445,7 +3478,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         return _regeneratorRuntime().wrap(function _callee$(_context) {
           while (1) switch (_context.prev = _context.next) {
             case 0:
-              return _context.abrupt("return", _this2.listadoExistencias);
+              return _context.abrupt("return", _this2.listadoExistencias.data);
             case 1:
             case "end":
               return _context.stop();
@@ -3454,6 +3487,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       }))();
     },
     listar: function listar() {
+      var page = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 1;
       var data = {
         'f_siembra': this.f_siembra == '-1' ? '-1' : this.f_siembra,
         'f_estado': this.f_estado == '-1' ? '-1' : this.f_estado,
@@ -3462,7 +3496,11 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         'f_inicio_d': this.f_inicio_d == '-1' ? '-1' : this.f_inicio_d,
         'f_inicio_h': this.f_inicio_h == '-1' ? '-1' : this.f_inicio_h,
         'f_peso_d': this.f_peso_d == '-1' ? '-1' : this.f_peso_d,
-        'f_peso_h': this.f_peso_h == '-1' ? '-1' : this.f_peso_h
+        'f_peso_h': this.f_peso_h == '-1' ? '-1' : this.f_peso_h,
+        phase: this.search_phase,
+        type: this.search_type,
+        nro_results: this.search_nro_results,
+        page: page
       };
       var me = this;
       axios.get("api/traer-existencias", {
@@ -3489,6 +3527,23 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       axios.get("api/siembras/listado-lotes").then(function (response) {
         me.listadoLotes = response.data;
       });
+    },
+    onSearchPhase: function onSearchPhase(search, loading) {
+      var _this3 = this;
+      if (search.length) {
+        loading(true);
+        var data = {
+          phase: search
+        };
+        axios.get("api/phases/get", {
+          params: data
+        }).then(function (response) {
+          _this3.listPhases = response.data.phases.data;
+          loading(false);
+        })["catch"](function (e) {
+          return console.log(e);
+        });
+      }
     }
   },
   mounted: function mounted() {
@@ -3525,6 +3580,8 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         Siembra: "nombre_siembra",
         'Area (m<sup>2</sup>)': "capacidad",
         "Inicio siembra": "fecha_inicio",
+        "Tipo": "tipo",
+        "Fase": "phase.phase",
         "Tiempo de cultivo \n (Días)": {
           field: "intervalo_tiempo",
           callback: function callback(value) {
@@ -3694,16 +3751,20 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
           }
         }
       },
-      listadoExistencias: [],
+      listadoExistencias: {},
       listadoEspecies: [],
       listadoSiembras: [],
+      listPhases: [],
       imprimirRecursos: [],
       listadoEstanques: [],
       f_siembra: "-1",
       f_contenedor: "-1",
       f_estado: "1",
       f_inicio_d: "-1",
-      f_inicio_h: "-1"
+      f_inicio_h: "-1",
+      search_phase: "",
+      search_type: "",
+      search_nro_results: "15"
     };
   },
   components: {
@@ -3724,7 +3785,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         return _regeneratorRuntime().wrap(function _callee$(_context) {
           while (1) switch (_context.prev = _context.next) {
             case 0:
-              return _context.abrupt("return", _this2.listadoExistencias);
+              return _context.abrupt("return", _this2.listadoExistencias.data);
             case 1:
             case "end":
               return _context.stop();
@@ -3733,13 +3794,18 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       }))();
     },
     listar: function listar() {
+      var page = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 1;
       var me = this;
       var data = {
         'f_siembra': this.f_siembra == '-1' ? '-1' : this.f_siembra,
         'f_contenedor': this.f_contenedor == '-1' ? '-1' : this.f_contenedor,
         'f_estado': this.f_estado == '-1' ? '-1' : this.f_estado,
         'f_inicio_d': this.f_inicio_d == '-1' ? '-1' : this.f_inicio_d,
-        'f_inicio_h': this.f_inicio_h == '-1' ? '-1' : this.f_inicio_h
+        'f_inicio_h': this.f_inicio_h == '-1' ? '-1' : this.f_inicio_h,
+        phase: this.search_phase,
+        type: this.search_type,
+        nro_results: this.search_nro_results,
+        page: page
       };
       axios.get("api/traer-existencias-detalle", {
         params: data
@@ -3764,6 +3830,23 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       axios.get("api/contenedores").then(function (response) {
         me.listadoEstanques = response.data;
       });
+    },
+    onSearchPhase: function onSearchPhase(search, loading) {
+      var _this3 = this;
+      if (search.length) {
+        loading(true);
+        var data = {
+          phase: search
+        };
+        axios.get("api/phases/get", {
+          params: data
+        }).then(function (response) {
+          _this3.listPhases = response.data.phases.data;
+          loading(false);
+        })["catch"](function (e) {
+          return console.log(e);
+        });
+      }
     }
   },
   mounted: function mounted() {
@@ -6785,7 +6868,12 @@ __webpack_require__.r(__webpack_exports__);
       var page = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 1;
       var me = this;
       me.isLoading = true;
-      axios.get("api/phases?page=" + page, this.$root.config).then(function (response) {
+      var data = {
+        page: page
+      };
+      axios.get("api/phases", {
+        params: data
+      }).then(function (response) {
         me.phaseListing = response.data.phases;
       })["finally"](function () {
         me.isLoading = false;
@@ -7191,10 +7279,11 @@ __webpack_require__.r(__webpack_exports__);
         nombre_siembra: "",
         id_siembra: ""
       }),
+      listPhases: [],
       fechaActual: [],
       listadoEspecies: [],
       listadoContenedores: [],
-      listado: [],
+      listado: {},
       listadoSiembras: [],
       listadoRN: [],
       lotes: [],
@@ -7203,7 +7292,10 @@ __webpack_require__.r(__webpack_exports__);
       //Filtro siembras
       estado_siembra: "-1",
       f_siembra: "",
-      contenedor_id: "-1"
+      contenedor_id: "-1",
+      search_phase: "",
+      search_type: "",
+      search_nro_results: "15"
     };
   },
   computed: {
@@ -7246,8 +7338,20 @@ __webpack_require__.r(__webpack_exports__);
       this.$refs.dialogFishFood.listarRecursosAlimentos(id);
     },
     listar: function listar() {
+      var page = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 1;
       var me = this;
-      axios.get("api/siembras?estado_siembra=" + me.estado_siembra + "&id_siembra=" + me.f_siembra + '&contenedor_id=' + me.contenedor_id).then(function (response) {
+      var data = {
+        estado_siembra: me.estado_siembra,
+        id_siembra: me.f_siembra,
+        contenedor_id: me.contenedor_id,
+        phase: this.search_phase,
+        page: page,
+        type: this.search_type,
+        nro_results: this.search_nro_results
+      };
+      axios.get("api/siembras", {
+        params: data
+      }).then(function (response) {
         me.listado = response.data.siembra;
         me.fechaActual = response.data.fecha_actual;
       });
@@ -7301,6 +7405,23 @@ __webpack_require__.r(__webpack_exports__);
           });
         }
       });
+    },
+    onSearchPhase: function onSearchPhase(search, loading) {
+      var _this3 = this;
+      if (search.length) {
+        loading(true);
+        var data = {
+          phase: search
+        };
+        axios.get("api/phases/get", {
+          params: data
+        }).then(function (response) {
+          _this3.listPhases = response.data.phases.data;
+          loading(false);
+        })["catch"](function (e) {
+          return console.log(e);
+        });
+      }
     }
   },
   mounted: function mounted() {
@@ -10486,8 +10607,9 @@ var render = function render() {
       target: "_blank"
     }
   }, [_c("div", {
-    staticClass: "form-group col-md-2"
+    staticClass: "form-group col-xs-6 col-sm-6 col-md-4 col-lg-3"
   }, [_c("label", {
+    staticClass: "w-100",
     attrs: {
       "for": "f_estado"
     }
@@ -10498,7 +10620,7 @@ var render = function render() {
       value: _vm.f_estado,
       expression: "f_estado"
     }],
-    staticClass: "custom-select",
+    staticClass: "custom-select w-100",
     attrs: {
       name: "estado",
       id: "estado"
@@ -10527,7 +10649,7 @@ var render = function render() {
       value: "1"
     }
   }, [_vm._v("Activa")])])])]), _vm._v(" "), _c("div", {
-    staticClass: "form-group col-3"
+    staticClass: "form-group col-xs-6 col-sm-6 col-md-4 col-lg-3"
   }, [_c("label", {
     attrs: {
       "for": "siembra_activa"
@@ -10563,7 +10685,92 @@ var render = function render() {
       expression: "f_siembra"
     }
   })] : _vm._e()], 2), _vm._v(" "), _c("div", {
-    staticClass: "form-group col-md-2"
+    staticClass: "form-group col-xs-6 col-sm-6 col-md-4 col-lg-3"
+  }, [_c("label", {
+    staticClass: "col-form-label",
+    attrs: {
+      "for": "phase"
+    }
+  }, [_vm._v("Fase\n                  ")]), _vm._v(" "), _c("v-select", {
+    staticClass: "w-100",
+    attrs: {
+      label: "phase",
+      reduce: function reduce(option) {
+        return option.id;
+      },
+      filterable: false,
+      options: _vm.listPhases
+    },
+    on: {
+      search: _vm.onSearchPhase
+    },
+    scopedSlots: _vm._u([{
+      key: "option",
+      fn: function fn(option) {
+        return [_c("div", {
+          staticClass: "d-center"
+        }, [_vm._v("\n                        " + _vm._s(option.phase) + "\n                      ")])];
+      }
+    }, {
+      key: "selected-option",
+      fn: function fn(option) {
+        return [_c("div", {
+          staticClass: "selected d-center"
+        }, [_vm._v("\n                        " + _vm._s(option.phase) + "\n                      ")])];
+      }
+    }]),
+    model: {
+      value: _vm.search_phase,
+      callback: function callback($$v) {
+        _vm.search_phase = $$v;
+      },
+      expression: "search_phase"
+    }
+  }, [_c("template", {
+    slot: "no-options"
+  }, [_vm._v("\n                      Escribe para iniciar la búsqueda\n                    ")])], 2)], 1), _vm._v(" "), _c("div", {
+    staticClass: "form-group col-xs-6 col-sm-6 col-md-4 col-lg-3"
+  }, [_c("label", {
+    attrs: {
+      "for": "search_type"
+    }
+  }, [_vm._v("Tipo de siembra")]), _vm._v(" "), _c("select", {
+    directives: [{
+      name: "model",
+      rawName: "v-model",
+      value: _vm.search_type,
+      expression: "search_type"
+    }],
+    staticClass: "custom-select w-100",
+    attrs: {
+      name: "search_type",
+      id: "search_type"
+    },
+    on: {
+      change: function change($event) {
+        var $$selectedVal = Array.prototype.filter.call($event.target.options, function (o) {
+          return o.selected;
+        }).map(function (o) {
+          var val = "_value" in o ? o._value : o.value;
+          return val;
+        });
+        _vm.search_type = $event.target.multiple ? $$selectedVal : $$selectedVal[0];
+      }
+    }
+  }, [_c("option", {
+    attrs: {
+      value: ""
+    }
+  }, [_vm._v("Todas")]), _vm._v(" "), _c("option", {
+    attrs: {
+      value: "Monocultivo"
+    }
+  }, [_vm._v("Monocultivo")]), _vm._v(" "), _c("option", {
+    attrs: {
+      value: "Policultivo"
+    }
+  }, [_vm._v("Policultivo")])])]), _vm._v(" "), _c("div", {
+    staticClass: "form-group col-xs-6 col-sm-6 col-md-4 col-lg-3"
   }, [_c("label", {
     attrs: {
       "for": "contenedor"
@@ -10602,7 +10809,7 @@ var render = function render() {
       }
     }, [_vm._v("\n                      " + _vm._s(cont.contenedor) + "\n                    ")]);
   })], 2)]), _vm._v(" "), _c("div", {
-    staticClass: "form-group col-md-2"
+    staticClass: "form-group col-xs-6 col-sm-6 col-md-4 col-lg-3"
   }, [_c("label", {
     attrs: {
       "for": "lote"
@@ -10641,7 +10848,7 @@ var render = function render() {
       }
     }, [_vm._v("\n                      " + _vm._s(lote.lote) + "\n                    ")]);
   })], 2)]), _vm._v(" "), _c("div", {
-    staticClass: "form-group col-md-2"
+    staticClass: "form-group col-xs-6 col-sm-6 col-md-4 col-lg-3"
   }, [_c("label", {
     attrs: {
       "for": "Especie"
@@ -10681,7 +10888,7 @@ var render = function render() {
       }
     }, [_vm._v("\n                      " + _vm._s(especie.especie) + "\n                    ")]);
   })], 2)]), _vm._v(" "), _c("div", {
-    staticClass: "form-group col-md-2"
+    staticClass: "form-group col-xs-6 col-sm-6 col-md-4 col-lg-3"
   }, [_c("label", {
     attrs: {
       "for": "actividad"
@@ -10731,7 +10938,7 @@ var render = function render() {
       value: "3"
     }
   }, [_vm._v("Peso Inicial")])])]), _vm._v(" "), _c("div", {
-    staticClass: "form-group col-md-2"
+    staticClass: "form-group col-xs-6 col-sm-6 col-md-4 col-lg-3"
   }, [_c("label", {
     attrs: {
       "for": "peso desde"
@@ -10759,7 +10966,7 @@ var render = function render() {
       }
     }
   })]), _vm._v(" "), _c("div", {
-    staticClass: "form-group col-md-2"
+    staticClass: "form-group col-xs-6 col-sm-6 col-md-4 col-lg-3"
   }, [_c("label", {
     attrs: {
       "for": "peso hasta"
@@ -10787,7 +10994,7 @@ var render = function render() {
       }
     }
   })]), _vm._v(" "), _c("div", {
-    staticClass: "form-group col-md-2"
+    staticClass: "form-group col-xs-6 col-sm-6 col-md-4 col-lg-3"
   }, [_c("label", {
     attrs: {
       "for": "search"
@@ -10815,7 +11022,7 @@ var render = function render() {
       }
     }
   })]), _vm._v(" "), _c("div", {
-    staticClass: "form-group col-md-2"
+    staticClass: "form-group col-xs-6 col-sm-6 col-md-4 col-lg-3"
   }, [_c("label", {
     attrs: {
       "for": "search"
@@ -10843,7 +11050,33 @@ var render = function render() {
       }
     }
   })]), _vm._v(" "), _c("div", {
-    staticClass: "form-group col-md-1"
+    staticClass: "form-group col-xs-6 col-sm-6 col-md-4 col-lg-3"
+  }, [_c("label", {
+    attrs: {
+      "for": "search_nro_results"
+    }
+  }, [_vm._v("Mostrar " + _vm._s(_vm.search_nro_results) + " por página")]), _vm._v(" "), _c("input", {
+    directives: [{
+      name: "model",
+      rawName: "v-model",
+      value: _vm.search_nro_results,
+      expression: "search_nro_results"
+    }],
+    staticClass: "form-control",
+    attrs: {
+      type: "number"
+    },
+    domProps: {
+      value: _vm.search_nro_results
+    },
+    on: {
+      input: function input($event) {
+        if ($event.target.composing) return;
+        _vm.search_nro_results = $event.target.value;
+      }
+    }
+  })]), _vm._v(" "), _c("div", {
+    staticClass: "form-group col-xs-6 col-sm-6 col-md-4 col-lg-3"
   }, [_c("label", {
     attrs: {
       "for": ""
@@ -10861,9 +11094,9 @@ var render = function render() {
   }, [_c("i", {
     staticClass: "fas fa-search"
   })])]), _vm._v(" "), _c("div", {
-    staticClass: "form-group col-md-2"
+    staticClass: "form-group col-xs-6 col-sm-6 col-md-4 col-lg-3"
   }, [_c("downloadexcel", {
-    staticClass: "btn btn-success",
+    staticClass: "btn btn-success btn-block w-100 mt-4",
     attrs: {
       fetch: _vm.fetchData,
       fields: _vm.json_fields,
@@ -10890,7 +11123,7 @@ var render = function render() {
       domProps: {
         textContent: _vm._s(lr.nombre_siembra)
       }
-    }), _vm._v(" "), _c("td", {
+    }), _vm._v(" "), _c("td", [_vm._v(_vm._s(lr.siembra.tipo))]), _vm._v(" "), _c("td", [lr.siembra.phase_id ? _c("span", [_vm._v("\n                      " + _vm._s(lr.siembra.phase.phase) + "\n                    ")]) : _vm._e()]), _vm._v(" "), _c("td", {
       domProps: {
         textContent: _vm._s(lr.lote)
       }
@@ -10933,7 +11166,7 @@ var staticRenderFns = [function () {
     _c = _vm._self._c;
   return _c("thead", {
     staticClass: "thead-primary"
-  }, [_c("tr", [_c("th", [_vm._v("#")]), _vm._v(" "), _c("th", [_vm._v("Siembra")]), _vm._v(" "), _c("th", [_vm._v("Lote")]), _vm._v(" "), _c("th", [_vm._v("Fecha de registro")]), _vm._v(" "), _c("th", [_vm._v("Especie")]), _vm._v(" "), _c("th", [_vm._v("Tipo "), _c("br"), _vm._v("actividad")]), _vm._v(" "), _c("th", [_vm._v("Peso actual (g) ")]), _vm._v(" "), _c("th", [_vm._v("Biomasa cosechada Kg")]), _vm._v(" "), _c("th", [_vm._v("Biomasa muestreo (kg)")]), _vm._v(" "), _c("th", [_vm._v("Animales Actuales")]), _vm._v(" "), _c("th", [_vm._v("Biomasa disponible por alimento")]), _vm._v(" "), _c("th", [_vm._v("Animales Cosechados")])])]);
+  }, [_c("tr", [_c("th", [_vm._v("#")]), _vm._v(" "), _c("th", [_vm._v("Siembra")]), _vm._v(" "), _c("th", [_vm._v("Tipo")]), _vm._v(" "), _c("th", [_vm._v("Fase")]), _vm._v(" "), _c("th", [_vm._v("Lote")]), _vm._v(" "), _c("th", [_vm._v("Fecha de registro")]), _vm._v(" "), _c("th", [_vm._v("Especie")]), _vm._v(" "), _c("th", [_vm._v("Tipo "), _c("br"), _vm._v("actividad")]), _vm._v(" "), _c("th", [_vm._v("Peso actual (g) ")]), _vm._v(" "), _c("th", [_vm._v("Biomasa cosechada Kg")]), _vm._v(" "), _c("th", [_vm._v("Biomasa muestreo (kg)")]), _vm._v(" "), _c("th", [_vm._v("Animales Actuales")]), _vm._v(" "), _c("th", [_vm._v("Biomasa disponible por alimento")]), _vm._v(" "), _c("th", [_vm._v("Animales Cosechados")])])]);
 }];
 render._withStripped = true;
 
@@ -11203,7 +11436,7 @@ var render = function render() {
   }, [_vm._m(0), _vm._v(" "), _c("div", {
     staticClass: "row"
   }, [_c("div", {
-    staticClass: "form-group col-3"
+    staticClass: "form-group col-xs-6 col-sm-6 col-md-4 col-lg-3"
   }, [_c("label", {
     attrs: {
       "for": "estado_siembta"
@@ -11244,7 +11477,7 @@ var render = function render() {
       value: "0"
     }
   }, [_vm._v("Inactivas")])])]), _vm._v(" "), _c("div", {
-    staticClass: "form-group col-3"
+    staticClass: "form-group col-xs-6 col-sm-6 col-md-4 col-lg-3"
   }, [_c("label", {
     attrs: {
       "for": "siembra_activa"
@@ -11280,7 +11513,92 @@ var render = function render() {
       expression: "f_siembra"
     }
   })] : _vm._e()], 2), _vm._v(" "), _c("div", {
-    staticClass: "form-group col-md-2"
+    staticClass: "form-group col-xs-6 col-sm-6 col-md-4 col-lg-3"
+  }, [_c("label", {
+    staticClass: "col-form-label",
+    attrs: {
+      "for": "categoria"
+    }
+  }, [_vm._v("Fase\n              ")]), _vm._v(" "), _c("v-select", {
+    staticClass: "w-100",
+    attrs: {
+      label: "phase",
+      reduce: function reduce(option) {
+        return option.id;
+      },
+      filterable: false,
+      options: _vm.listPhases
+    },
+    on: {
+      search: _vm.onSearchPhase
+    },
+    scopedSlots: _vm._u([{
+      key: "option",
+      fn: function fn(option) {
+        return [_c("div", {
+          staticClass: "d-center"
+        }, [_vm._v("\n                    " + _vm._s(option.phase) + "\n                  ")])];
+      }
+    }, {
+      key: "selected-option",
+      fn: function fn(option) {
+        return [_c("div", {
+          staticClass: "selected d-center"
+        }, [_vm._v("\n                    " + _vm._s(option.phase) + "\n                  ")])];
+      }
+    }]),
+    model: {
+      value: _vm.search_phase,
+      callback: function callback($$v) {
+        _vm.search_phase = $$v;
+      },
+      expression: "search_phase"
+    }
+  }, [_c("template", {
+    slot: "no-options"
+  }, [_vm._v("\n                  Escribe para iniciar la búsqueda\n                ")])], 2)], 1), _vm._v(" "), _c("div", {
+    staticClass: "form-group col-xs-6 col-sm-6 col-md-4 col-lg-3"
+  }, [_c("label", {
+    attrs: {
+      "for": "search_type"
+    }
+  }, [_vm._v("Tipo de siembra")]), _vm._v(" "), _c("select", {
+    directives: [{
+      name: "model",
+      rawName: "v-model",
+      value: _vm.search_type,
+      expression: "search_type"
+    }],
+    staticClass: "custom-select w-100",
+    attrs: {
+      name: "search_type",
+      id: "search_type"
+    },
+    on: {
+      change: function change($event) {
+        var $$selectedVal = Array.prototype.filter.call($event.target.options, function (o) {
+          return o.selected;
+        }).map(function (o) {
+          var val = "_value" in o ? o._value : o.value;
+          return val;
+        });
+        _vm.search_type = $event.target.multiple ? $$selectedVal : $$selectedVal[0];
+      }
+    }
+  }, [_c("option", {
+    attrs: {
+      value: ""
+    }
+  }, [_vm._v("Todas")]), _vm._v(" "), _c("option", {
+    attrs: {
+      value: "Monocultivo"
+    }
+  }, [_vm._v("Monocultivo")]), _vm._v(" "), _c("option", {
+    attrs: {
+      value: "Policultivo"
+    }
+  }, [_vm._v("Policultivo")])])]), _vm._v(" "), _c("div", {
+    staticClass: "form-group col-xs-6 col-sm-6 col-md-4 col-lg-3"
   }, [_c("label", {
     attrs: {
       "for": "lote"
@@ -11319,7 +11637,7 @@ var render = function render() {
       }
     }, [_vm._v(_vm._s(lote.lote))]);
   })], 2)]), _vm._v(" "), _c("div", {
-    staticClass: "form-group col-md-2"
+    staticClass: "form-group col-xs-6 col-sm-6 col-md-4 col-lg-3"
   }, [_c("label", {
     attrs: {
       "for": "especie"
@@ -11358,7 +11676,7 @@ var render = function render() {
       }
     }, [_vm._v(_vm._s(les.especie) + "\n                ")]);
   })], 2)]), _vm._v(" "), _c("div", {
-    staticClass: "form-group col-md-2"
+    staticClass: "form-group col-xs-6 col-sm-6 col-md-4 col-lg-3"
   }, [_c("label", {
     attrs: {
       "for": "peso desde"
@@ -11386,7 +11704,7 @@ var render = function render() {
       }
     }
   })]), _vm._v(" "), _c("div", {
-    staticClass: "form-group col-md-2"
+    staticClass: "form-group col-xs-6 col-sm-6 col-md-4 col-lg-3"
   }, [_c("label", {
     attrs: {
       "for": "peso hasta"
@@ -11414,7 +11732,7 @@ var render = function render() {
       }
     }
   })]), _vm._v(" "), _c("div", {
-    staticClass: "form-group col-md-2"
+    staticClass: "form-group col-xs-6 col-sm-6 col-md-4 col-lg-3"
   }, [_c("label", {
     attrs: {
       "for": "Fecha desde"
@@ -11441,7 +11759,7 @@ var render = function render() {
       }
     }
   })]), _vm._v(" "), _c("div", {
-    staticClass: "form-group col-md-2"
+    staticClass: "form-group col-xs-6 col-sm-6 col-md-4 col-lg-3"
   }, [_c("label", {
     attrs: {
       "for": "fecha hasta"
@@ -11468,7 +11786,33 @@ var render = function render() {
       }
     }
   })]), _vm._v(" "), _c("div", {
-    staticClass: "form-group col-md-2"
+    staticClass: "form-group col-xs-6 col-sm-6 col-md-4 col-lg-3"
+  }, [_c("label", {
+    attrs: {
+      "for": "search_nro_results"
+    }
+  }, [_vm._v("Mostrar " + _vm._s(_vm.search_nro_results) + " resultados por página")]), _vm._v(" "), _c("input", {
+    directives: [{
+      name: "model",
+      rawName: "v-model",
+      value: _vm.search_nro_results,
+      expression: "search_nro_results"
+    }],
+    staticClass: "form-control",
+    attrs: {
+      type: "number"
+    },
+    domProps: {
+      value: _vm.search_nro_results
+    },
+    on: {
+      input: function input($event) {
+        if ($event.target.composing) return;
+        _vm.search_nro_results = $event.target.value;
+      }
+    }
+  })]), _vm._v(" "), _c("div", {
+    staticClass: "form-group col-xs-6 col-sm-6 col-md-4 col-lg-3"
   }, [_c("button", {
     staticClass: "btn btn-primary",
     on: {
@@ -11477,7 +11821,7 @@ var render = function render() {
       }
     }
   }, [_vm._v("\n                Filtrar resultados\n              ")])]), _vm._v(" "), _c("div", {
-    staticClass: "form-group col-md-2"
+    staticClass: "form-group col-xs-6 col-sm-6 col-md-4 col-lg-3"
   }, [_c("downloadexcel", {
     staticClass: "btn btn-success form-control",
     attrs: {
@@ -11490,7 +11834,7 @@ var render = function render() {
     staticClass: "fa fa-fw fa-download"
   }), _vm._v(" Generar Excel\n              ")])], 1)]), _vm._v(" "), _c("div", {}, [_c("table", {
     staticClass: "table table-bordered table-striped table-sm table-sticky"
-  }, [_vm._m(1), _vm._v(" "), _c("tbody", [_vm._l(_vm.listadoExistencias, function (le, index) {
+  }, [_vm._m(1), _vm._v(" "), _c("tbody", [_vm._l(_vm.listadoExistencias.data, function (le, index) {
     return _c("tr", {
       key: index
     }, [_c("td", {
@@ -11499,10 +11843,37 @@ var render = function render() {
       }
     }), _vm._v(" "), _c("td", {
       staticClass: "fixed-column"
-    }, [_vm._v("\n                    " + _vm._s(le.nombre_siembra) + "\n                  ")]), _vm._v(" "), _c("td", [_vm._v("\n                    " + _vm._s(le.lote) + "\n                  ")]), _vm._v(" "), _c("td", [_vm._v("\n                    " + _vm._s(le.capacidad) + "\n                  ")]), _vm._v(" "), _c("td", [_vm._v("\n                    " + _vm._s(le.especie.especie) + "\n                  ")]), _vm._v(" "), _c("td", [_vm._v("\n                    " + _vm._s(le.fecha_inicio) + "\n                  ")]), _vm._v(" "), _c("td", [_vm._v("\n                    " + _vm._s(le.cantidad_inicial) + "\n                  ")]), _vm._v(" "), _c("td", [_vm._v("\n                    " + _vm._s(le.peso_inicial) + " gr\n                  ")]), _vm._v(" "), _c("td", [_vm._v("\n                    " + _vm._s(_vm._f("numeral")(le.cantidad_actual, "0.00")) + "\n                  ")]), _vm._v(" "), _c("td", [_vm._v("\n                    " + _vm._s(le.peso_actual) + " gr\n                  ")]), _vm._v(" "), _c("td", [_vm._v("\n                    " + _vm._s(le.fecha_registro) + "\n                  ")]), _vm._v(" "), _c("td", [_vm._v(_vm._s(le.intervalo_tiempo) + " días")]), _vm._v(" "), _c("td", [_vm._v(_vm._s(_vm._f("numeral")(le.intervalo_tiempo_months, "0.00")) + " meses")]), _vm._v(" "), _c("td", [_vm._v("\n                    " + _vm._s(_vm._f("numeral")(le.biomasa_disponible, "0.00")) + " kg\n                  ")]), _vm._v(" "), _c("td", [_vm._v(_vm._s(_vm._f("numeral")(le.salida_biomasa, "0.00")) + " kg")]), _vm._v(" "), _c("td", [_vm._v(_vm._s(_vm._f("numeral")(le.mortalidad, "0.00")))]), _vm._v(" "), _c("td", [_vm._v(" " + _vm._s(_vm._f("numeral")(le.mortalidad_kg, "0.00")) + " kg")]), _vm._v(" "), _c("td", [_vm._v(_vm._s(_vm._f("numeral")(le.mortalidad_porcentaje, "0.00")))]), _vm._v(" "), _c("td", [_vm._v(_vm._s(_vm._f("numeral")(le.salida_animales_sin_mortalidad, "0.00")))]), _vm._v(" "), _c("td"), _vm._v(" "), _c("td", [_vm._v("\n                    " + _vm._s(_vm._f("numeral")(le.ganancia_peso_dia, "0.00")) + "\n                  ")]), _vm._v(" "), _c("td", [_vm._v("\n                    " + _vm._s(_vm._f("numeral")(le.densidad_parcial, "0.00")) + "\n                  ")]), _vm._v(" "), _c("td", [_vm._v("\n                    " + _vm._s(_vm._f("numeral")(le.carga_parcial, "0.00")) + "\n                  ")])]);
+    }, [_vm._v("\n                    " + _vm._s(le.nombre_siembra) + "\n                  ")]), _vm._v(" "), _c("td", [_vm._v(_vm._s(le.siembra.tipo))]), _vm._v(" "), _c("td", [le.siembra.phase_id ? _c("span", [_vm._v("\n                      " + _vm._s(le.siembra.phase.phase) + "\n                    ")]) : _vm._e()]), _vm._v(" "), _c("td", [_vm._v("\n                    " + _vm._s(le.lote) + "\n                  ")]), _vm._v(" "), _c("td", [_vm._v("\n                    " + _vm._s(le.capacidad) + "\n                  ")]), _vm._v(" "), _c("td", [_vm._v("\n                    " + _vm._s(le.especie.especie) + "\n                  ")]), _vm._v(" "), _c("td", [_vm._v("\n                    " + _vm._s(le.fecha_inicio) + "\n                  ")]), _vm._v(" "), _c("td", [_vm._v("\n                    " + _vm._s(le.cantidad_inicial) + "\n                  ")]), _vm._v(" "), _c("td", [_vm._v("\n                    " + _vm._s(le.peso_inicial) + " gr\n                  ")]), _vm._v(" "), _c("td", [_vm._v("\n                    " + _vm._s(_vm._f("numeral")(le.cantidad_actual, "0.00")) + "\n                  ")]), _vm._v(" "), _c("td", [_vm._v("\n                    " + _vm._s(le.peso_actual) + " gr\n                  ")]), _vm._v(" "), _c("td", [_vm._v("\n                    " + _vm._s(le.fecha_registro) + "\n                  ")]), _vm._v(" "), _c("td", [_vm._v(_vm._s(le.intervalo_tiempo) + " días")]), _vm._v(" "), _c("td", [_vm._v(_vm._s(_vm._f("numeral")(le.intervalo_tiempo_months, "0.00")) + " meses")]), _vm._v(" "), _c("td", [_vm._v("\n                    " + _vm._s(_vm._f("numeral")(le.biomasa_disponible, "0.00")) + " kg\n                  ")]), _vm._v(" "), _c("td", [_vm._v(_vm._s(_vm._f("numeral")(le.salida_biomasa, "0.00")) + " kg")]), _vm._v(" "), _c("td", [_vm._v(_vm._s(_vm._f("numeral")(le.mortalidad, "0.00")))]), _vm._v(" "), _c("td", [_vm._v(" " + _vm._s(_vm._f("numeral")(le.mortalidad_kg, "0.00")) + " kg")]), _vm._v(" "), _c("td", [_vm._v(_vm._s(_vm._f("numeral")(le.mortalidad_porcentaje, "0.00")))]), _vm._v(" "), _c("td", [_vm._v(_vm._s(_vm._f("numeral")(le.salida_animales_sin_mortalidad, "0.00")))]), _vm._v(" "), _c("td"), _vm._v(" "), _c("td", [_vm._v("\n                    " + _vm._s(_vm._f("numeral")(le.ganancia_peso_dia, "0.00")) + "\n                  ")]), _vm._v(" "), _c("td", [_vm._v("\n                    " + _vm._s(_vm._f("numeral")(le.densidad_parcial, "0.00")) + "\n                  ")]), _vm._v(" "), _c("td", [_vm._v("\n                    " + _vm._s(_vm._f("numeral")(le.carga_parcial, "0.00")) + "\n                  ")])]);
   }), _vm._v(" "), _c("tr", {
     staticClass: "h6 font-weight-bold"
-  }, [_c("td"), _vm._v(" "), _c("td"), _vm._v(" "), _c("td"), _vm._v(" "), _c("td"), _vm._v(" "), _c("td"), _vm._v(" "), _c("td"), _vm._v(" "), _c("td", [_vm._v(_vm._s(_vm._f("numeral")(_vm.totalizadoEspeciesSiembras.cantidad_inicial, "0,00")))]), _vm._v(" "), _c("td", [_vm._v(_vm._s(_vm._f("numeral")(_vm.totalizadoEspeciesSiembras.peso_inicial, "0,00")))]), _vm._v(" "), _c("td", [_vm._v(_vm._s(_vm._f("numeral")(_vm.totalizadoEspeciesSiembras.cantidad_actual, "0,00")))]), _vm._v(" "), _c("td"), _vm._v(" "), _c("td"), _vm._v(" "), _c("td"), _vm._v(" "), _c("td"), _vm._v(" "), _c("td", [_vm._v("\n                    " + _vm._s(_vm._f("numeral")(_vm.totalizadoEspeciesSiembras.biomasa_disponible, "0.00")) + "\n                  ")]), _vm._v(" "), _c("td", [_vm._v("\n                    " + _vm._s(_vm._f("numeral")(_vm.totalizadoEspeciesSiembras.salida_biomasa, "0.00")) + "\n                  ")]), _vm._v(" "), _c("td", [_vm._v(_vm._s(_vm._f("numeral")(_vm.totalizadoEspeciesSiembras.mortalidad, "0.00")))]), _vm._v(" "), _c("td", [_vm._v("\n                    " + _vm._s(_vm._f("numeral")(_vm.totalizadoEspeciesSiembras.mortalidad_kg, "0.00")) + "\n                  ")]), _vm._v(" "), _c("td"), _vm._v(" "), _c("td", [_vm._v("\n                    " + _vm._s(_vm._f("numeral")(_vm.totalizadoEspeciesSiembras.salida_animales_sin_mortalidad, "0.00")) + "\n                  ")]), _vm._v(" "), _c("td"), _vm._v(" "), _c("td"), _vm._v(" "), _c("td"), _vm._v(" "), _c("td")])], 2)])])])])])])]);
+  }, [_c("td", {
+    attrs: {
+      colspan: "6"
+    }
+  }), _vm._v(" "), _c("td", [_vm._v(_vm._s(_vm._f("numeral")(_vm.totalizadoEspeciesSiembras.cantidad_inicial, "0,00")))]), _vm._v(" "), _c("td", [_vm._v(_vm._s(_vm._f("numeral")(_vm.totalizadoEspeciesSiembras.peso_inicial, "0,00")))]), _vm._v(" "), _c("td", [_vm._v(_vm._s(_vm._f("numeral")(_vm.totalizadoEspeciesSiembras.cantidad_actual, "0,00")))]), _vm._v(" "), _c("td"), _vm._v(" "), _c("td"), _vm._v(" "), _c("td"), _vm._v(" "), _c("td"), _vm._v(" "), _c("td", [_vm._v("\n                    " + _vm._s(_vm._f("numeral")(_vm.totalizadoEspeciesSiembras.biomasa_disponible, "0.00")) + "\n                  ")]), _vm._v(" "), _c("td", [_vm._v("\n                    " + _vm._s(_vm._f("numeral")(_vm.totalizadoEspeciesSiembras.salida_biomasa, "0.00")) + "\n                  ")]), _vm._v(" "), _c("td", [_vm._v(_vm._s(_vm._f("numeral")(_vm.totalizadoEspeciesSiembras.mortalidad, "0.00")))]), _vm._v(" "), _c("td", [_vm._v("\n                    " + _vm._s(_vm._f("numeral")(_vm.totalizadoEspeciesSiembras.mortalidad_kg, "0.00")) + "\n                  ")]), _vm._v(" "), _c("td"), _vm._v(" "), _c("td", [_vm._v("\n                    " + _vm._s(_vm._f("numeral")(_vm.totalizadoEspeciesSiembras.salida_animales_sin_mortalidad, "0.00")) + "\n                  ")]), _vm._v(" "), _c("td"), _vm._v(" "), _c("td"), _vm._v(" "), _c("td"), _vm._v(" "), _c("td")])], 2)]), _vm._v(" "), _c("pagination", {
+    attrs: {
+      align: "center",
+      data: _vm.listadoExistencias,
+      limit: 2
+    },
+    on: {
+      "pagination-change-page": _vm.listar
+    }
+  }, [_c("span", {
+    attrs: {
+      slot: "prev-nav"
+    },
+    slot: "prev-nav"
+  }, [_c("i", {
+    staticClass: "fas fa-arrow-left"
+  })]), _vm._v(" "), _c("span", {
+    attrs: {
+      slot: "next-nav"
+    },
+    slot: "next-nav"
+  }, [_c("i", {
+    staticClass: "fas fa-arrow-right"
+  })])])], 1)])])])])]);
 };
 var staticRenderFns = [function () {
   var _vm = this,
@@ -11517,7 +11888,7 @@ var staticRenderFns = [function () {
     staticClass: "thead-primary"
   }, [_c("tr", [_c("th", [_vm._v("#")]), _vm._v(" "), _c("th", {
     staticClass: "fixed-column"
-  }, [_vm._v("Siembra")]), _vm._v(" "), _c("th", [_vm._v("Lote")]), _vm._v(" "), _c("th", [_vm._v("Area")]), _vm._v(" "), _c("th", [_vm._v("Especie")]), _vm._v(" "), _c("th", [_vm._v("Inicio siembra")]), _vm._v(" "), _c("th", [_vm._v("Cant Inicial "), _c("br"), _vm._v(" "), _c("small", [_vm._v("(Animales)")])]), _vm._v(" "), _c("th", [_vm._v("Peso Inicial "), _c("br"), _vm._v(" "), _c("small", [_vm._v("(g)")])]), _vm._v(" "), _c("th", [_vm._v("Animales finales")]), _vm._v(" "), _c("th", [_vm._v("Peso Actual "), _c("br"), _vm._v(" "), _c("small", [_vm._v("(g)")])]), _vm._v(" "), _c("th", [_vm._v("Fecha último registro")]), _vm._v(" "), _c("th", [_vm._v("Tiempo de cultivo "), _c("br"), _vm._v(" "), _c("small", [_vm._v("(Días)")])]), _vm._v(" "), _c("th", [_vm._v("Tiempo de cultivo "), _c("br"), _vm._v(" "), _c("small", [_vm._v("(Meses)")])]), _vm._v(" "), _c("th", [_vm._v("Biomasa muestreo "), _c("br"), _vm._v(" "), _c("small", [_vm._v("(Kg)")])]), _vm._v(" "), _c("th", [_vm._v("Biomasa cosechada "), _c("br"), _vm._v(" "), _c("small", [_vm._v("(Kg)")])]), _vm._v(" "), _c("th", [_vm._v("Mortalidad Animales")]), _vm._v(" "), _c("th", [_vm._v("Mort. Kg")]), _vm._v(" "), _c("th", [_vm._v("% Mortalidad")]), _vm._v(" "), _c("th", [_vm._v("Animales cosechados")]), _vm._v(" "), _c("th", [_vm._v("Ganancia de peso por día "), _c("br"), _vm._v(" "), _c("small", [_vm._v("(g / día)")])]), _vm._v(" "), _c("th", [_vm._v("Densidad parcial "), _c("br"), _vm._v(" "), _c("small", [_vm._v("(Animales/m"), _c("sup", [_vm._v("2")]), _vm._v(")")])]), _vm._v(" "), _c("th", [_vm._v("Carga parcial "), _c("br"), _vm._v(" "), _c("small", [_vm._v("(Kg/m"), _c("sup", [_vm._v("2")]), _vm._v(")")])])])]);
+  }, [_vm._v("Siembra")]), _vm._v(" "), _c("th", [_vm._v("Tipo")]), _vm._v(" "), _c("th", [_vm._v("Fase")]), _vm._v(" "), _c("th", [_vm._v("Lote")]), _vm._v(" "), _c("th", [_vm._v("Area")]), _vm._v(" "), _c("th", [_vm._v("Especie")]), _vm._v(" "), _c("th", [_vm._v("Inicio siembra")]), _vm._v(" "), _c("th", [_vm._v("Cant Inicial "), _c("br"), _vm._v(" "), _c("small", [_vm._v("(Animales)")])]), _vm._v(" "), _c("th", [_vm._v("Peso Inicial "), _c("br"), _vm._v(" "), _c("small", [_vm._v("(g)")])]), _vm._v(" "), _c("th", [_vm._v("Animales finales")]), _vm._v(" "), _c("th", [_vm._v("Peso Actual "), _c("br"), _vm._v(" "), _c("small", [_vm._v("(g)")])]), _vm._v(" "), _c("th", [_vm._v("Fecha último registro")]), _vm._v(" "), _c("th", [_vm._v("Tiempo de cultivo "), _c("br"), _vm._v(" "), _c("small", [_vm._v("(Días)")])]), _vm._v(" "), _c("th", [_vm._v("Tiempo de cultivo "), _c("br"), _vm._v(" "), _c("small", [_vm._v("(Meses)")])]), _vm._v(" "), _c("th", [_vm._v("Biomasa muestreo "), _c("br"), _vm._v(" "), _c("small", [_vm._v("(Kg)")])]), _vm._v(" "), _c("th", [_vm._v("Biomasa cosechada "), _c("br"), _vm._v(" "), _c("small", [_vm._v("(Kg)")])]), _vm._v(" "), _c("th", [_vm._v("Mortalidad Animales")]), _vm._v(" "), _c("th", [_vm._v("Mort. Kg")]), _vm._v(" "), _c("th", [_vm._v("% Mortalidad")]), _vm._v(" "), _c("th", [_vm._v("Animales cosechados")]), _vm._v(" "), _c("th", [_vm._v("Ganancia de peso por día "), _c("br"), _vm._v(" "), _c("small", [_vm._v("(g / día)")])]), _vm._v(" "), _c("th", [_vm._v("Densidad parcial "), _c("br"), _vm._v(" "), _c("small", [_vm._v("(Animales/m"), _c("sup", [_vm._v("2")]), _vm._v(")")])]), _vm._v(" "), _c("th", [_vm._v("Carga parcial "), _c("br"), _vm._v(" "), _c("small", [_vm._v("(Kg/m"), _c("sup", [_vm._v("2")]), _vm._v(")")])])])]);
 }];
 render._withStripped = true;
 
@@ -11670,6 +12041,117 @@ var render = function render() {
       }
     }, [_vm._v(_vm._s(cont.contenedor))]);
   })], 2)]), _vm._v(" "), _c("div", {
+    staticClass: "form-group col-xs-6 col-sm-6 col-md-4 col-lg-3"
+  }, [_c("label", {
+    staticClass: "col-form-label",
+    attrs: {
+      "for": "phase"
+    }
+  }, [_vm._v("Fase\n                            ")]), _vm._v(" "), _c("v-select", {
+    staticClass: "w-100",
+    attrs: {
+      label: "phase",
+      reduce: function reduce(option) {
+        return option.id;
+      },
+      filterable: false,
+      options: _vm.listPhases
+    },
+    on: {
+      search: _vm.onSearchPhase
+    },
+    scopedSlots: _vm._u([{
+      key: "option",
+      fn: function fn(option) {
+        return [_c("div", {
+          staticClass: "d-center"
+        }, [_vm._v("\n                                        " + _vm._s(option.phase) + "\n                                    ")])];
+      }
+    }, {
+      key: "selected-option",
+      fn: function fn(option) {
+        return [_c("div", {
+          staticClass: "selected d-center"
+        }, [_vm._v("\n                                        " + _vm._s(option.phase) + "\n                                    ")])];
+      }
+    }]),
+    model: {
+      value: _vm.search_phase,
+      callback: function callback($$v) {
+        _vm.search_phase = $$v;
+      },
+      expression: "search_phase"
+    }
+  }, [_c("template", {
+    slot: "no-options"
+  }, [_vm._v("\n                                    Escribe para iniciar la búsqueda\n                                ")])], 2)], 1), _vm._v(" "), _c("div", {
+    staticClass: "form-group col-xs-6 col-sm-6 col-md-4 col-lg-3"
+  }, [_c("label", {
+    attrs: {
+      "for": "search_type"
+    }
+  }, [_vm._v("Tipo de siembra")]), _vm._v(" "), _c("select", {
+    directives: [{
+      name: "model",
+      rawName: "v-model",
+      value: _vm.search_type,
+      expression: "search_type"
+    }],
+    staticClass: "custom-select w-100",
+    attrs: {
+      name: "search_type",
+      id: "search_type"
+    },
+    on: {
+      change: function change($event) {
+        var $$selectedVal = Array.prototype.filter.call($event.target.options, function (o) {
+          return o.selected;
+        }).map(function (o) {
+          var val = "_value" in o ? o._value : o.value;
+          return val;
+        });
+        _vm.search_type = $event.target.multiple ? $$selectedVal : $$selectedVal[0];
+      }
+    }
+  }, [_c("option", {
+    attrs: {
+      value: ""
+    }
+  }, [_vm._v("Todas")]), _vm._v(" "), _c("option", {
+    attrs: {
+      value: "Monocultivo"
+    }
+  }, [_vm._v("Monocultivo")]), _vm._v(" "), _c("option", {
+    attrs: {
+      value: "Policultivo"
+    }
+  }, [_vm._v("Policultivo")])])]), _vm._v(" "), _c("div", {
+    staticClass: "form-group col-xs-6 col-sm-6 col-md-4 col-lg-3"
+  }, [_c("label", {
+    attrs: {
+      "for": "search_nro_results"
+    }
+  }, [_vm._v("Mostrar " + _vm._s(_vm.search_nro_results) + " por página")]), _vm._v(" "), _c("input", {
+    directives: [{
+      name: "model",
+      rawName: "v-model",
+      value: _vm.search_nro_results,
+      expression: "search_nro_results"
+    }],
+    staticClass: "form-control",
+    attrs: {
+      type: "number"
+    },
+    domProps: {
+      value: _vm.search_nro_results
+    },
+    on: {
+      input: function input($event) {
+        if ($event.target.composing) return;
+        _vm.search_nro_results = $event.target.value;
+      }
+    }
+  })]), _vm._v(" "), _c("div", {
     staticClass: "form-group col-md-2"
   }, [_c("button", {
     staticClass: "btn btn-primary",
@@ -11697,7 +12179,7 @@ var render = function render() {
     }
   }, [_c("table", {
     staticClass: "table-sticky table table-sm table-hover table-bordered"
-  }, [_vm._m(1), _vm._v(" "), _c("tbody", _vm._l(_vm.listadoExistencias, function (le, index) {
+  }, [_vm._m(1), _vm._v(" "), _c("tbody", _vm._l(_vm.listadoExistencias.data, function (le, index) {
     return _c("tr", {
       key: index
     }, [_c("td", {
@@ -11713,7 +12195,7 @@ var render = function render() {
       domProps: {
         textContent: _vm._s(le.capacidad)
       }
-    }), _vm._v(" "), _c("td", {
+    }), _vm._v(" "), _c("td", [_vm._v(_vm._s(le.tipo))]), _vm._v(" "), _c("td", [le.phase_id ? _c("span", [_vm._v("\n                                            " + _vm._s(le.phase.phase) + "\n                                        ")]) : _vm._e()]), _vm._v(" "), _c("td", {
       domProps: {
         textContent: _vm._s(le.fecha_inicio)
       }
@@ -11722,7 +12204,30 @@ var render = function render() {
         textContent: _vm._s(le.intervalo_tiempo)
       }
     }), _vm._v(" "), _c("td", [_vm._v(_vm._s(_vm._f("numeral")(le.intervalo_tiempo_months, "0.00")) + " meses")]), _vm._v(" "), _c("td", [_vm._v("\n                                        " + _vm._s(_vm._f("numeral")(le.cantidad_inicial, "0.00")) + "\n                                    ")]), _vm._v(" "), _c("td", [_vm._v("\n                                        " + _vm._s(_vm._f("numeral")(le.biomasa_inicial, "0.00")))]), _vm._v(" "), _c("td", [_vm._v("\n                                        " + _vm._s(_vm._f("numeral")(le.peso_inicial, "0.00")) + " gr\n                                    ")]), _vm._v(" "), _c("td", [_vm._v("\n                                        " + _vm._s(_vm._f("numeral")(le.carga_inicial, "0.00")))]), _vm._v(" "), _c("td", [_vm._v("\n                                        " + _vm._s(_vm._f("numeral")(le.cant_actual, "0.00")))]), _vm._v(" "), _c("td", [_vm._v("\n                                        " + _vm._s(_vm._f("numeral")(le.peso_actual, "0.00")) + " gr\n                                    ")]), _vm._v(" "), _c("td", [_vm._v("\n                                        " + _vm._s(_vm._f("numeral")(le.biomasa_disponible, "0.00")) + " kg\n                                    ")]), _vm._v(" "), _c("td", [_vm._v("\n                                        " + _vm._s(_vm._f("numeral")(le.salida_biomasa, "0.00")) + " kg\n                                    ")]), _vm._v(" "), _c("td", [_vm._v(_vm._s(_vm._f("numeral")(le.mortalidad, "0.00")))]), _vm._v(" "), _c("td", [_vm._v("\n                                        " + _vm._s(_vm._f("numeral")(le.mortalidad_kg, "0.00")) + " kg\n                                    ")]), _vm._v(" "), _c("td", [_vm._v("\n                                        " + _vm._s(_vm._f("numeral")(le.mortalidad_porcentaje, "0.00")) + "\n                                    ")]), _vm._v(" "), _c("td", [_vm._v("\n                                        " + _vm._s(_vm._f("numeral")(le.salida_animales_sin_mortalidad, "0.00")) + "\n                                    ")]), _vm._v(" "), _c("td", [_vm._v("\n                                        " + _vm._s(_vm._f("numeral")(le.densidad_inicial, "0.00")) + "\n                                    ")]), _vm._v(" "), _c("td", [_vm._v("\n                                        " + _vm._s(_vm._f("numeral")(le.densidad_final, "0.00")) + "\n                                    ")]), _vm._v(" "), _c("td", [_vm._v("\n                                        " + _vm._s(_vm._f("numeral")(le.carga_final, "0.00")) + "\n                                    ")]), _vm._v(" "), _c("td", [_vm._v("\n                                        " + _vm._s(_vm._f("numeral")(le.horas_hombre, "0.00")) + " horas")]), _vm._v(" "), _c("td", [_vm._v("\n                                        " + _vm._s(_vm._f("numeral")(le.costo_minutosh, "$0,0.00")))]), _vm._v(" "), _c("td", [_vm._v("\n                                        " + _vm._s(_vm._f("numeral")(le.costo_total_recurso, "$0,0.00")))]), _vm._v(" "), _c("td", [_vm._v("\n                                        " + _vm._s(_vm._f("numeral")(le.costo_total_alimento, "$0,0.00")) + "\n                                    ")]), _vm._v(" "), _c("td", [_vm._v("\n                                        " + _vm._s(le.cantidad_total_alimento))]), _vm._v(" "), _c("td", [_vm._v("\n                                        " + _vm._s(_vm._f("numeral")(le.costo_tot, "$0,0.00")))]), _vm._v(" "), _c("td", [_vm._v("\n                                        " + _vm._s(_vm._f("numeral")(le.costo_produccion_final, "$0,0.00")) + "\n                                    ")]), _vm._v(" "), _c("td", [_vm._v("\n                                        " + _vm._s(_vm._f("numeral")(le.conversion_alimenticia_parcial, "0.00")) + "\n                                    ")]), _vm._v(" "), _c("td", [_vm._v("\n                                        " + _vm._s(_vm._f("numeral")(le.conversion_final, "0.00")) + "\n                                    ")]), _vm._v(" "), _c("td", [_vm._v("\n                                        " + _vm._s(_vm._f("numeral")(le.ganancia_peso_dia, "0.00")) + "\n                                    ")]), _vm._v(" "), _c("td", [_vm._v("\n                                        " + _vm._s(_vm._f("numeral")(le.porc_supervivencia_final, "0.00")) + "\n                                    ")])]);
-  }), 0)])])])])])])]);
+  }), 0)]), _vm._v(" "), _c("pagination", {
+    attrs: {
+      align: "center",
+      data: _vm.listadoExistencias,
+      limit: 2
+    },
+    on: {
+      "pagination-change-page": _vm.listar
+    }
+  }, [_c("span", {
+    attrs: {
+      slot: "prev-nav"
+    },
+    slot: "prev-nav"
+  }, [_c("i", {
+    staticClass: "fas fa-arrow-left"
+  })]), _vm._v(" "), _c("span", {
+    attrs: {
+      slot: "next-nav"
+    },
+    slot: "next-nav"
+  }, [_c("i", {
+    staticClass: "fas fa-arrow-right"
+  })])])], 1)])])])])]);
 };
 var staticRenderFns = [function () {
   var _vm = this,
@@ -11737,7 +12242,7 @@ var staticRenderFns = [function () {
     staticClass: "thead-primary"
   }, [_c("tr", [_c("th", [_vm._v("#")]), _vm._v(" "), _c("th", {
     staticClass: "fixed-column"
-  }, [_vm._v("Siembra")]), _vm._v(" "), _c("th", [_vm._v("Area (m²)")]), _vm._v(" "), _c("th", [_vm._v("Inicio siembra")]), _vm._v(" "), _c("th", [_vm._v("Tiempo de cultivo "), _c("br"), _vm._v(" "), _c("small", [_vm._v("(Días)")])]), _vm._v(" "), _c("th", [_vm._v("Tiempo de cultivo "), _c("br"), _vm._v(" "), _c("small", [_vm._v("(Meses)")])]), _vm._v(" "), _c("th", [_vm._v("Cant Inicial (animales)")]), _vm._v(" "), _c("th", [_vm._v("Biomasa Inicial (kg)")]), _vm._v(" "), _c("th", [_vm._v("Peso Inicial (g)")]), _vm._v(" "), _c("th", [_vm._v("Carga inicial (kg/m²) ")]), _vm._v(" "), _c("th", [_vm._v("Cant final (animales)")]), _vm._v(" "), _c("th", [_vm._v("Peso Actual (g)")]), _vm._v(" "), _c("th", [_vm._v("Biomasa disponible (kg)")]), _vm._v(" "), _c("th", [_vm._v("Biomasa Cosechada (kg) ")]), _vm._v(" "), _c("th", [_vm._v("Mortalidad (Animales)")]), _vm._v(" "), _c("th", [_vm._v("Mortalidad (Kg)")]), _vm._v(" "), _c("th", [_vm._v("% Mortalidad")]), _vm._v(" "), _c("th", [_vm._v("Animales cosechados")]), _vm._v(" "), _c("th", [_vm._v("\n                                        Densidad Inicial\n                                        (Animales/m"), _c("sup", [_vm._v("2")]), _vm._v(")\n                                    ")]), _vm._v(" "), _c("th", [_vm._v("\n                                        Densidad Final\n                                        (Animales/m"), _c("sup", [_vm._v("2")]), _vm._v(")\n                                    ")]), _vm._v(" "), _c("th", [_vm._v("Carga Final (Kg/m"), _c("sup", [_vm._v("2")]), _vm._v(")")]), _vm._v(" "), _c("th", [_vm._v("Horas Hombre")]), _vm._v(" "), _c("th", [_vm._v("Costo Horas")]), _vm._v(" "), _c("th", [_vm._v("Costo Recursos")]), _vm._v(" "), _c("th", [_vm._v("Costo Alimentos")]), _vm._v(" "), _c("th", [_vm._v("Total alimento (Kg)")]), _vm._v(" "), _c("th", [_vm._v("Costo Total")]), _vm._v(" "), _c("th", [_vm._v("Costo produccion final")]), _vm._v(" "), _c("th", [_vm._v("Conversion alimenticia parcial")]), _vm._v(" "), _c("th", [_vm._v("Conversion final")]), _vm._v(" "), _c("th", [_vm._v("Ganancia peso / día "), _c("br"), _vm._v(" (gr) ")]), _vm._v(" "), _c("th", [_c("b", [_vm._v("%")]), _vm._v(" Supervivencia final")])])]);
+  }, [_vm._v("Siembra")]), _vm._v(" "), _c("th", [_vm._v("Area (m²)")]), _vm._v(" "), _c("th", [_vm._v("Tipo")]), _vm._v(" "), _c("th", [_vm._v("Fase")]), _vm._v(" "), _c("th", [_vm._v("Inicio siembra")]), _vm._v(" "), _c("th", [_vm._v("Tiempo de cultivo "), _c("br"), _vm._v(" "), _c("small", [_vm._v("(Días)")])]), _vm._v(" "), _c("th", [_vm._v("Tiempo de cultivo "), _c("br"), _vm._v(" "), _c("small", [_vm._v("(Meses)")])]), _vm._v(" "), _c("th", [_vm._v("Cant Inicial (animales)")]), _vm._v(" "), _c("th", [_vm._v("Biomasa Inicial (kg)")]), _vm._v(" "), _c("th", [_vm._v("Peso Inicial (g)")]), _vm._v(" "), _c("th", [_vm._v("Carga inicial (kg/m²) ")]), _vm._v(" "), _c("th", [_vm._v("Cant final (animales)")]), _vm._v(" "), _c("th", [_vm._v("Peso Actual (g)")]), _vm._v(" "), _c("th", [_vm._v("Biomasa disponible (kg)")]), _vm._v(" "), _c("th", [_vm._v("Biomasa Cosechada (kg) ")]), _vm._v(" "), _c("th", [_vm._v("Mortalidad (Animales)")]), _vm._v(" "), _c("th", [_vm._v("Mortalidad (Kg)")]), _vm._v(" "), _c("th", [_vm._v("% Mortalidad")]), _vm._v(" "), _c("th", [_vm._v("Animales cosechados")]), _vm._v(" "), _c("th", [_vm._v("\n                                        Densidad Inicial\n                                        (Animales/m"), _c("sup", [_vm._v("2")]), _vm._v(")\n                                    ")]), _vm._v(" "), _c("th", [_vm._v("\n                                        Densidad Final\n                                        (Animales/m"), _c("sup", [_vm._v("2")]), _vm._v(")\n                                    ")]), _vm._v(" "), _c("th", [_vm._v("Carga Final (Kg/m"), _c("sup", [_vm._v("2")]), _vm._v(")")]), _vm._v(" "), _c("th", [_vm._v("Horas Hombre")]), _vm._v(" "), _c("th", [_vm._v("Costo Horas")]), _vm._v(" "), _c("th", [_vm._v("Costo Recursos")]), _vm._v(" "), _c("th", [_vm._v("Costo Alimentos")]), _vm._v(" "), _c("th", [_vm._v("Total alimento (Kg)")]), _vm._v(" "), _c("th", [_vm._v("Costo Total")]), _vm._v(" "), _c("th", [_vm._v("Costo produccion final")]), _vm._v(" "), _c("th", [_vm._v("Conversion alimenticia parcial")]), _vm._v(" "), _c("th", [_vm._v("Conversion final")]), _vm._v(" "), _c("th", [_vm._v("Ganancia peso / día "), _c("br"), _vm._v(" (gr) ")]), _vm._v(" "), _c("th", [_c("b", [_vm._v("%")]), _vm._v(" Supervivencia final")])])]);
 }];
 render._withStripped = true;
 
@@ -18830,7 +19335,7 @@ var render = function render() {
   }, [_c("div", {
     staticClass: "form-row col-12"
   }, [_c("div", {
-    staticClass: "form-group col-3"
+    staticClass: "form-group col-xs-6 col-sm-6 col-md-4 col-lg-3"
   }, [_c("label", {
     attrs: {
       "for": "estado_siembta"
@@ -18871,7 +19376,7 @@ var render = function render() {
       value: "0"
     }
   }, [_vm._v("Inactivas")])])]), _vm._v(" "), _c("div", {
-    staticClass: "form-group col-3"
+    staticClass: "form-group col-xs-6 col-sm-6 col-md-4 col-lg-3"
   }, [_c("label", {
     attrs: {
       "for": "siembra_activa"
@@ -18907,7 +19412,92 @@ var render = function render() {
       expression: "f_siembra"
     }
   })] : _vm._e()], 2), _vm._v(" "), _c("div", {
-    staticClass: "form-group col-3"
+    staticClass: "form-group col-xs-6 col-sm-6 col-md-4 col-lg-3"
+  }, [_c("label", {
+    staticClass: "col-form-label",
+    attrs: {
+      "for": "categoria"
+    }
+  }, [_vm._v("Fase\n                ")]), _vm._v(" "), _c("v-select", {
+    staticClass: "w-100",
+    attrs: {
+      label: "phase",
+      reduce: function reduce(option) {
+        return option.id;
+      },
+      filterable: false,
+      options: _vm.listPhases
+    },
+    on: {
+      search: _vm.onSearchPhase
+    },
+    scopedSlots: _vm._u([{
+      key: "option",
+      fn: function fn(option) {
+        return [_c("div", {
+          staticClass: "d-center"
+        }, [_vm._v("\n                      " + _vm._s(option.phase) + "\n                    ")])];
+      }
+    }, {
+      key: "selected-option",
+      fn: function fn(option) {
+        return [_c("div", {
+          staticClass: "selected d-center"
+        }, [_vm._v("\n                      " + _vm._s(option.phase) + "\n                    ")])];
+      }
+    }]),
+    model: {
+      value: _vm.search_phase,
+      callback: function callback($$v) {
+        _vm.search_phase = $$v;
+      },
+      expression: "search_phase"
+    }
+  }, [_c("template", {
+    slot: "no-options"
+  }, [_vm._v("\n                    Escribe para iniciar la búsqueda\n                  ")])], 2)], 1), _vm._v(" "), _c("div", {
+    staticClass: "form-group col-xs-6 col-sm-6 col-md-4 col-lg-3"
+  }, [_c("label", {
+    attrs: {
+      "for": "search_type"
+    }
+  }, [_vm._v("Tipo de siembra")]), _vm._v(" "), _c("select", {
+    directives: [{
+      name: "model",
+      rawName: "v-model",
+      value: _vm.search_type,
+      expression: "search_type"
+    }],
+    staticClass: "custom-select w-100",
+    attrs: {
+      name: "search_type",
+      id: "search_type"
+    },
+    on: {
+      change: function change($event) {
+        var $$selectedVal = Array.prototype.filter.call($event.target.options, function (o) {
+          return o.selected;
+        }).map(function (o) {
+          var val = "_value" in o ? o._value : o.value;
+          return val;
+        });
+        _vm.search_type = $event.target.multiple ? $$selectedVal : $$selectedVal[0];
+      }
+    }
+  }, [_c("option", {
+    attrs: {
+      value: ""
+    }
+  }, [_vm._v("Todas")]), _vm._v(" "), _c("option", {
+    attrs: {
+      value: "Monocultivo"
+    }
+  }, [_vm._v("Monocultivo")]), _vm._v(" "), _c("option", {
+    attrs: {
+      value: "Policultivo"
+    }
+  }, [_vm._v("Policultivo")])])]), _vm._v(" "), _c("div", {
+    staticClass: "form-group col-xs-6 col-sm-6 col-md-4 col-lg-3"
   }, [_c("label", {
     attrs: {
       "for": "siembra_activa"
@@ -18928,9 +19518,35 @@ var render = function render() {
       expression: "contenedor_id"
     }
   })]], 2), _vm._v(" "), _c("div", {
-    staticClass: "form-group col-3"
+    staticClass: "form-group col-xs-6 col-sm-6 col-md-4 col-lg-3"
+  }, [_c("label", {
+    attrs: {
+      "for": "search_nro_results"
+    }
+  }, [_vm._v("Mostrar " + _vm._s(_vm.search_nro_results) + " por página")]), _vm._v(" "), _c("input", {
+    directives: [{
+      name: "model",
+      rawName: "v-model",
+      value: _vm.search_nro_results,
+      expression: "search_nro_results"
+    }],
+    staticClass: "form-control",
+    attrs: {
+      type: "number"
+    },
+    domProps: {
+      value: _vm.search_nro_results
+    },
+    on: {
+      input: function input($event) {
+        if ($event.target.composing) return;
+        _vm.search_nro_results = $event.target.value;
+      }
+    }
+  })]), _vm._v(" "), _c("div", {
+    staticClass: "form-group col-xs-6 col-sm-6 col-md-4 col-lg-3"
   }, [_c("button", {
-    staticClass: "btn btn-success",
+    staticClass: "btn btn-success btn-block mt-4",
     on: {
       click: function click($event) {
         return _vm.listar();
@@ -18938,7 +19554,7 @@ var render = function render() {
     }
   }, [_vm._v("Buscar")])])])]), _vm._v(" "), _c("div", [_c("table", {
     staticClass: "table table-bordered table-striped table-sm table-sticky"
-  }, [_vm._m(0), _vm._v(" "), _c("tbody", _vm._l(_vm.listado, function (siembra) {
+  }, [_vm._m(0), _vm._v(" "), _c("tbody", _vm._l(_vm.listado.data, function (siembra) {
     return _c("tr", {
       key: siembra.id
     }, [_c("th", {
@@ -18948,14 +19564,7 @@ var render = function render() {
       domProps: {
         textContent: _vm._s(siembra.id)
       }
-    }), _vm._v(" "), _c("td", {
-      attrs: {
-        scope: "row"
-      },
-      domProps: {
-        textContent: _vm._s(siembra.nombre_siembra)
-      }
-    }), _vm._v(" "), _c("td", {
+    }), _vm._v(" "), _c("td", [_vm._v("\n                    " + _vm._s(siembra.nombre_siembra) + " "), _c("br"), _vm._v(" "), siembra.phase_id ? _c("small", [_vm._v("\n                      Fase: "), _c("b", [_vm._v(_vm._s(siembra.phase.phase))])]) : _vm._e(), _vm._v(" "), _c("br"), _vm._v(" "), siembra.tipo ? _c("small", [_vm._v("\n                      Tipo: "), _c("b", [_vm._v(_vm._s(siembra.tipo))])]) : _vm._e()]), _vm._v(" "), _c("td", {
       domProps: {
         textContent: _vm._s(siembra.contenedor)
       }
@@ -18975,7 +19584,7 @@ var render = function render() {
           width: "80px",
           display: "inline-block"
         }
-      }, [_vm._v("\n                        " + _vm._s(pez.especie) + "\n                      ")]), _vm._v(" "), _c("span", {
+      }, [_vm._v("\n                        " + _vm._s(pez.especie.especie) + "\n                      ")]), _vm._v(" "), _c("span", {
         staticClass: "nav-item border-bottom",
         staticStyle: {
           width: "80px",
@@ -19069,7 +19678,30 @@ var render = function render() {
     }, [_c("i", {
       staticClass: "fas fa-power-on"
     }), _vm._v(" Activar\n                    ")]) : _vm._e()]), _vm._v(" "), _c("td", [_vm._v("\n                    " + _vm._s(siembra.ini_descanso) + " - "), _c("br"), _vm._v("\n                    " + _vm._s(siembra.fin_descanso) + "\n                  ")])]);
-  }), 0)])])])])])]), _vm._v(" "), _c("create-edit-stocking", {
+  }), 0)]), _vm._v(" "), _c("pagination", {
+    attrs: {
+      align: "center",
+      data: _vm.listado,
+      limit: 2
+    },
+    on: {
+      "pagination-change-page": _vm.listar
+    }
+  }, [_c("span", {
+    attrs: {
+      slot: "prev-nav"
+    },
+    slot: "prev-nav"
+  }, [_c("i", {
+    staticClass: "fas fa-arrow-left"
+  })]), _vm._v(" "), _c("span", {
+    attrs: {
+      slot: "next-nav"
+    },
+    slot: "next-nav"
+  }, [_c("i", {
+    staticClass: "fas fa-arrow-right"
+  })])])], 1)])])])]), _vm._v(" "), _c("create-edit-stocking", {
     ref: "createEditStocking",
     attrs: {
       "listado-contenedores": _vm.listadoContenedores,

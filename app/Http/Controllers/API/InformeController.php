@@ -200,6 +200,10 @@ class InformeController extends Controller
 			$valueEstado = $request['f_estado'];
 		}
 
+		$phase = $request->phase;
+		$type = $request->type;
+		$nro_results = $request->nro_results ?? 15;
+
 		$especies = EspecieSiembra::select(
 			'cant_actual',
 			'contenedor',
@@ -212,6 +216,7 @@ class InformeController extends Controller
 			'nombre_siembra',
 			'peso_inicial',
 			'peso_actual',
+			'siembras.phase_id'
 		)
 			->orderBy('nombre_siembra', 'desc')
 			->orderBy('especies_siembra.id_especie')
@@ -225,8 +230,17 @@ class InformeController extends Controller
 			->where('peso_actual', $signPesoHasta, $valuePesoHasta)
 			->where('lote', $signLote, $valueLote)
 			->where('siembras.estado', $signEstado, $valueEstado)
-			->with('especie:id,especie')
-			->get();
+			->with(['especie:id,especie', 'siembra.phase'])
+			->whereHas('siembra', function ($query) use ($phase, $type) {
+
+				if (!is_null($phase) && $phase != '' && $phase != 'all') {
+					$query->where('phase_id', "LIKE", "%$phase%");
+				}
+				if (!is_null($type) && $type != '' && $type != 'all') {
+					$query->where('tipo', "LIKE", "%$type%");
+				}
+			})
+			->paginate($nro_results);
 
 		$int_tiempo = 0;
 
@@ -284,19 +298,8 @@ class InformeController extends Controller
 			}
 		}
 
-		$existencias = $especies->toArray();
-
-		$totalizadoEspeciesSiembras = [];
-		$totalizadoEspeciesSiembras['cantidad_inicial'] = array_sum(array_column($existencias, 'cantidad_inicial'));
-		$totalizadoEspeciesSiembras['cantidad_actual'] = array_sum(array_column($existencias, 'cantidad_actual'));
-		$totalizadoEspeciesSiembras['peso_inicial'] = array_sum(array_column($existencias, 'peso_inicial'));
-		$totalizadoEspeciesSiembras['mortalidad'] = array_sum(array_column($existencias, 'mortalidad'));
-		$totalizadoEspeciesSiembras['mortalidad_kg'] = array_sum(array_column($existencias, 'mortalidad_kg'));
-		$totalizadoEspeciesSiembras['salida_animales_sin_mortalidad'] = array_sum(array_column($existencias, 'salida_animales_sin_mortalidad'));
-		$totalizadoEspeciesSiembras['biomasa_disponible'] = array_sum(array_column($existencias, 'biomasa_disponible'));
-		$totalizadoEspeciesSiembras['salida_biomasa'] = array_sum(array_column($existencias, 'salida_biomasa'));
-
-		return ['existencias' => $especies, 'totalizadoEspeciesSiembras' => $totalizadoEspeciesSiembras];
+		$totals = $this->getTotalExistences($especies);
+		return ['existencias' => $especies, 'totalizadoEspeciesSiembras' => $totals];
 	}
 
 	public function traerExistenciasDetalle(Request $request)
@@ -325,6 +328,10 @@ class InformeController extends Controller
 			$c4 = $request['f_estado'];
 		}
 
+		$phase = $request->phase;
+		$type = $request->type;
+		$nro_results = $request->nro_results ?? 15;
+
 		$siembras = Siembra::select(
 			'siembras.id as id',
 			'capacidad',
@@ -333,14 +340,26 @@ class InformeController extends Controller
 			'fecha_inicio',
 			'ini_descanso',
 			'siembras.estado',
-			'fin_descanso'
+			'fin_descanso',
+			'tipo',
+			'phase_id'
 		)
 			->where($id_siembra, $operador_id_siembra, $valorIdSiembra)
 			->where('id_contenedor', $signCont, $valorIdContenedor)
 			->where('siembras.estado', $op2, $c4)
 			->join('contenedores', 'siembras.id_contenedor', 'contenedores.id')
 			->orderBy('nombre_siembra', 'desc')
-			->get();
+			->where(function ($query) use ($phase) {
+				if (!is_null($phase) && $phase != '' && $phase != 'all') {
+					$query->where('phase_id', "LIKE", "%$phase%");
+				}
+			})
+			->where(function ($query) use ($type) {
+				if (!is_null($type) && $type != '' && $type != 'all') {
+					$query->where('tipo', "LIKE", "%$type%");
+				}
+			})
+			->paginate($nro_results);
 
 		$registros = Registro::select()
 			->join('siembras', 'registros.id_siembra', 'siembras.id')
@@ -447,47 +466,29 @@ class InformeController extends Controller
 				$siembra->bio_dispo_conver = ($siembra->biomasa_inicial + $siembra->incr_bio_acum_conver) - ($siembra->biomasa_disponible + $siembra->mortalidad_kg);
 				$siembra->peso_actual_esp = ($siembra->contador_esp) > 0 ? $siembra->peso_actual / $siembra->contador_esp : 0;
 
-				// recursos_necesarios
-				$aux_regs[] = [
-					"biomasa_inicial" => $siembra->biomasa_inicial,
-					"biomasa_disponible" => $siembra->biomasa_disponible,
-					"carga_inicial" => $siembra->carga_inicial,
-					"carga_final" => $siembra->carga_final,
-					"cantidad_inicial" => $siembra->cantidad_inicial,
-					"cant_actual" => $siembra->cantidad_actual,
-					'capacidad' => $siembra->capacidad,
-					'conversion_final' => $siembra->conversion_final,
-					"costo_minutosh" => $siembra->costo_minutos_hombre,
-					"costo_total_recurso" => $siembra->costo_total_recurso,
-					'cantidad_total_alimento' => $siembra->cantidad_total_alimento,
-					"costo_total_alimento" => $siembra->costo_total_alimento,
-					"costo_tot" => $siembra->costo_total_siembra,
-					"costo_produccion_final" => $siembra->costo_produccion_final,
-					// 'conversion_alimenticia_siembra' => $siembra->conversion_alimenticia_siembra,
-					'conversion_alimenticia_parcial' => $siembra->conversion_alimenticia_parcial,
-					"densidad_inicial" => $siembra->densidad_inicial,
-					"densidad_final" => $siembra->densidad_final,
-					'ganancia_peso_dia' => $siembra->ganancia_peso_dia,
-					"fecha_inicio" => $siembra->fecha_inicio,
-					"horas_hombre" => $siembra->horas_hombre,
-					"minutos_hombre" => $siembra->minutos_hombre,
-					// 'incr_bio_acum_conver' => $siembra->incr_bio_acum_conver,
-					// 'incremento_biomasa' => $siembra->incremento_biomasa,
-					'intervalo_tiempo' => $siembra->intervalo_tiempo,
-					'intervalo_tiempo_months' => $siembra->intervalo_tiempo_months,
-					"mortalidad" => $siembra->mortalidad,
-					"mortalidad_kg" => $siembra->mortalidad_kg,
-					"mortalidad_porcentaje" => $siembra->mortalidad_porcentaje,
-					"nombre_siembra" => $siembra->nombre_siembra,
-					"peso_inicial" => $siembra->peso_inicial,
-					"peso_actual" => $siembra->peso_actual_esp,
-					"salida_animales" => $siembra->salida_animales,
-					"salida_biomasa" => $siembra->salida_biomasa,
-					"porc_supervivencia_final" => $siembra->porc_supervivencia_final,
-					"salida_animales_sin_mortalidad" => $siembra->salida_animales_sin_mortalidad
-				];
+				//Variables reasignadas
+				$siembra->cant_actual = $siembra->cantidad_actual;
+				$siembra->costo_minutosh = $siembra->costo_minutos_hombre;
+				$siembra->costo_tot = $siembra->costo_total_siembra;
+				$siembra->peso_actual = $siembra->peso_actual_esp;
 			}
 		}
-		return ['existencias' => $aux_regs];
+		return ['existencias' => $siembras];
 	}
+
+	public function getTotalExistences($results)
+    {
+        $data = [
+            'cantidad_inicial' => $results->sum('cantidad_inicial'),
+            'cantidad_actual' => $results->sum('cantidad_actual'),
+            'peso_inicial' => $results->sum('peso_inicial'),
+            'mortalidad' => $results->sum('mortalidad'),
+            'mortalidad_kg' => $results->sum('mortalidad_kg'),
+            'salida_animales_sin_mortalidad' => $results->sum('salida_animales_sin_mortalidad'),
+            'biomasa_disponible' => $results->sum('biomasa_disponible'),
+            'salida_biomasa' => $results->sum('salida_biomasa'),
+        ];
+
+        return $data;
+    }
 }

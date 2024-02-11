@@ -15,7 +15,7 @@
             </div>
             <div class="row">
               <div class="form-row col-12">
-                <div class="form-group col-3">
+                <div class="form-group col-xs-6 col-sm-6 col-md-4 col-lg-3">
                   <label for="estado_siembta">Estado de siembra</label>
                   <select name="estado_siembra" class="custom-select" id="estado_siembra" v-model="estado_siembra">
                     <option value="-1">Todas</option>
@@ -23,7 +23,7 @@
                     <option value="0">Inactivas</option>
                   </select>
                 </div>
-                <div class="form-group col-3">
+                <div class="form-group col-xs-6 col-sm-6 col-md-4 col-lg-3">
                   <label for="siembra_activa">Siembras
                     {{ (estado_siembra == "-1") ? "" : (estado_siembra == 0 ? "inactivas" : "activas") }} :
                   </label>
@@ -36,7 +36,35 @@
                       v-model="f_siembra" />
                   </template>
                 </div>
-                <div class="form-group col-3">
+                <div class="form-group col-xs-6 col-sm-6 col-md-4 col-lg-3">
+                  <label for="categoria" class="col-form-label">Fase
+                  </label>
+                  <v-select label="phase" class="w-100" v-model="search_phase" :reduce="(option) => option.id"
+                    :filterable="false" :options="listPhases" @search="onSearchPhase">
+                    <template slot="no-options">
+                      Escribe para iniciar la búsqueda
+                    </template>
+                    <template slot="option" slot-scope="option">
+                      <div class="d-center">
+                        {{ option.phase }}
+                      </div>
+                    </template>
+                    <template slot="selected-option" slot-scope="option">
+                      <div class="selected d-center">
+                        {{ option.phase }}
+                      </div>
+                    </template>
+                  </v-select>
+                </div>
+                <div class="form-group col-xs-6 col-sm-6 col-md-4 col-lg-3">
+                  <label for="search_type">Tipo de siembra</label>
+                  <select name="search_type" class="custom-select w-100" id="search_type" v-model="search_type">
+                    <option value="">Todas</option>
+                    <option value="Monocultivo">Monocultivo</option>
+                    <option value="Policultivo">Policultivo</option>
+                  </select>
+                </div>
+                <div class="form-group col-xs-6 col-sm-6 col-md-4 col-lg-3">
                   <label for="siembra_activa">Contenedor :
                   </label>
                   <template>
@@ -44,8 +72,12 @@
                       v-model="contenedor_id" />
                   </template>
                 </div>
-                <div class="form-group col-3">
-                  <button class="btn btn-success" @click="listar()">Buscar</button>
+                <div class="form-group col-xs-6 col-sm-6 col-md-4 col-lg-3">
+                  <label for="search_nro_results">Mostrar {{ search_nro_results }} por página</label>
+                  <input type="number" v-model="search_nro_results" class="form-control">
+                </div>
+                <div class="form-group col-xs-6 col-sm-6 col-md-4 col-lg-3">
+                  <button class="btn btn-success btn-block mt-4" @click="listar()">Buscar</button>
                 </div>
               </div>
             </div>
@@ -92,23 +124,34 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="(siembra) in listado" :key="siembra.id">
+                  <tr v-for="(siembra) in listado.data" :key="siembra.id">
                     <th v-text="siembra.id" scope="row"></th>
-                    <td v-text="siembra.nombre_siembra" scope="row"></td>
+                    <td>
+                      {{ siembra.nombre_siembra }} <br>
+                      <small v-if="siembra.phase_id">
+                        Fase: <b>{{ siembra.phase.phase }}</b>
+                      </small> <br>
+                      <small v-if="siembra.tipo">
+                        Tipo: <b>{{ siembra.tipo }}</b>
+                      </small>
+                    </td>
                     <td v-text="siembra.contenedor"></td>
                     <td class="d-sm-none d-none d-md-block">
                       <div v-for="pez in siembra.peces" :key="pez.id" class="border-0"
                         style="width: max-content; margin: auto">
                         <span class="nav-item border-bottom" style="width: 80px; display: inline-block">
-                          {{ pez.especie }}
+                          {{ pez.especie.especie }}
                         </span>
-                        <span class="nav-item border-bottom" style="width: 80px;text-align: center;display: inline-block;">
+                        <span class="nav-item border-bottom"
+                          style="width: 80px;text-align: center;display: inline-block;">
                           {{ pez.lote }}
                         </span>
-                        <span class="nav-item border-bottom" style="width: 80px;text-align: center;display: inline-block;">
+                        <span class="nav-item border-bottom"
+                          style="width: 80px;text-align: center;display: inline-block;">
                           {{ Math.floor(pez.cant_actual) }}
                         </span>
-                        <span class="nav-item border-bottom" style="width: 60px;display: inline-block;text-align: center;">
+                        <span class="nav-item border-bottom"
+                          style="width: 60px;display: inline-block;text-align: center;">
                           {{ pez.peso_actual + "Gr" }}
                         </span>
                       </div>
@@ -161,6 +204,10 @@
                   </tr>
                 </tbody>
               </table>
+              <pagination :align="'center'" :data="listado" :limit="2" @pagination-change-page="listar">
+                <span slot="prev-nav"><i class="fas fa-arrow-left"></i></span>
+                <span slot="next-nav"><i class="fas fa-arrow-right"></i></span>
+              </pagination>
             </div>
           </div>
         </div>
@@ -196,11 +243,11 @@ export default {
         nombre_siembra: "",
         id_siembra: "",
       }),
-
+      listPhases: [],
       fechaActual: [],
       listadoEspecies: [],
       listadoContenedores: [],
-      listado: [],
+      listado: {},
       listadoSiembras: [],
       listadoRN: [],
       lotes: [],
@@ -210,7 +257,10 @@ export default {
       //Filtro siembras
       estado_siembra: "-1",
       f_siembra: "",
-      contenedor_id: "-1"
+      contenedor_id: "-1",
+      search_phase: "",
+      search_type: "",
+      search_nro_results:"15"
     };
   },
   computed: {
@@ -253,15 +303,22 @@ export default {
       this.$refs.dialogFishFood.listarRecursosAlimentos(id);
     },
 
-    listar() {
+    listar(page=1) {
       let me = this;
+      let data = {
+        estado_siembra: me.estado_siembra,
+        id_siembra: me.f_siembra,
+        contenedor_id: me.contenedor_id,
+        phase: this.search_phase,
+        page: page,
+        type: this.search_type,
+        nro_results:this.search_nro_results
+      }
+
       axios
         .get(
-          "api/siembras?estado_siembra=" +
-          me.estado_siembra +
-          "&id_siembra=" +
-          me.f_siembra +
-          '&contenedor_id=' + me.contenedor_id
+          "api/siembras",
+          { params: data }
         )
         .then(function (response) {
           me.listado = response.data.siembra;
@@ -319,6 +376,23 @@ export default {
           });
         }
       });
+    },
+    onSearchPhase(search, loading) {
+      if (search.length) {
+        loading(true);
+        let data = {
+          phase: search
+        };
+
+        axios.get(`api/phases/get`, {
+          params: data
+        })
+          .then((response) => {
+            this.listPhases = (response.data.phases.data);
+            loading(false)
+          })
+          .catch(e => console.log(e))
+      }
     },
   },
   mounted() {

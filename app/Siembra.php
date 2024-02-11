@@ -16,6 +16,19 @@ class Siembra extends Model
         'fecha_alimento',
         'estado',
         'ini_descanso',
-        'fin_descanso'
+        'fin_descanso',
+        'phase_id'
     ];
+
+    protected $with =[
+      'phase'
+    ];
+
+    public function phase(){
+        return $this->belongsTo(Phase::class, 'phase_id');
+    }
+
+    public function peces() {
+        return $this->hasMany(EspecieSiembra::class, 'id_siembra');
+    }
 }

@@ -307,8 +307,11 @@ export default {
     listPhases(page = 1) {
       let me = this;
       me.isLoading = true;
+      let data = {
+        page :page
+      }
       axios
-        .get("api/phases?page=" + page, this.$root.config)
+        .get("api/phases", {params:data})
         .then(function (response) {
           me.phaseListing = response.data.phases;
         })
